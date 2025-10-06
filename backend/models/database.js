@@ -1,28 +1,22 @@
 import { Pool } from "pg";
 import dotenv from "dotenv";
-dotenv.config();
 
-let pool;
+// load env file based on NODE_ENV
+const envFile =
+  process.env.NODE_ENV === "production"
+    ? ".env.production"
+    : ".env.development"; // use local dev docker db
 
-if (process.env.NODE_ENV === "development") {
-  pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-      rejectUnauthorized: false,
-    },
-  });
-  console.log("✅ Connected to PostgreSQL database (development)");
-} else {
-  pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-      rejectUnauthorized: false,
-    },
-  });
-  console.log("✅ Connected to PostgreSQL database (production)");
-}
+dotenv.config({ path: envFile });
+
+let pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+});
 
 pool.connect().catch((err) => console.error("❌ DB connection error:", err));
+
+console.log(`✅ Connected to PostgreSQL database (${process.env.NODE_ENV})`);
 
 const db = {
   async query(text, params) {
