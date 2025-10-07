@@ -1,120 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const serviceMap = {
-  '7000-service': { 
-    serviceAmount: 7000, 
-    salonAmount: 4000, 
-    barberAmount: 2000, 
-    barberAssistantAmount: 1000 
-  },
-  '5000-service': { 
-    serviceAmount: 5000, 
-    salonAmount: 3000, 
-    barberAmount: 2000, 
-  },
-  'child-service': { 
-    serviceAmount: 3000, 
-    salonAmount: 2000, 
-    barberAmount: 1000, 
-  },
-  'beard-service': { 
-    serviceAmount: 3000, 
-    salonAmount: 2000, 
-    barberAmount: 1000, 
-  },
-  'haircut-blackmask-12000': { 
-    serviceAmount: 12000, 
-    salonAmount: 4000, 
-    barberAmount: 2000, 
-    barberAssistantAmount: 1000, 
-    blackMaskAmount: 4000, 
-    blackMaskAssistantAmount: 1000 
-  },
-  'haircut-blackshampoo-12000': { 
-    serviceAmount: 12000, 
-    salonAmount: 4000, 
-    barberAmount: 2000,
-    barberAssistantAmount: 1000,
-    blackShampooAmount:3500,
-    blackShampooAssistantAmount: 1500 
-  },
-  'haircut-blackshampoo-10000': { 
-    serviceAmount: 10000, 
-    salonAmount: 4000, 
-    barberAmount: 2000,
-    barberAssistantAmount: 1000,
-    blackShampooAmount:3000,
-    blackShampooAssistantAmount: 1000 
-  },
-  'haircut-superblack-15000': { 
-    serviceAmount: 15000, 
-    salonAmount: 4000, 
-    barberAmount: 2000,
-    barberAssistantAmount: 1000,
-    superBlackAmount:6000,
-    superBlackAssistantAmount: 2000 
-  },
-  'trimming-scrub-5000': { 
-    serviceAmount: 5000, 
-    salonAmount: 3000, 
-    barberAmount: 1000,
-    barberAssistantAmount: 1000 
-  },
-  'haircut-honey-10000': { 
-    serviceAmount: 10000, 
-    salonAmount: 6000, 
-    barberAmount: 2000,
-    barberAssistantAmount: 2000
-  },
-  'haircut-women': { 
-    serviceAmount: 10000, 
-    salonAmount: 6000, 
-    barberAmount: 4000,
-  },
-  'scrub-only-3000': { 
-    serviceAmount: 3000, 
-    scrubAmount: 2000,
-    scrubAssistantAmount: 1000,
-  },
-  'scrub-only-5000': { 
-    serviceAmount: 5000, 
-    scrubAmount: 4000, 
-    scrubAssistantAmount: 1000 
-  },
-  'blackshampoo-only-3000': { 
-    serviceAmount: 3000, 
-    blackShampooAmount: 2000,  
-    blackShampooAssistantAmount: 1000 
-  },
-  'blackshampoo-only-5000': { 
-    serviceAmount: 5000, 
-    blackShampooAmount: 4000, 
-    blackShampooAssistantAmount: 1000
-  }
+  '7000-service': { serviceAmount: 7000, salonAmount: 4000, barberAmount: 2000, barberAssistantAmount: 1000 },
+  '5000-service': { serviceAmount: 5000, salonAmount: 3000, barberAmount: 2000 },
+  'child-service': { serviceAmount: 3000, salonAmount: 2000, barberAmount: 1000 },
+  'beard-service': { serviceAmount: 3000, salonAmount: 2000, barberAmount: 1000 },
+  'haircut-blackmask-12000': { serviceAmount: 12000, salonAmount: 4000, barberAmount: 2000, barberAssistantAmount: 1000, blackMaskAmount: 4000, blackMaskAssistantAmount: 1000 },
+  'haircut-blackshampoo-12000': { serviceAmount: 12000, salonAmount: 4000, barberAmount: 2000, barberAssistantAmount: 1000, blackShampooAmount: 3500, blackShampooAssistantAmount: 1500 },
+  'haircut-blackshampoo-10000': { serviceAmount: 10000, salonAmount: 4000, barberAmount: 2000, barberAssistantAmount: 1000, blackShampooAmount: 3000, blackShampooAssistantAmount: 1000 },
+  'haircut-superblack-15000': { serviceAmount: 15000, salonAmount: 4000, barberAmount: 2000, barberAssistantAmount: 1000, superBlackAmount: 6000, superBlackAssistantAmount: 2000 },
+  'trimming-scrub-5000': { serviceAmount: 5000, salonAmount: 3000, barberAmount: 1000, barberAssistantAmount: 1000 },
+  'haircut-honey-10000': { serviceAmount: 10000, salonAmount: 6000, barberAmount: 2000, barberAssistantAmount: 2000 },
+  'haircut-women': { serviceAmount: 10000, salonAmount: 6000, barberAmount: 4000 },
+  'scrub-only-3000': { serviceAmount: 3000, scrubAmount: 2000, scrubAssistantAmount: 1000 },
+  'scrub-only-5000': { serviceAmount: 5000, scrubAmount: 4000, scrubAssistantAmount: 1000 },
+  'blackshampoo-only-3000': { serviceAmount: 3000, blackShampooAmount: 2000, blackShampooAssistantAmount: 1000 },
+  'blackshampoo-only-5000': { serviceAmount: 5000, blackShampooAmount: 4000, blackShampooAssistantAmount: 1000 }
 };
 
-
 const mockEmployees = [
-  { id: 1, first_name: "Tagoole", last_name: "Nathan", phone: "705715763" },
-  { id: 2, first_name: "Mukungu", last_name: "Ismail", phone: "755686550" },
-  { id: 3, first_name: "Direse", last_name: "Arafat", phone: "742259330" },
-  { id: 4, first_name: "Nambi", last_name: "Aisha", phone: "753541883" },
-  { id: 5, first_name: "Mutesi", last_name: "Shamina", phone: "745930298" },
-  { id: 6, first_name: "Nantongo", last_name: "Jazimin", phone: "703093092" },
-  { id: 7, first_name: "Nakaibale", last_name: "Sharon", phone: "752272415" },
-  { id: 8, first_name: "Kyewayenda", last_name: "Brenda", phone: "752853209" },
-  { id: 9, first_name: "Tusubira", last_name: "David tobex", phone: "788517650" },
-  { id: 10, first_name: "Kwikiriza", last_name: "Phinnah", phone: "742927521" },
-  { id: 11, first_name: "Muzale Grace", last_name: "innocent", phone: "754954054" },
-  { id: 12, first_name: "Tendo", last_name: "Mirembe", phone: "750795036" },
-  { id: 13, first_name: "Nakato", last_name: "Hilda", phone: "700465015" },
-  { id: 14, first_name: "Bazibu", last_name: "Nickolas", phone: "750411158" },
+  { id: 1, first_name: "Tagoole", last_name: "Nathan" },
+  { id: 2, first_name: "Mukungu", last_name: "Ismail" },
+  { id: 3, first_name: "Direse", last_name: "Arafat" },
+  { id: 4, first_name: "Nambi", last_name: "Aisha" },
+  { id: 5, first_name: "Mutesi", last_name: "Shamina" },
+  { id: 6, first_name: "Nantongo", last_name: "Jazimin" },
+  { id: 7, first_name: "Nakaibale", last_name: "Sharon" },
+  { id: 8, first_name: "Kyewayenda", last_name: "Brenda" },
+  { id: 9, first_name: "Tusubira", last_name: "David tobex" },
+  { id: 10, first_name: "Kwikiriza", last_name: "Phinnah" },
+  { id: 11, first_name: "Muzale Grace", last_name: "innocent" },
+  { id: 12, first_name: "Tendo", last_name: "Mirembe" },
+  { id: 13, first_name: "Nakato", last_name: "Hilda" },
+  { id: 14, first_name: "Bazibu", last_name: "Nickolas" }
 ];
 
-
-
-export default function ServiceForm({ onSubmit, onClose }) {
-
+export default function ServiceForm({ onSubmit, onClose, serviceData }) {
   const [formData, setFormData] = useState({
     service: "",
     barber: "",
@@ -122,20 +43,34 @@ export default function ServiceForm({ onSubmit, onClose }) {
     scrubberAssistant: "",
     blackMaskAssistant: "",
     blackShampooAssistant: "",
-    superBlackAssistant: "",
+    superBlackAssistant: ""
   });
 
+  // Prefill form when editing
+  useEffect(() => {
+    if (serviceData) {
+      setFormData({
+        id:serviceData.id,
+        service: serviceData.name || "",
+        barber: serviceData.barber || "",
+        barberAssistant: serviceData.barber_assistant || "",
+        scrubberAssistant: serviceData.scrubber_assistant || "",
+        blackMaskAssistant: serviceData.black_mask_assistant || "",
+        blackShampooAssistant: serviceData.black_shampoo_assistant || "",
+        superBlackAssistant: serviceData.super_black_assistant || ""
+      });
+    }
+  }, [serviceData]);
+
   const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
 const { 
+  id,
   service, 
   barber, 
   barberAssistant, 
@@ -149,6 +84,7 @@ const calculation = serviceMap[service];
 if (!calculation) return alert('Invalid service selected');
 
 const payload = {
+  id,
   name: service,
 
   service_amount: calculation.serviceAmount || 0,
@@ -217,6 +153,7 @@ const payload = {
           <label className="block mb-1">Barber</label>
           <select
             name="barber"
+            value={formData.barber}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -233,6 +170,7 @@ const payload = {
           <label className="block mb-1">Aesthetician</label>
           <select
             name="barberAssistant"
+            value={formData.barberAssistant}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -254,6 +192,7 @@ const payload = {
         <label className="block mb-1">Barber</label>
         <select
           name="barber"
+          value={formData.barber}
           onChange={handleChange}
           className="w-full border rounded px-2 py-1"
         >
@@ -274,6 +213,7 @@ const payload = {
         <label className="block mb-1">Barber</label>
         <select
           name="barber"
+          value={formData.barber}
           onChange={handleChange}
           className="w-full border rounded px-2 py-1"
         >
@@ -294,6 +234,7 @@ const payload = {
         <label className="block mb-1">Barber</label>
         <select
           name="barber"
+          value={formData.barber}
           onChange={handleChange}
           className="w-full border rounded px-2 py-1"
         >
@@ -315,6 +256,7 @@ const payload = {
           <label className="block mb-1">Barber</label>
           <select
             name="barber"
+            value={formData.barber}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -331,6 +273,7 @@ const payload = {
           <label className="block mb-1">Aesthetician</label>
           <select
             name="barberAssistant"
+            value={formData.barberAssistant}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -346,6 +289,7 @@ const payload = {
           <label className="block mb-1">Black Mask Aesthetician</label>
           <select
             name="blackMaskAssistant"
+            value={formData.blackMaskAssistant}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -369,6 +313,7 @@ const payload = {
           <label className="block mb-1">Barber</label>
           <select
             name="barber"
+            value={formData.barber}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -385,6 +330,7 @@ const payload = {
           <label className="block mb-1">Aesthetician</label>
           <select
             name="barberAssistant"
+            value={formData.barberAssistant}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -407,6 +353,7 @@ const payload = {
           <label className="block mb-1">Barber</label>
           <select
             name="barber"
+            value={formData.barber}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -423,6 +370,7 @@ const payload = {
           <label className="block mb-1">Aesthetician</label>
           <select
             name="barberAssistant"
+            value={formData.barberAssistant}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -444,6 +392,7 @@ const payload = {
           <label className="block mb-1">Barber</label>
           <select
             name="barber"
+            value={formData.barber}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -467,6 +416,7 @@ const payload = {
           <label className="block mb-1">Barber</label>
           <select
             name="barber"
+            value={formData.barber}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -482,6 +432,7 @@ const payload = {
           <label className="block mb-1">Aesthetician</label>
           <select
             name="barberAssistant"
+            value={formData.barberAssistant}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -498,6 +449,7 @@ const payload = {
           <label className="block mb-1">Black Shampoo Aesthetician</label>
           <select
             name="blackShampooAssistant"
+            value={formData.blackShampooAssistant}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -520,6 +472,7 @@ const payload = {
           <label className="block mb-1">Barber</label>
           <select
             name="barber"
+            value={formData.barber}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -536,6 +489,7 @@ const payload = {
           <label className="block mb-1">Aesthetician</label>
           <select
             name="barberAssistant"
+            value={formData.barberAssistant}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -552,6 +506,7 @@ const payload = {
           <label className="block mb-1">Black Shampoo Aesthetician</label>
           <select
             name="blackShampooAssistant"
+            value={formData.blackShampooAssistant}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -574,6 +529,7 @@ const payload = {
           <label className="block mb-1">Barber</label>
           <select
             name="barber"
+            value={formData.barber}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -590,6 +546,7 @@ const payload = {
           <label className="block mb-1">Aesthetician</label>
           <select
             name="barberAssistant"
+            value={formData.barberAssistant}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -606,6 +563,7 @@ const payload = {
           <label className="block mb-1">SuperBlack Aesthetician</label>
           <select
             name="superBlackAssistant"
+            value={formData.superBlackAssistant}
             onChange={handleChange}
             className="w-full border rounded px-2 py-1"
           >
@@ -627,6 +585,7 @@ const payload = {
         <label className="block mb-1">Scrubber Aesthetician</label>
         <select
           name="scrubberAssistant"
+          value={formData.scrubberAssistant}
           onChange={handleChange}
           className="w-full border rounded px-2 py-1"
         >
@@ -647,6 +606,7 @@ const payload = {
         <label className="block mb-1">Scrubber Aesthetician</label>
         <select
           name="scrubberAssistant"
+          value={formData.scrubberAssistant}
           onChange={handleChange}
           className="w-full border rounded px-2 py-1"
         >
@@ -667,6 +627,7 @@ const payload = {
         <label className="block mb-1">Black Shampoo Aesthetician</label>
         <select
           name="blackShampooAssistant"
+          value={formData.blackShampooAssistant}
           onChange={handleChange}
           className="w-full border rounded px-2 py-1"
         >
@@ -687,6 +648,7 @@ const payload = {
         <label className="block mb-1">Black Shampoo Aesthetician</label>
         <select
           name="blackShampooAssistant"
+          value={formData.blackShampooAssistant}
           onChange={handleChange}
           className="w-full border rounded px-2 py-1"
         >

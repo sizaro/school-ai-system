@@ -21,6 +21,7 @@ import WorkDailyReport from './pages/WorkDailyReport';
 import WorkWeeklyReport from './pages/WorkWeeklyReport';
 import WorkMonthlyReport from './pages/WorkMonthlyReport';
 import WorkYearlyReport from './pages/WorkYearlyReport';
+import Employees from './pages/Employees';
 
 
 function App() {
@@ -42,6 +43,9 @@ function App() {
   <Route path="/pages/ExpensesWeeklyReport" element={<ExpensesWeeklyReport />} />
   <Route path="/pages/ExpensesMonthlyReport" element={<ExpensesMonthlyReport />} />
   <Route path="/pages/ExpensesYearlyReport" element={<ExpensesYearlyReport />} />
+
+   {/* Employees */}
+  <Route path="/pages/Employees" element={<Employees />} />
 
   {/* Work Performance Reports */}
   <Route path="/pages/WorkDailyReport" element={<WorkDailyReport />} />

@@ -14,7 +14,7 @@ export const DataProvider = ({ children }) => {
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5500/api";
 
-  // Fetch non-session data once or on mutation
+  // ---------- Fetch All ----------
   const fetchAllData = async () => {
     try {
       const [servicesRes, advancesRes, expensesRes, clockingsRes, employeeRes] =
@@ -24,7 +24,7 @@ export const DataProvider = ({ children }) => {
           axios.get(`${API_URL}/expenses`),
           axios.get(`${API_URL}/clockings`),
           axios.get(`${API_URL}/employees`),
-         ]);
+        ]);
 
       setServices(servicesRes.data);
       setAdvances(advancesRes.data);
@@ -36,7 +36,7 @@ export const DataProvider = ({ children }) => {
     }
   };
 
-  // Fetch sessions (polling every 1 min)
+  // ---------- Fetch Sessions ----------
   const fetchSessions = async () => {
     try {
       const res = await axios.get(`${API_URL}/sessions`);
@@ -46,121 +46,162 @@ export const DataProvider = ({ children }) => {
     }
   };
 
-  // -------------------------
-  // NEW: Report Queries
-  // -------------------------
+  // ---------- Reports ----------
+  const fetchDailyData = async (date) => {
+    try {
+      const formatDate = (d) => new Date(d).toISOString().split("T")[0];
+      const res = await axios.get(`${API_URL}/reports/daily`, {
+        params: { date: formatDate(date) },
+      });
+      const data = res.data;
+      setServices(data.services);
+      setExpenses(data.expenses);
+      setAdvances(data.advances);
+      setClockings(data.clockings);
+      return data;
+    } catch (err) {
+      console.error("Error fetching daily report:", err);
+      throw err;
+    }
+  };
 
-  // Daily report
-  // Daily report
-const fetchDailyData = async (date) => {
-  try {
-    // Format the date to YYYY-MM-DD if needed
-    const formatDate = (d) => new Date(d).toISOString().split("T")[0];
+  const fetchWeeklyData = async (start, end) => {
+    try {
+      const formatDate = (date) => date.toISOString().split("T")[0];
+      const res = await axios.get(`${API_URL}/reports/weekly`, {
+        params: { startDate: formatDate(start), endDate: formatDate(end) },
+      });
+      const data = res.data;
+      setServices(data.services);
+      setExpenses(data.expenses);
+      setAdvances(data.advances);
+      return data;
+    } catch (err) {
+      console.error("Error fetching weekly report:", err);
+    }
+  };
 
-    const res = await axios.get(`${API_URL}/reports/daily`, {
-      params: { date: formatDate(date) }, // e.g. "2025-10-02"
-    });
-
-    const data = res.data; // { services: [...], expenses: [...], advances: [...] }
-
-    // ✅ Set the context state just like weekly/monthly
-    setServices(data.services);
-    setExpenses(data.expenses);
-    setAdvances(data.advances);
-    setClockings(data.clockings)
-
-    console.log("Daily data arriving into the frontend", data);
-
-    return data; // return in case needed
-  } catch (err) {
-    console.error("Error fetching daily report:", err);
-    throw err;
-  }
-};
-
-
-  // Weekly report
-    const fetchWeeklyData = async (start, end) => {
-  try {
-    const formatDate = (date) => date.toISOString().split("T")[0];
-
-    const res = await axios.get(`${API_URL}/reports/weekly`, {
-      params: {
-        startDate: formatDate(start), // e.g. "2025-09-29"
-        endDate: formatDate(end),     // e.g. "2025-10-05"
-      },
-    });
-
-    const data = res.data; // { services: [...], expenses: [...], advances: [...] }
-
-    // ✅ Set the context state so the frontend receives it
-    setServices(data.services);
-    setExpenses(data.expenses);
-    setAdvances(data.advances);
-
-    console.log("data arriving into the frontend", data);
-  } catch (err) {
-    console.error("Error fetching weekly report:", err);
-  }
-};
-
-
-  // Monthly report
   const fetchMonthlyData = async (year, month) => {
+    try {
+      const res = await axios.get(`${API_URL}/reports/monthly`, {
+        params: { year, month },
+      });
+      const data = res.data;
+      setServices(data.services);
+      setExpenses(data.expenses);
+      setAdvances(data.advances);
+      return data;
+    } catch (err) {
+      console.error("Error fetching monthly report:", err);
+      throw err;
+    }
+  };
+
+  const fetchYearlyData = async (year) => {
+    try {
+      const res = await axios.get(`${API_URL}/reports/yearly`, { params: { year } });
+      const data = res.data;
+      setServices(data.services);
+      setExpenses(data.expenses);
+      setAdvances(data.advances);
+      return data;
+    } catch (err) {
+      console.error("Error fetching yearly report:", err);
+    }
+  };
+
+  // ---------- NEW: CRUD for Services ----------
+  const fetchServiceById = async (id) => {
+    try {
+      const res = await axios.get(`${API_URL}/services/${id}`);
+      return res.data;
+    } catch (err) {
+      console.error("Error fetching service by ID:", err);
+      throw err;
+    }
+  };
+
+  const updateService = async (id, formData) => {
+    try {
+      const res = await axios.put(`${API_URL}/services/${id}`, formData);
+      await fetchAllData(); // global refresh (still useful)
+      return res.data;
+    } catch (err) {
+      console.error("Error updating service:", err);
+      throw err;
+    }
+  };
+
+  const deleteService = async (id) => {
+    try {
+      await axios.delete(`${API_URL}/services/${id}`);
+      await fetchAllData();
+    } catch (err) {
+      console.error("Error deleting service:", err);
+      throw err;
+    }
+  };
+
+
+  // ---------- Employees CRUD ----------
+const fetchEmployees = async () => {
   try {
-    const res = await axios.get(`${API_URL}/reports/monthly`, {
-      params: { year, month }
-    });
-
-    const data = res.data; //
-
-    // ✅ Store in context (just like weekly)
-    setServices(data.services);
-    setExpenses(data.expenses);
-    setAdvances(data.advances);
-
-    console.log("Monthly data arriving into the frontend:", data);
-
-    return data;
+    const res = await axios.get(`${API_URL}/employees`);
+    setEmployees(res.data);
+    return res.data;
   } catch (err) {
-    console.error("Error fetching monthly report:", err);
+    console.error("Error fetching employees:", err);
+    throw err;
+  }
+};
+
+const fetchEmployeeById = async (id) => {
+    try {
+      const res = await axios.get(`${API_URL}/employees/${id}`);
+      return res.data;
+    } catch (err) {
+      console.error("Error fetching employee by ID:", err);
+      throw err;
+    }
+  };
+
+const createEmployee = async (employeeData) => {
+  try {
+    const res = await axios.post(`${API_URL}/employees`, employeeData);
+    await fetchEmployees(); // refresh list
+    return res.data;
+  } catch (err) {
+    console.error("Error creating employee:", err);
+    throw err;
+  }
+};
+
+const updateEmployee = async (id, employeeData) => {
+  try {
+    const res = await axios.put(`${API_URL}/employees/${id}`, employeeData);
+    await fetchEmployees();
+    return res.data;
+  } catch (err) {
+    console.error("Error updating employee:", err);
+    throw err;
+  }
+};
+
+const deleteEmployee = async (id) => {
+  try {
+    await axios.delete(`${API_URL}/employees/${id}`);
+    await fetchEmployees();
+  } catch (err) {
+    console.error("Error deleting employee:", err);
     throw err;
   }
 };
 
 
-  // Yearly report (commented until needed)
-
-  // Yearly report
-const fetchYearlyData = async (year) => {
-  try {
-    const res = await axios.get(`${API_URL}/reports/yearly`, {
-      params: { year },
-    });
-
-    const data = res.data; // { services, expenses, advances }
-
-    // ✅ Update context state
-    setServices(data.services);
-    setExpenses(data.expenses);
-    setAdvances(data.advances);
-
-    console.log("Yearly data arriving into frontend:", data);
-
-    return data; // optional if a page wants to use it directly
-  } catch (err) {
-    console.error("Error fetching yearly report:", err);
-  }
-};
-
-
-  // -------------------------
-  // sendFormData (unchanged)
-  // -------------------------
+  // ---------- Send Form ----------
   const sendFormData = async (formIdentifier, formData) => {
     try {
       let res;
-
       switch (formIdentifier) {
         case "createEmployee":
           res = await axios.post(`${API_URL}/employees`, formData);
@@ -185,14 +226,14 @@ const fetchYearlyData = async (year) => {
         case "updateClocking":
           res = await axios.put(`${API_URL}/clockings`, formData);
           await fetchAllData();
-          break;  
+          break;
         case "openSalon":
         case "closeSalon":
           res =
             formIdentifier === "openSalon"
               ? await axios.post(`${API_URL}/sessions`, formData)
               : await axios.put(`${API_URL}/sessions`, formData);
-          await fetchSessions(); // only refresh sessions
+          await fetchSessions();
           break;
         default:
           throw new Error("Unknown form identifier: " + formIdentifier);
@@ -205,39 +246,46 @@ const fetchYearlyData = async (year) => {
     }
   };
 
-  // Fetch static data once on mount
+  // ---------- Effects ----------
   useEffect(() => {
     fetchAllData();
   }, []);
 
-  // Poll sessions every 1 minute
   useEffect(() => {
-    fetchSessions(); // initial fetch
-    const interval = setInterval(fetchSessions, 60 * 1000); // 1 min
-
+    fetchSessions();
+    const interval = setInterval(fetchSessions, 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
+  // ---------- Export ----------
   return (
     <DataContext.Provider
-      value={{
-        services,
-        employees,
-        expenses,
-        advances,
-        clockings,
-        sessions,
-        loading,
-        fetchAllData,
-        sendFormData,
-        fetchDailyData,
-        fetchWeeklyData,
-        fetchMonthlyData,
-        fetchYearlyData,
-      }}
-    >
-      {children}
-    </DataContext.Provider>
+  value={{
+    services,
+    employees,
+    expenses,
+    advances,
+    clockings,
+    sessions,
+    loading,
+    fetchAllData,
+    sendFormData,
+    fetchDailyData,
+    fetchWeeklyData,
+    fetchMonthlyData,
+    fetchYearlyData,
+    fetchServiceById,
+    updateService,
+    deleteService,
+    fetchEmployees,
+    fetchEmployeeById,
+    createEmployee,
+    updateEmployee,
+    deleteEmployee,
+  }}
+>
+  {children}
+</DataContext.Provider>
   );
 };
 

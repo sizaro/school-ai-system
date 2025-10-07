@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useData } from "../context/DataContext.jsx";
 import "../styles/IncomeDailyReport.css";
+import Modal from "../components/Modal";
+import ServiceForm from "../components/ServiceForm.jsx";
+import ConfirmModal from "../components/ConfirmModal.jsx";
 
 const IncomeDailyReport = () => {
-  const { services, employees, advances, expenses, sessions, fetchDailyData } = useData();
+  const { services, employees, advances, expenses, sessions, fetchDailyData, fetchServiceById,
+    updateService, deleteService, } = useData();
 
   const today = new Date();
   const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
@@ -12,6 +16,39 @@ const IncomeDailyReport = () => {
   const session = sessions && sessions.length > 0 ? sessions[0] : null;
   const [liveDuration, setLiveDuration] = useState("");
   const [selectedDate, setSelectedDate] = useState(today.toLocaleDateString("en-CA")); // YYYY-MM-DD
+   const [showModal, setShowModal] = useState(false);
+  const [editingService, setEditingService] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState(null);
+
+
+   const handleEditClick = async (serviceId) => {
+    const service = await fetchServiceById(serviceId);
+    setEditingService(service);
+    setShowModal(true);
+  };
+
+  const handleModalSubmit = async (updatedService) => {
+    await updateService(updatedService.id, updatedService);
+    await fetchDailyData(selectedDate); // refresh view
+    setShowModal(false);
+    setEditingService(null);
+  };
+
+   const handleDelete = (serviceId) => {
+    setServiceToDelete(serviceId);
+    setConfirmModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (serviceToDelete) {
+      await deleteService(serviceToDelete);
+      await fetchDailyData(selectedDate);
+      setConfirmModalOpen(false);
+      setServiceToDelete(null);
+    }
+  };
 
   // ---- Totals Calculation ----
   const calculateTotals = (services, expenses, advances) => {
@@ -167,6 +204,7 @@ const IncomeDailyReport = () => {
                     <th className="px-3 py-2 text-left">Black Mask Aesthetician Amount</th>
                     <th className="px-3 py-2 text-left">Black Mask Amount</th>
                     <th className="px-3 py-2 text-left">Time of Service</th>
+                    <th className="px-3 py-2 text-left">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -195,12 +233,51 @@ const IncomeDailyReport = () => {
                       <td className="px-3 py-2">{service.black_mask_assistant_amount || "-"}</td>
                       <td className="px-3 py-2">{service.black_mask_amount}</td>
                       <td className="px-3 py-2">{formatEAT(service.service_timestamp)}</td>
+                       <td className="px-3 py-2 space-x-1">
+                        <button
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
+                          onClick={() => handleEditClick(service.id)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
+                          onClick={() => handleDelete(service.id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </section>
+           {/* Modal */}
+          <Modal
+            isOpen={showModal}
+            onClose={() => {
+              setShowModal(false);
+              setEditingService(null);
+            }}
+          >
+            {editingService && (
+              <ServiceForm
+                serviceData={editingService}
+                onSubmit={handleModalSubmit}
+                onClose={() => {
+                  setShowModal(false);
+                  setEditingService(null);
+                }}
+              />
+            )}
+          </Modal>
+          <ConfirmModal
+            isOpen={confirmModalOpen}
+            message="Are you sure you want to delete this service?"
+            onConfirm={confirmDelete}
+            onClose={() => setConfirmModalOpen(false)}
+          />
         </>
       ) : (
         <p>Salon not open today yet</p>
