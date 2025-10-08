@@ -17,20 +17,11 @@ export const DataProvider = ({ children }) => {
   // ---------- Fetch All ----------
   const fetchAllData = async () => {
     try {
-      const [servicesRes, advancesRes, expensesRes, clockingsRes, employeeRes] =
+      const [clockingsRes] =
         await Promise.all([
-          axios.get(`${API_URL}/services`),
-          axios.get(`${API_URL}/advances`),
-          axios.get(`${API_URL}/expenses`),
           axios.get(`${API_URL}/clockings`),
-          axios.get(`${API_URL}/employees`),
         ]);
-
-      setServices(servicesRes.data);
-      setAdvances(advancesRes.data);
-      setExpenses(expensesRes.data);
       setClockings(clockingsRes.data);
-      setEmployees(employeeRes.data);
     } catch (err) {
       console.error("Error fetching static data:", err);
     }
@@ -358,10 +349,6 @@ const deleteEmployee = async (id) => {
     }
   };
 
-  // ---------- Effects ----------
-  useEffect(() => {
-    fetchAllData();
-  }, []);
 
   useEffect(() => {
     fetchSessions();
@@ -380,7 +367,6 @@ const deleteEmployee = async (id) => {
     clockings,
     sessions,
     loading,
-    fetchAllData,
     sendFormData,
     fetchDailyData,
     fetchWeeklyData,

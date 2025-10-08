@@ -43,7 +43,8 @@ export default function ServiceForm({ onSubmit, onClose, serviceData }) {
     scrubberAssistant: "",
     blackMaskAssistant: "",
     blackShampooAssistant: "",
-    superBlackAssistant: ""
+    superBlackAssistant: "",
+    service_timestamp:"",
   });
 
   // Prefill form when editing
@@ -57,7 +58,8 @@ export default function ServiceForm({ onSubmit, onClose, serviceData }) {
         scrubberAssistant: serviceData.scrubber_assistant || "",
         blackMaskAssistant: serviceData.black_mask_assistant || "",
         blackShampooAssistant: serviceData.black_shampoo_assistant || "",
-        superBlackAssistant: serviceData.super_black_assistant || ""
+        superBlackAssistant: serviceData.super_black_assistant || "",
+        service_timestamp: serviceData.service_timestamp
       });
     }
   }, [serviceData]);
@@ -77,7 +79,8 @@ const {
   scrubberAssistant, 
   blackShampooAssistant, 
   superBlackAssistant, 
-  blackMaskAssistant 
+  blackMaskAssistant,
+  service_timestamp,
 } = formData;
 
 const calculation = serviceMap[service];
@@ -109,7 +112,8 @@ const payload = {
 
   black_mask_assistant: blackMaskAssistant || null,
   black_mask_assistant_amount: calculation.blackMaskAssistantAmount || 0,
-  black_mask_amount: calculation.blackMaskAmount || 0
+  black_mask_amount: calculation.blackMaskAmount || 0,
+  service_timestamp
 };
 
     onSubmit(payload);

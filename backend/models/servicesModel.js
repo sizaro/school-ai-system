@@ -88,7 +88,7 @@ export const fetchAllServices = async () => {
       (s.service_timestamp AT TIME ZONE 'Africa/Kampala') AS "service_time"
     FROM services s
     WHERE (s.service_timestamp AT TIME ZONE 'Africa/Kampala')::date = CURRENT_DATE
-    ORDER BY s.service_timestamp DESC;
+    ORDER BY id DESC;
   `;
   const result = await db.query(query);
   console.log("Fetched all services from DB:", result.rows);
@@ -133,6 +133,7 @@ export const updateServiceById = async (
     black_mask_assistant,
     black_mask_assistant_amount,
     black_mask_amount,
+    service_timestamp,
     id
   }
 ) => {
@@ -157,8 +158,8 @@ export const updateServiceById = async (
       black_mask_assistant = $16,
       black_mask_assistant_amount = $17,
       black_mask_amount = $18,
-      service_timestamp = NOW()
-    WHERE id = $19
+      service_timestamp = $19
+    WHERE id = $20
     RETURNING *;
   `;
 
@@ -181,6 +182,7 @@ export const updateServiceById = async (
     black_mask_assistant,
     black_mask_assistant_amount,
     black_mask_amount,
+    service_timestamp,
     id
   ];
 

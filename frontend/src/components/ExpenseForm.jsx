@@ -5,7 +5,8 @@ export default function ExpenseForm({ onSubmit, onClose, expenseData }) {
     id: '',
     name: '',
     amount: '',
-    description: ''
+    description: '',
+    created_at:'',
   });
 
   // Prefill when editing
@@ -15,7 +16,8 @@ export default function ExpenseForm({ onSubmit, onClose, expenseData }) {
         id: expenseData.id || '',
         name: expenseData.name || '',
         amount: expenseData.amount || '',
-        description: expenseData.description || ''
+        description: expenseData.description || '',
+        created_at: expenseData.created_at
       });
     }
   }, [expenseData]);

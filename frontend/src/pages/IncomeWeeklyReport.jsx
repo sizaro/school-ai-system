@@ -1,17 +1,51 @@
 import React, { useState, useEffect } from "react";
 import { useData } from "../context/DataContext.jsx";
+import Modal from "../components/Modal";
+import ServiceForm from "../components/ServiceForm.jsx";
+import ConfirmModal from "../components/ConfirmModal.jsx";
 
 const IncomeWeeklyReport = () => {
-  const { services, employees, advances, expenses, sessions, fetchWeeklyData } = useData();
-
-  console.log("weekly data coming to the frontend", services, advances, expenses)
+  const { 
+    services, employees, advances, expenses, sessions, 
+    fetchWeeklyData, fetchServiceById, updateService, deleteService 
+  } = useData();
 
   const [weekRange, setWeekRange] = useState({ start: null, end: null });
   const [reportLabel, setReportLabel] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [editingService, setEditingService] = useState(null);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState(null);
+
+  // ---- Handlers for Edit/Delete ----
+  const handleEditClick = async (serviceId) => {
+    const service = await fetchServiceById(serviceId);
+    setEditingService(service);
+    setShowModal(true);
+  };
+
+  const handleModalSubmit = async (updatedService) => {
+    await updateService(updatedService.id, updatedService);
+    await fetchWeeklyData(weekRange.start, weekRange.end); // refresh view
+    setShowModal(false);
+    setEditingService(null);
+  };
+
+  const handleDelete = (serviceId) => {
+    setServiceToDelete(serviceId);
+    setConfirmModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (serviceToDelete) {
+      await deleteService(serviceToDelete);
+      await fetchWeeklyData(weekRange.start, weekRange.end);
+      setConfirmModalOpen(false);
+      setServiceToDelete(null);
+    }
+  };
 
   // ---- Utility Functions ----
-
-  // Calculate totals across all services, expenses, advances
   const calculateTotals = (services, expenses, advances) => {
     const grossIncome = services.reduce(
       (sum, s) => sum + (parseInt(s.service_amount, 10) || 0),
@@ -65,7 +99,6 @@ const IncomeWeeklyReport = () => {
     cashAtHand,
   } = calculateTotals(services, expenses, advances);
 
-  // Format any UTC date string to EAT
   const formatEAT = (dateString) => {
     if (!dateString) return "N/A";
     return new Date(dateString).toLocaleString("en-UG", {
@@ -76,57 +109,46 @@ const IncomeWeeklyReport = () => {
   };
 
   // ---- Handle Week Selection ----
-  // ---- Handle Week Selection ----
-const handleWeekChange = (e) => {
-  const weekString = e.target.value; // e.g. "2025-W39"
-  if (!weekString) return;
+  const handleWeekChange = (e) => {
+    const weekString = e.target.value; // e.g. "2025-W39"
+    if (!weekString) return;
 
-  const [year, week] = weekString.split("-W").map(Number);
+    const [year, week] = weekString.split("-W").map(Number);
 
-  // First Monday of the year
-  const firstDayOfYear = new Date(year, 0, 1);
-  const day = firstDayOfYear.getDay(); // 0=Sun, 1=Mon...
-  const firstMonday = new Date(firstDayOfYear);
-  const diff = day <= 4 ? day - 1 : day - 8;
-  firstMonday.setDate(firstDayOfYear.getDate() - diff);
+    const firstDayOfYear = new Date(year, 0, 1);
+    const day = firstDayOfYear.getDay(); // 0=Sun, 1=Mon...
+    const firstMonday = new Date(firstDayOfYear);
+    const diff = day <= 4 ? day - 1 : day - 8;
+    firstMonday.setDate(firstDayOfYear.getDate() - diff);
 
-  // Calculate Monday of the picked week
-  const monday = new Date(firstMonday);
-  monday.setDate(firstMonday.getDate() + (week - 1) * 7);
+    const monday = new Date(firstMonday);
+    monday.setDate(firstMonday.getDate() + (week - 1) * 7);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
 
-  // Sunday = Monday + 6
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
+    setWeekRange({ start: monday, end: sunday });
+    setReportLabel(
+      `${monday.toLocaleDateString("en-US")} → ${sunday.toLocaleDateString("en-US")}`
+    );
 
-  setWeekRange({ start: monday, end: sunday });
-  setReportLabel(
-    `${monday.toLocaleDateString("en-US")} → ${sunday.toLocaleDateString("en-US")}`
-  );
+    fetchWeeklyData(monday, sunday);
+  };
 
-  fetchWeeklyData(monday, sunday);
-};
+  useEffect(() => {
+    const today = new Date();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - today.getDay() + 1);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
 
-// ---- On Page Load: Current Week ----
-useEffect(() => {
-  const today = new Date();
+    setWeekRange({ start: monday, end: sunday });
+    setReportLabel(
+      `${monday.toLocaleDateString("en-US")} → ${sunday.toLocaleDateString("en-US")}`
+    );
 
-  // Get Monday of current week
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - today.getDay() + 1);
+    fetchWeeklyData(monday, sunday);
+  }, []);
 
-  // Sunday = Monday + 6
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-
-  setWeekRange({ start: monday, end: sunday });
-  setReportLabel(
-    `${monday.toLocaleDateString("en-US")} → ${sunday.toLocaleDateString("en-US")}`
-  );
-
-  fetchWeeklyData(monday, sunday);
-}, []);
-
-  // ---- Render ----
   return (
     <div className="income-page max-w-6xl mx-auto p-4 overflow-y-hidden">
       <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
@@ -137,10 +159,10 @@ useEffect(() => {
       <div className="mb-4">
         <label className="block mb-2 font-medium">Pick a week:</label>
         <input
-            type="week"
-            onChange={handleWeekChange}
-            className="border rounded p-2"
-          />
+          type="week"
+          onChange={handleWeekChange}
+          className="border rounded p-2"
+        />
         <p className="mt-2 text-gray-600">{reportLabel}</p>
       </div>
 
@@ -183,14 +205,12 @@ useEffect(() => {
                 <th className="px-3 py-2 text-left">Black Mask Aesthetician Amount</th>
                 <th className="px-3 py-2 text-left">Black Mask Amount</th>
                 <th className="px-3 py-2 text-left">Time of Service</th>
+                <th className="px-3 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
               {services.map((service, index) => (
-                <tr
-                  key={service.id}
-                  className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
-                >
+                <tr key={service.id} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
                   <td className="px-3 py-2">{index + 1}</td>
                   <td className="px-3 py-2">{service.name}</td>
                   <td className="px-3 py-2">{service.service_amount}</td>
@@ -210,8 +230,20 @@ useEffect(() => {
                   <td className="px-3 py-2">{service.black_mask_assistant || "-"}</td>
                   <td className="px-3 py-2">{service.black_mask_assistant_amount || "-"}</td>
                   <td className="px-3 py-2">{service.black_mask_amount}</td>
-                  <td className="px-3 py-2">
-                    {formatEAT(service.service_timestamp)}
+                  <td className="px-3 py-2">{formatEAT(service.service_timestamp)}</td>
+                  <td className="px-3 py-2 space-x-1">
+                    <button
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
+                      onClick={() => handleEditClick(service.id)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
+                      onClick={() => handleDelete(service.id)}
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -219,6 +251,31 @@ useEffect(() => {
           </table>
         </div>
       </section>
+
+      <Modal
+        isOpen={showModal}
+        onClose={() => {
+          setShowModal(false);
+          setEditingService(null);
+        }}
+      >
+        {editingService && (
+          <ServiceForm
+            serviceData={editingService}
+            onSubmit={handleModalSubmit}
+            onClose={() => {
+              setShowModal(false);
+              setEditingService(null);
+            }}
+          />
+        )}
+      </Modal>
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        message="Are you sure you want to delete this service?"
+        onConfirm={confirmDelete}
+        onClose={() => setConfirmModalOpen(false)}
+      />
     </div>
   );
 };

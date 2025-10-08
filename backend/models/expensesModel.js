@@ -26,7 +26,7 @@ export const fetchAllExpenses = async () => {
   const query = `
     SELECT e.*, (e.created_at AT TIME ZONE 'Africa/Kampala') AS created_at
     FROM expenses e
-    WHERE (e.created_at AT TIME ZONE 'Africa/Kampala')::date = CURRENT_DATE;
+    WHERE (e.created_at AT TIME ZONE 'Africa/Kampala')::date = CURRENT_DATE ORDER BY id DESC;
   `;
   const result = await db.query(query);
   return result.rows;
@@ -48,17 +48,18 @@ export const fetchExpenseById = async (id) => {
 /**
  * Update an expense record by ID
  */
-export const UpdateExpenseById = async ({ id, name, amount, description }) => {
+export const UpdateExpenseById = async ({ id, name, amount, description, created_at }) => {
   const query = `
     UPDATE expenses
     SET 
       name = $1,
       amount = $2,
-      description= $3
-    WHERE id = $4
+      description= $3,
+      created_at = $4
+    WHERE id = $5
     RETURNING *;
   `;
-  const values = [name, amount, description, id];
+  const values = [name, amount, description, created_at, id];
   const result = await db.query(query, values);
   return result.rows[0];
 };

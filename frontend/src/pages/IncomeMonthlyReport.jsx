@@ -1,13 +1,57 @@
 import React, { useState, useEffect } from "react";
 import { useData } from "../context/DataContext.jsx";
+import Modal from "../components/Modal";
+import ServiceForm from "../components/ServiceForm.jsx";
+import ConfirmModal from "../components/ConfirmModal.jsx";
 
 const IncomeMonthlyReport = () => {
-  const { services, advances, expenses, fetchMonthlyData } = useData();
+  const {
+    services,
+    advances,
+    expenses,
+    fetchMonthlyData,
+    fetchServiceById,
+    updateService,
+    deleteService,
+  } = useData();
 
-  const [monthYear, setMonthYear] = useState(""); // e.g. "2025-09"
+  const [monthYear, setMonthYear] = useState(""); // "YYYY-MM"
   const [reportLabel, setReportLabel] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [editingService, setEditingService] = useState(null);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState(null);
 
-  // ---- Calculate totals (reuse weekly logic) ----
+  // ---- Handle Month Selection ----
+  const handleMonthChange = (e) => {
+    const value = e.target.value;
+    if (!value) return;
+
+    const [year, month] = value.split("-").map(Number);
+    setMonthYear(value);
+    setReportLabel(
+      `${new Date(year, month - 1, 1).toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      })}`
+    );
+    fetchMonthlyData(year, month);
+  };
+
+  // ---- On page load ----
+  useEffect(() => {
+    const today = new Date();
+    const month = today.getMonth() + 1;
+    const year = today.getFullYear();
+    const value = `${year}-${month.toString().padStart(2, "0")}`;
+    setMonthYear(value);
+    setReportLabel(
+      `${today.toLocaleString("en-US", { month: "long", year: "numeric" })}`
+    );
+    fetchMonthlyData(year, month);
+  }, []);
+
+  // ---- Totals Calculation ----
   const calculateTotals = (services, expenses, advances) => {
     const grossIncome = services.reduce(
       (sum, s) => sum + (parseInt(s.service_amount, 10) || 0),
@@ -26,8 +70,15 @@ const IncomeMonthlyReport = () => {
       0
     );
 
-    const totalExpenses = expenses.reduce((sum, e) => sum + (parseInt(e.amount, 10) || 0), 0);
-    const totalAdvances = advances.reduce((sum, a) => sum + (parseInt(a.amount, 10) || 0), 0);
+    const totalExpenses = expenses.reduce(
+      (sum, e) => sum + (parseInt(e.amount, 10) || 0),
+      0
+    );
+
+    const totalAdvances = advances.reduce(
+      (sum, a) => sum + (parseInt(a.amount, 10) || 0),
+      0
+    );
 
     const netEmployeeSalary = employeesSalary - totalAdvances;
     const netIncome = grossIncome - (totalExpenses + netEmployeeSalary);
@@ -44,10 +95,17 @@ const IncomeMonthlyReport = () => {
     };
   };
 
-  const { grossIncome, employeesSalary, totalExpenses, totalAdvances, netEmployeeSalary, netIncome, cashAtHand } =
-    calculateTotals(services, expenses, advances);
+  const {
+    grossIncome,
+    employeesSalary,
+    totalExpenses,
+    totalAdvances,
+    netEmployeeSalary,
+    netIncome,
+    cashAtHand,
+  } = calculateTotals(services, expenses, advances);
 
-  // ---- Format UTC date strings to EAT ----
+  // ---- Format UTC to EAT ----
   const formatEAT = (dateString) => {
     if (!dateString) return "N/A";
     return new Date(dateString).toLocaleString("en-UG", {
@@ -57,34 +115,41 @@ const IncomeMonthlyReport = () => {
     });
   };
 
-  // ---- Handle month selection ----
-  const handleMonthChange = (e) => {
-    const value = e.target.value; // "YYYY-MM"
-    if (!value) return;
-
-    const [year, month] = value.split("-").map(Number);
-
-    setMonthYear(value);
-    setReportLabel(`${new Date(year, month - 1, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" })}`);
-
-    fetchMonthlyData(year, month); // context function
+  // ---- Edit/Delete Handlers ----
+  const handleEditClick = async (serviceId) => {
+    const service = await fetchServiceById(serviceId);
+    setEditingService(service);
+    setShowModal(true);
   };
 
-  // ---- On page load: current month ----
-  useEffect(() => {
-    const today = new Date();
-    const month = today.getMonth() + 1;
-    const year = today.getFullYear();
-    const value = `${year}-${month.toString().padStart(2, "0")}`;
+  const handleModalSubmit = async (updatedService) => {
+    await updateService(updatedService.id, updatedService);
+    const [year, month] = monthYear.split("-").map(Number);
+    await fetchMonthlyData(year, month);
+    setShowModal(false);
+    setEditingService(null);
+  };
 
-    setMonthYear(value);
-    setReportLabel(`${today.toLocaleString("en-US", { month: "long", year: "numeric" })}`);
-    fetchMonthlyData(year, month);
-  }, []);
+  const handleDelete = (serviceId) => {
+    setServiceToDelete(serviceId);
+    setConfirmModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (serviceToDelete) {
+      await deleteService(serviceToDelete);
+      const [year, month] = monthYear.split("-").map(Number);
+      await fetchMonthlyData(year, month);
+      setConfirmModalOpen(false);
+      setServiceToDelete(null);
+    }
+  };
 
   return (
     <div className="income-page max-w-6xl mx-auto p-4 overflow-y-hidden">
-      <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">Monthly Income Report</h1>
+      <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
+        Monthly Income Report
+      </h1>
 
       {/* Month Picker */}
       <div className="mb-4">
@@ -101,18 +166,41 @@ const IncomeMonthlyReport = () => {
       {/* Summary Section */}
       <section className="bg-white shadow-md rounded-lg p-4 mb-6">
         <h2 className="text-xl font-semibold text-blue-700 mb-2">Summary</h2>
-        <p><span className="font-medium">Gross Income:</span> {grossIncome.toLocaleString()} UGX</p>
-        <p><span className="font-medium">Employees Salary:</span> {employeesSalary.toLocaleString()} UGX</p>
-        <p><span className="font-medium">Expenses:</span> {totalExpenses.toLocaleString()} UGX</p>
-        <p><span className="font-medium">Advances:</span> {totalAdvances.toLocaleString()} UGX</p>
-        <p><span className="font-medium">Net Employees Salary:</span> {netEmployeeSalary.toLocaleString()} UGX</p>
-        <p><span className="font-medium">Salon Net Income:</span> {netIncome.toLocaleString()} UGX</p>
-        <p><span className="font-medium">Total Cash Available:</span> {cashAtHand.toLocaleString()} UGX</p>
+        <p>
+          <span className="font-medium">Gross Income:</span>{" "}
+          {grossIncome.toLocaleString()} UGX
+        </p>
+        <p>
+          <span className="font-medium">Employees Salary:</span>{" "}
+          {employeesSalary.toLocaleString()} UGX
+        </p>
+        <p>
+          <span className="font-medium">Expenses:</span>{" "}
+          {totalExpenses.toLocaleString()} UGX
+        </p>
+        <p>
+          <span className="font-medium">Advances:</span>{" "}
+          {totalAdvances.toLocaleString()} UGX
+        </p>
+        <p>
+          <span className="font-medium">Net Employees Salary:</span>{" "}
+          {netEmployeeSalary.toLocaleString()} UGX
+        </p>
+        <p>
+          <span className="font-medium">Salon Net Income:</span>{" "}
+          {netIncome.toLocaleString()} UGX
+        </p>
+        <p>
+          <span className="font-medium">Total Cash Available:</span>{" "}
+          {cashAtHand.toLocaleString()} UGX
+        </p>
       </section>
 
       {/* Services Table */}
       <section className="bg-white shadow-md rounded-lg p-4">
-        <h2 className="text-xl font-semibold text-blue-700 mb-4">Services Rendered</h2>
+        <h2 className="text-xl font-semibold text-blue-700 mb-4">
+          Services Rendered
+        </h2>
         <div className="w-full overflow-x-auto max-h-[60vh] overflow-y-auto border border-gray-300 rounded">
           <table className="min-w-full border-collapse text-sm">
             <thead className="bg-blue-700 text-white sticky top-0 z-10">
@@ -125,18 +213,8 @@ const IncomeMonthlyReport = () => {
                 <th className="px-3 py-2 text-left">Barber Amount</th>
                 <th className="px-3 py-2 text-left">Aesthetician</th>
                 <th className="px-3 py-2 text-left">Aesthetician Amount</th>
-                <th className="px-3 py-2 text-left">Scrub Aesthetician</th>
-                <th className="px-3 py-2 text-left">Scrubber Amount</th>
-                <th className="px-3 py-2 text-left">Black Shampoo Aesthetician</th>
-                <th className="px-3 py-2 text-left">Black Shampoo Aesthetician Amount</th>
-                <th className="px-3 py-2 text-left">Black Shampoo Amount</th>
-                <th className="px-3 py-2 text-left">Super Black Aesthetician</th>
-                <th className="px-3 py-2 text-left">Super Black Aesthetician Amount</th>
-                <th className="px-3 py-2 text-left">Super Black Amount</th>
-                <th className="px-3 py-2 text-left">Black Mask Aesthetician</th>
-                <th className="px-3 py-2 text-left">Black Mask Aesthetician Amount</th>
-                <th className="px-3 py-2 text-left">Black Mask Amount</th>
                 <th className="px-3 py-2 text-left">Time of Service</th>
+                <th className="px-3 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -153,19 +231,20 @@ const IncomeMonthlyReport = () => {
                   <td className="px-3 py-2">{service.barber_amount}</td>
                   <td className="px-3 py-2">{service.barber_assistant || "-"}</td>
                   <td className="px-3 py-2">{service.barber_assistant_amount}</td>
-                  <td className="px-3 py-2">{service.scrubber_assistant || "-"}</td>
-                  <td className="px-3 py-2">{service.scrubber_assistant_amount}</td>
-                  <td className="px-3 py-2">{service.black_shampoo_assistant || "-"}</td>
-                  <td className="px-3 py-2">{service.black_shampoo_assistant_amount || "-"}</td>
-                  <td className="px-3 py-2">{service.black_shampoo_amount}</td>
-                  <td className="px-3 py-2">{service.super_black_assistant || "-"}</td>
-                  <td className="px-3 py-2">{service.super_black_assistant_amount || "-"}</td>
-                  <td className="px-3 py-2">{service.super_black_amount}</td>
-                  <td className="px-3 py-2">{service.black_mask_assistant || "-"}</td>
-                  <td className="px-3 py-2">{service.black_mask_assistant_amount || "-"}</td>
-                  <td className="px-3 py-2">{service.black_mask_amount}</td>
-                  <td className="px-3 py-2">
-                    {formatEAT(service.service_timestamp)}
+                  <td className="px-3 py-2">{formatEAT(service.service_timestamp)}</td>
+                  <td className="px-3 py-2 space-x-1">
+                    <button
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
+                      onClick={() => handleEditClick(service.id)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
+                      onClick={() => handleDelete(service.id)}
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -173,6 +252,33 @@ const IncomeMonthlyReport = () => {
           </table>
         </div>
       </section>
+
+      {/* Modals */}
+      <Modal
+        isOpen={showModal}
+        onClose={() => {
+          setShowModal(false);
+          setEditingService(null);
+        }}
+      >
+        {editingService && (
+          <ServiceForm
+            serviceData={editingService}
+            onSubmit={handleModalSubmit}
+            onClose={() => {
+              setShowModal(false);
+              setEditingService(null);
+            }}
+          />
+        )}
+      </Modal>
+
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        message="Are you sure you want to delete this service?"
+        onConfirm={confirmDelete}
+        onClose={() => setConfirmModalOpen(false)}
+      />
     </div>
   );
 };

@@ -57,18 +57,20 @@ export const UpdateAdvanceById = async ({
   id,
   employee_name,
   amount,
-  description
+  description,
+  created_at,
 }) => {
   const query = `
     UPDATE advances
     SET 
       employee_name = $1,
       amount = $2,
-      description = $3
-    WHERE id = $4
+      description = $3,
+      created_at = $4
+    WHERE id = $5
     RETURNING *;
   `;
-  const values = [employee_name, amount, description, id];
+  const values = [employee_name, amount, description, created_at, id];
   const result = await db.query(query, values);
   return result.rows[0];
 };

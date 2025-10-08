@@ -59,11 +59,11 @@ export const createExpense = async (req, res) => {
  */
 export const updateExpenseById = async (req, res) => {
   try {
-    const { id, name, amount, description } = req.body;
+    const { id, name, amount, description, created_at } = req.body;
 
     if (!id) return res.status(400).json({ error: "Missing expense ID" });
 
-    const updatedExpense = await UpdateExpenseById({ id, name, amount, description });
+    const updatedExpense = await UpdateExpenseById({ id, name, amount, description, created_at });
 
     if (!updatedExpense) {
       return res.status(404).json({ error: "Expense not found or not updated" });

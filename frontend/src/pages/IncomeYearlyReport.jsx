@@ -1,11 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { useData } from "../context/DataContext.jsx";
+import Modal from "../components/Modal";
+import ServiceForm from "../components/ServiceForm.jsx";
+import ConfirmModal from "../components/ConfirmModal.jsx";
 
 const IncomeYearlyReport = () => {
-  const { services, expenses, advances, fetchYearlyData } = useData();
+  const {
+    services,
+    expenses,
+    advances,
+    fetchYearlyData,
+    fetchServiceById,
+    updateService,
+    deleteService,
+  } = useData();
 
-  const [year, setYear] = useState(new Date().getFullYear()); // default to current year
+  const [year, setYear] = useState(new Date().getFullYear());
   const [reportLabel, setReportLabel] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [editingService, setEditingService] = useState(null);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState(null);
 
   // ---- Calculate totals ----
   const calculateTotals = (services, expenses, advances) => {
@@ -79,6 +94,34 @@ const IncomeYearlyReport = () => {
     fetchYearlyData(selectedYear);
   };
 
+  // ---- Handle Edit/Delete ----
+  const handleEditClick = async (serviceId) => {
+    const service = await fetchServiceById(serviceId);
+    setEditingService(service);
+    setShowModal(true);
+  };
+
+  const handleModalSubmit = async (updatedService) => {
+    await updateService(updatedService.id, updatedService);
+    await fetchYearlyData(year);
+    setShowModal(false);
+    setEditingService(null);
+  };
+
+  const handleDelete = (serviceId) => {
+    setServiceToDelete(serviceId);
+    setConfirmModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (serviceToDelete) {
+      await deleteService(serviceToDelete);
+      await fetchYearlyData(year);
+      setConfirmModalOpen(false);
+      setServiceToDelete(null);
+    }
+  };
+
   // ---- Generate year options ----
   const generateYearOptions = () => {
     const currentYear = new Date().getFullYear();
@@ -89,7 +132,7 @@ const IncomeYearlyReport = () => {
     return years;
   };
 
-  // ---- On page load: current year ----
+  // ---- On page load ----
   useEffect(() => {
     const currentYear = new Date().getFullYear();
     setYear(currentYear);
@@ -188,6 +231,7 @@ const IncomeYearlyReport = () => {
                 </th>
                 <th className="px-3 py-2 text-left">Black Mask Amount</th>
                 <th className="px-3 py-2 text-left">Time of Service</th>
+                <th className="px-3 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -206,9 +250,7 @@ const IncomeYearlyReport = () => {
                   <td className="px-3 py-2">{service.barber_assistant_amount}</td>
                   <td className="px-3 py-2">{service.scrubber_assistant || "-"}</td>
                   <td className="px-3 py-2">{service.scrubber_assistant_amount}</td>
-                  <td className="px-3 py-2">
-                    {service.black_shampoo_assistant || "-"}
-                  </td>
+                  <td className="px-3 py-2">{service.black_shampoo_assistant || "-"}</td>
                   <td className="px-3 py-2">
                     {service.black_shampoo_assistant_amount || "-"}
                   </td>
@@ -223,8 +265,20 @@ const IncomeYearlyReport = () => {
                     {service.black_mask_assistant_amount || "-"}
                   </td>
                   <td className="px-3 py-2">{service.black_mask_amount}</td>
-                  <td className="px-3 py-2">
-                    {formatEAT(service.service_timestamp)}
+                  <td className="px-3 py-2">{formatEAT(service.service_timestamp)}</td>
+                  <td className="px-3 py-2 space-x-1">
+                    <button
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
+                      onClick={() => handleEditClick(service.id)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
+                      onClick={() => handleDelete(service.id)}
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -232,6 +286,33 @@ const IncomeYearlyReport = () => {
           </table>
         </div>
       </section>
+
+      {/* Modals */}
+      <Modal
+        isOpen={showModal}
+        onClose={() => {
+          setShowModal(false);
+          setEditingService(null);
+        }}
+      >
+        {editingService && (
+          <ServiceForm
+            serviceData={editingService}
+            onSubmit={handleModalSubmit}
+            onClose={() => {
+              setShowModal(false);
+              setEditingService(null);
+            }}
+          />
+        )}
+      </Modal>
+
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        message="Are you sure you want to delete this service?"
+        onConfirm={confirmDelete}
+        onClose={() => setConfirmModalOpen(false)}
+      />
     </div>
   );
 };

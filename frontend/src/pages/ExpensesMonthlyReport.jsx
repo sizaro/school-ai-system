@@ -1,12 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { useData } from "../context/DataContext.jsx";
+import Modal from "../components/Modal.jsx";
+import ExpenseForm from "../components/ExpenseForm.jsx";
+import ConfirmModal from "../components/ConfirmModal.jsx";
 
 const ExpensesMonthlyReport = () => {
-  const { expenses, fetchMonthlyData } = useData();
+  const {
+    expenses,
+    fetchMonthlyData,
+    fetchExpenseById,
+    updateExpense,
+    deleteExpense,
+  } = useData();
 
   const [monthYear, setMonthYear] = useState(""); // e.g. "2025-09"
   const [reportLabel, setReportLabel] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // ---- Modals for Edit/Delete ----
+  const [showModal, setShowModal] = useState(false);
+  const [editingExpense, setEditingExpense] = useState(null);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState(null);
 
   // ---- Calculate total expenses ----
   const totalExpenses = expenses.reduce(
@@ -65,6 +80,36 @@ const ExpensesMonthlyReport = () => {
     fetchData();
   }, []);
 
+  // ---- Handle Edit/Delete ----
+  const handleEditClick = async (expenseId) => {
+    const expense = await fetchExpenseById(expenseId);
+    setEditingExpense(expense);
+    setShowModal(true);
+  };
+
+  const handleModalSubmit = async (updatedExpense) => {
+    await updateExpense(updatedExpense.id, updatedExpense);
+    const [year, month] = monthYear.split("-").map(Number);
+    await fetchMonthlyData(year, month);
+    setShowModal(false);
+    setEditingExpense(null);
+  };
+
+  const handleDelete = (expenseId) => {
+    setExpenseToDelete(expenseId);
+    setConfirmModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (expenseToDelete) {
+      await deleteExpense(expenseToDelete);
+      const [year, month] = monthYear.split("-").map(Number);
+      await fetchMonthlyData(year, month);
+      setConfirmModalOpen(false);
+      setExpenseToDelete(null);
+    }
+  };
+
   // ---- Render ----
   return (
     <div className="income-page max-w-6xl mx-auto p-4 overflow-y-hidden">
@@ -112,6 +157,7 @@ const ExpensesMonthlyReport = () => {
                     <th className="px-3 py-2 text-left">Expense Name</th>
                     <th className="px-3 py-2 text-left">Amount (UGX)</th>
                     <th className="px-3 py-2 text-left">Time of Expense</th>
+                    <th className="px-3 py-2 text-left">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -122,8 +168,22 @@ const ExpensesMonthlyReport = () => {
                     >
                       <td className="px-3 py-2">{index + 1}</td>
                       <td className="px-3 py-2">{exp.name}</td>
-                      <td className="px-3 py-2">{parseInt(exp.amount, 10)}</td>
+                      <td className="px-3 py-2">{parseInt(exp.amount, 10).toLocaleString()}</td>
                       <td className="px-3 py-2">{formatEAT(exp.created_at)}</td>
+                      <td className="px-3 py-2 space-x-1">
+                        <button
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
+                          onClick={() => handleEditClick(exp.id)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
+                          onClick={() => handleDelete(exp.id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -132,6 +192,34 @@ const ExpensesMonthlyReport = () => {
           </section>
         </>
       )}
+
+      {/* Edit Modal */}
+      <Modal
+        isOpen={showModal}
+        onClose={() => {
+          setShowModal(false);
+          setEditingExpense(null);
+        }}
+      >
+        {editingExpense && (
+          <ExpenseForm
+            expenseData={editingExpense}
+            onSubmit={handleModalSubmit}
+            onClose={() => {
+              setShowModal(false);
+              setEditingExpense(null);
+            }}
+          />
+        )}
+      </Modal>
+
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        message="Are you sure you want to delete this expense?"
+        onConfirm={confirmDelete}
+        onClose={() => setConfirmModalOpen(false)}
+      />
     </div>
   );
 };

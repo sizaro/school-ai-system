@@ -115,14 +115,14 @@ export const updateService = async (req, res) => {
       super_black_amount,
       black_mask_assistant,
       black_mask_assistant_amount,
-      black_mask_amount
+      black_mask_amount,
+      service_timestamp,
     } = req.body;
 
      console.log("This is the id of the service to be updated", id)
     if (!id) return res.status(400).json({ error: "Missing service ID" });
 
     const updatedService = await updateServiceById({
-      id,
       name,
       service_amount,
       salon_amount,
@@ -140,7 +140,9 @@ export const updateService = async (req, res) => {
       super_black_amount,
       black_mask_assistant,
       black_mask_assistant_amount,
-      black_mask_amount
+      black_mask_amount,
+      service_timestamp,
+      id
     });
 
     if (!updatedService) {

@@ -5,7 +5,8 @@ export default function AdvanceForm({ onSubmit, onClose, advanceData }) {
     id: '',
     employee_name: '',
     amount: '',
-    description: ''
+    description: '',
+    created_at: '',
   });
 
   const mockEmployees = [
@@ -32,7 +33,8 @@ export default function AdvanceForm({ onSubmit, onClose, advanceData }) {
         id: advanceData.id || '',
         employee_name: advanceData.employee_name || '',
         amount: advanceData.amount || '',
-        description: advanceData.description || ''
+        description: advanceData.description || '',
+        created_at: advanceData.created_at,
       });
     }
   }, [advanceData]);

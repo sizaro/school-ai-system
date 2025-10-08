@@ -5,7 +5,7 @@ async function getServicesByYear(year) {
   const startDate = new Date(year, 0, 1);   // Jan 1
   const endDate = new Date(year, 11, 31);   // Dec 31
   return db.query(
-    "SELECT * FROM services WHERE service_timestamp BETWEEN $1 AND $2",
+    "SELECT * FROM services WHERE service_timestamp BETWEEN $1 AND $2 ORDER BY id DESC",
     [startDate, endDate]
   );
 }
@@ -15,7 +15,7 @@ async function getExpensesByYear(year) {
   const startDate = new Date(year, 0, 1);
   const endDate = new Date(year, 11, 31);
   return db.query(
-    "SELECT * FROM expenses WHERE created_at BETWEEN $1 AND $2",
+    "SELECT * FROM expenses WHERE created_at BETWEEN $1 AND $2 ORDER BY id DESC",
     [startDate, endDate]
   );
 }
@@ -25,7 +25,7 @@ async function getAdvancesByYear(year) {
   const startDate = new Date(year, 0, 1);
   const endDate = new Date(year, 11, 31);
   return db.query(
-    "SELECT * FROM advances WHERE created_at BETWEEN $1 AND $2",
+    "SELECT * FROM advances WHERE created_at BETWEEN $1 AND $2 ORDER BY id DESC",
     [startDate, endDate]
   );
 }
