@@ -22,6 +22,7 @@ import WorkWeeklyReport from './pages/WorkWeeklyReport';
 import WorkMonthlyReport from './pages/WorkMonthlyReport';
 import WorkYearlyReport from './pages/WorkYearlyReport';
 import Employees from './pages/Employees';
+import Advances from './pages/Advances'
 
 
 function App() {
@@ -46,6 +47,9 @@ function App() {
 
    {/* Employees */}
   <Route path="/pages/Employees" element={<Employees />} />
+
+  {/* Advances */}
+  <Route path="/pages/Advances" element={<Advances />} />
 
   {/* Work Performance Reports */}
   <Route path="/pages/WorkDailyReport" element={<WorkDailyReport />} />

@@ -198,6 +198,118 @@ const deleteEmployee = async (id) => {
 };
 
 
+//--- Advances layer
+
+  const fetchAdvances = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/advances`);
+        setAdvances(res.data);
+        return res.data;
+      } catch (err) {
+        console.error("Error fetching advances:", err);
+        throw err;
+      }
+    };
+
+    const fetchAdvanceById = async (id) => {
+      try {
+        const res = await axios.get(`${API_URL}/advances/${id}`);
+        return res.data;
+      } catch (err) {
+        console.error("Error fetching advance by ID:", err);
+        throw err;
+      }
+    };
+
+    const createAdvance = async (advanceData) => {
+      try {
+        const res = await axios.post(`${API_URL}/advances`, advanceData);
+        await fetchAdvances(); // refresh list after adding
+        return res.data;
+      } catch (err) {
+        console.error("Error creating advance:", err);
+        throw err;
+      }
+    };
+
+    const updateAdvance = async (id, advanceData) => {
+      try {
+        const res = await axios.put(`${API_URL}/advances/${id}`, advanceData);
+        await fetchAdvances(); // refresh list after updating
+        return res.data;
+      } catch (err) {
+        console.error("Error updating advance:", err);
+        throw err;
+      }
+    };
+
+    const deleteAdvance = async (id) => {
+      try {
+        await axios.delete(`${API_URL}/advances/${id}`);
+        await fetchAdvances(); // refresh list after deletion
+      } catch (err) {
+        console.error("Error deleting advance:", err);
+        throw err;
+      }
+    };
+
+  //--Advances layer
+    // --- Expenses layer ---
+
+    const fetchExpenses = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/expenses`);
+        setExpenses(res.data);
+        return res.data;
+      } catch (err) {
+        console.error("Error fetching expenses:", err);
+        throw err;
+      }
+    };
+
+    const fetchExpenseById = async (id) => {
+      try {
+        const res = await axios.get(`${API_URL}/expenses/${id}`);
+        return res.data;
+      } catch (err) {
+        console.error("Error fetching expense by ID:", err);
+        throw err;
+      }
+    };
+
+    const createExpense = async (expenseData) => {
+      try {
+        const res = await axios.post(`${API_URL}/expenses`, expenseData);
+        await fetchExpenses(); // refresh list after adding
+        return res.data;
+      } catch (err) {
+        console.error("Error creating expense:", err);
+        throw err;
+      }
+    };
+
+    const updateExpense = async (id, expenseData) => {
+      try {
+        const res = await axios.put(`${API_URL}/expenses/${id}`, expenseData);
+        await fetchExpenses(); // refresh list after updating
+        return res.data;
+      } catch (err) {
+        console.error("Error updating expense:", err);
+        throw err;
+      }
+    };
+
+    const deleteExpense = async (id) => {
+      try {
+        await axios.delete(`${API_URL}/expenses/${id}`);
+        await fetchExpenses(); // refresh list after deletion
+      } catch (err) {
+        console.error("Error deleting expense:", err);
+        throw err;
+      }
+    };
+        
+
   // ---------- Send Form ----------
   const sendFormData = async (formIdentifier, formData) => {
     try {
@@ -282,6 +394,16 @@ const deleteEmployee = async (id) => {
     createEmployee,
     updateEmployee,
     deleteEmployee,
+    fetchAdvances,
+    fetchAdvanceById,
+    createAdvance,
+    updateAdvance,
+    deleteAdvance,
+    fetchExpenses,
+    fetchExpenseById,
+    createExpense,
+    updateExpense,
+    deleteExpense
   }}
 >
   {children}

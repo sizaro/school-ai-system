@@ -77,9 +77,15 @@ export default function Sidebar() {
               )}
             </li>
 
-            {/* Workers */}
+            {/* Employees */}
 
             <li><Link to="/pages/Employees" className={linkClass('/pages/Employees')}>Employees</Link></li>
+
+            {/* Advances */}
+
+            <li><Link to="/pages/Advances" className={linkClass('/pages/Advances')}>Employees Advances</Link></li>
+
+            {/* Workers */}
             <li>
               <div onClick={() => setWorkersOpen(!workersOpen)} className="px-4 py-2 rounded cursor-pointer hover:bg-gray-700 flex justify-between">
                 <span>Worker Performance</span><span>{workersOpen ? '▾' : '▸'}</span>
@@ -146,8 +152,13 @@ export default function Sidebar() {
               )}
             </li>
 
-            {/* Workers */}
+            {/* Employees */}
             <li><Link to="/pages/Employees" className={linkClass('/pages/Employees')}>Employees</Link></li>
+
+              {/* Employees Advances */}
+            <li><Link to="/pages/Advances" className={linkClass('/pages/Advances')}>Employees Advances</Link></li>
+
+             {/* Workers */}   
             <li>
               <div onClick={() => setWorkersOpen(!workersOpen)} className="px-4 py-2 rounded cursor-pointer hover:bg-gray-700 flex justify-between">
                 <span>Worker Performance</span><span>{workersOpen ? '▾' : '▸'}</span>
