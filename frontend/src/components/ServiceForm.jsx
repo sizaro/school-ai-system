@@ -12,8 +12,8 @@ const serviceMap = {
   'trimming-scrub-5000': { serviceAmount: 5000, salonAmount: 3000, barberAmount: 1000, barberAssistantAmount: 1000 },
   'haircut-honey-10000': { serviceAmount: 10000, salonAmount: 6000, barberAmount: 2000, barberAssistantAmount: 2000 },
   'haircut-women': { serviceAmount: 10000, salonAmount: 6000, barberAmount: 4000 },
-  'scrub-only-3000': { serviceAmount: 3000, scrubAmount: 2000, scrubAssistantAmount: 1000 },
-  'scrub-only-5000': { serviceAmount: 5000, scrubAmount: 4000, scrubAssistantAmount: 1000 },
+  'scrub-only-3000': { serviceAmount: 3000, salonAmount: 2000, scrubAmount: 2000, scrubAssistantAmount: 1000 },
+  'scrub-only-5000': { serviceAmount: 5000, salonAmount: 4000,scrubAmount: 4000, scrubAssistantAmount: 1000 },
   'blackshampoo-only-3000': { serviceAmount: 3000, blackShampooAmount: 2000, blackShampooAssistantAmount: 1000 },
   'blackshampoo-only-5000': { serviceAmount: 5000, blackShampooAmount: 4000, blackShampooAssistantAmount: 1000 }
 };

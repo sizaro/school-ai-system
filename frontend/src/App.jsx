@@ -1,65 +1,68 @@
-import { Routes, Route } from 'react-router-dom';
-import Sidebar from './components/Sidebar';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import ProtectedRoute from "./components/common/ProtectedRoute.jsx";
 
-// Dashboard
-import Dashboard from './pages/Dashboard';
+import Home from "./pages/landing/Home.jsx";
+import About from "./pages/landing/About.jsx";
+import Services from "./pages/landing/Services.jsx";
+import Contact from "./pages/landing/Contact.jsx";
+import Login from "./pages/auth/Login.jsx";
 
-// Income Reports
-import IncomeDailyReport from './pages/IncomeDailyReport';
-import IncomeWeeklyReport from './pages/IncomeWeeklyReport';
-import IncomeMonthlyReport from './pages/IncomeMonthlyReport';
-import IncomeYearlyReport from './pages/IncomeYearlyReport';
-
-// Expenses Reports
-import ExpensesDailyReport from './pages/ExpensesDailyReport';
-import ExpensesWeeklyReport from './pages/ExpensesWeeklyReport';
-import ExpensesMonthlyReport from './pages/ExpensesMonthlyReport';
-import ExpensesYearlyReport from './pages/ExpensesYearlyReport';
-
-// Work Performance Reports
-import WorkDailyReport from './pages/WorkDailyReport';
-import WorkWeeklyReport from './pages/WorkWeeklyReport';
-import WorkMonthlyReport from './pages/WorkMonthlyReport';
-import WorkYearlyReport from './pages/WorkYearlyReport';
-import Employees from './pages/Employees';
-import Advances from './pages/Advances'
+import OwnerLayout from "./components/layout/OwnerLayout.jsx";
+import ManagerLayout from "./components/layout/ManagerLayout.jsx";
+import EmployeeLayout from "./components/layout/EmployeeLayout.jsx";
+import CustomerLayout from "./components/layout/CustomerLayout.jsx";
 
 
 function App() {
   return (
-    <div className="flex overflow-x-hidden">
-      <Sidebar />
-      <main className="flex-1 p-6 pt-18 md:pt-6 md:ml-64 overflow-x-hidden">
-        <Routes>
-  <Route path="/" element={<Dashboard />} />
+      <Routes>
+        {/* Public Landing Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/login" element={<Login />} />
 
-  {/* Income Reports */}
-  <Route path="/pages/IncomeDailyReport" element={<IncomeDailyReport />} />
-  <Route path="/pages/IncomeWeeklyReport" element={<IncomeWeeklyReport />} />
-  <Route path="/pages/IncomeMonthlyReport" element={<IncomeMonthlyReport />} />
-  <Route path="/pages/IncomeYearlyReport" element={<IncomeYearlyReport />} />
+        {/* Owner Routes */}
+        <Route
+          path="/owner/*"
+          element={
+            <ProtectedRoute role="owner">
+              <OwnerLayout />
+            </ProtectedRoute>
+          }
+        />
 
-  {/* Expenses Reports */}
-  <Route path="/pages/ExpensesDailyReport" element={<ExpensesDailyReport />} />
-  <Route path="/pages/ExpensesWeeklyReport" element={<ExpensesWeeklyReport />} />
-  <Route path="/pages/ExpensesMonthlyReport" element={<ExpensesMonthlyReport />} />
-  <Route path="/pages/ExpensesYearlyReport" element={<ExpensesYearlyReport />} />
+        {/*  Manager Routes */}
+        <Route
+          path="/manager/*"
+          element={
+            <ProtectedRoute role="manager">
+              <ManagerLayout />
+            </ProtectedRoute>
+          }
+        />
 
-   {/* Employees */}
-  <Route path="/pages/Employees" element={<Employees />} />
+        {/* Employee Routes */}
+        <Route
+          path="/employee/*"
+          element={
+            <ProtectedRoute role="employee">
+              <EmployeeLayout />
+            </ProtectedRoute>
+          }
+        />
 
-  {/* Advances */}
-  <Route path="/pages/Advances" element={<Advances />} />
-
-  {/* Work Performance Reports */}
-  <Route path="/pages/WorkDailyReport" element={<WorkDailyReport />} />
-  <Route path="/pages/WorkWeeklyReport" element={<WorkWeeklyReport />} />
-  <Route path="/pages/WorkMonthlyReport" element={<WorkMonthlyReport />} />
-  <Route path="/pages/WorkYearlyReport" element={<WorkYearlyReport />} />
-</Routes>
-
-      </main>
-    </div>
+        {/* Customer Routes */}
+        <Route
+          path="/customer/*"
+          element={
+            <ProtectedRoute role="customer">
+              <CustomerLayout />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
   );
 }
 
