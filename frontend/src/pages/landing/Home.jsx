@@ -1,4 +1,3 @@
-// src/pages/Landing/Home.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../../components/common/Navbar";
@@ -30,30 +29,39 @@ export default function Home() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             {
-              title: "Bridal Hair Styling",
-              desc: "Elegant, timeless looks for your special day.",
-              img: "https://images.unsplash.com/photo-1600180758890-6c95a5473f3f?auto=format&fit=crop&w=800&q=60",
+              title: "Standard Haircut",
+              desc: "A clean, classic haircut done with precision and style.",
+              img: "https://images.unsplash.com/photo-1621605815976-9b084f4d8b5c?auto=format&fit=crop&w=800&q=60",
             },
             {
-              title: "Makeup & Glam",
-              desc: "Flawless makeup that enhances your natural beauty.",
-              img: "https://images.unsplash.com/photo-1600180758989-04c4c55f2fa3?auto=format&fit=crop&w=800&q=60",
+              title: "Haircut + Black Mask",
+              desc: "Revitalize your skin while getting your perfect cut.",
+              img: "https://images.unsplash.com/photo-1600180758824-d6c6f52f25a7?auto=format&fit=crop&w=800&q=60",
             },
             {
-              title: "Hair Coloring",
-              desc: "Vibrant shades & highlights customized for you.",
+              title: "Haircut + Super Black",
+              desc: "Deep black shine treatment for a bold and fresh look.",
+              img: "https://images.unsplash.com/photo-1621609763094-0b06e6a73b32?auto=format&fit=crop&w=800&q=60",
+            },
+            {
+              title: "Facial Scrub (Premium)",
+              desc: "Deep cleansing facial scrub that refreshes your skin.",
               img: "https://images.unsplash.com/photo-1599940075373-87e4f7c43b0e?auto=format&fit=crop&w=800&q=60",
             },
-            {
-              title: "Mobile Salon Services",
-              desc: "Professional care right at your doorstep.",
-              img: "https://images.unsplash.com/photo-1599940075472-5e5c7b447c6e?auto=format&fit=crop&w=800&q=60",
-            },
           ].map((service, i) => (
-            <div key={i} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition">
-              <img src={service.img} alt={service.title} className="w-full h-48 object-cover" />
+            <div
+              key={i}
+              className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition"
+            >
+              <img
+                src={service.img}
+                alt={service.title}
+                className="w-full h-48 object-cover"
+              />
               <div className="p-4">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">{service.title}</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  {service.title}
+                </h3>
                 <p className="text-gray-600 text-sm">{service.desc}</p>
               </div>
             </div>
@@ -76,7 +84,7 @@ export default function Home() {
           <h2 className="text-3xl font-bold mb-4 text-gray-800">About Us</h2>
           <p className="text-gray-600 mb-6">
             At Salehish Beauty Salon, we combine passion, precision, and creativity to bring out your best look.
-            Whether it’s a simple trim or a glamorous makeover, our professional team ensures you leave looking
+            Whether it’s a simple trim or a premium treatment, our professional team ensures you leave looking
             and feeling amazing.
           </p>
           <Link

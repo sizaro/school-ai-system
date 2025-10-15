@@ -135,6 +135,7 @@ const payload = {
       >
         <option value=""></option>
         <option value="7000-service">7000 service</option>
+        <option value="6000-service">6000 service</option>
         <option value="5000-service">5000 service</option>
         <option value="child-service">Child Service</option>
         <option value="beard-service">Beard Service</option>
@@ -149,6 +150,7 @@ const payload = {
         <option value="scrub-only-5000">Scrub only (5000)</option>
         <option value="blackshampoo-only-3000">Blackshampoo only (3000)</option>
         <option value="blackshampoo-only-5000">Blackshampoo only (5000)</option>
+        <option value="superblack-only-8000">superblack only (8000)</option>
       </select>
     </div>
 
@@ -191,6 +193,47 @@ const payload = {
         </div>
       </>
     )}
+
+    {/* 6000-service */}
+    {formData.service === "6000-service" && (
+      <>
+        <div>
+          <label className="block mb-1">Barber</label>
+          <select
+            name="barber"
+            value={formData.barber}
+            onChange={handleChange}
+            className="w-full border rounded px-2 py-1"
+          >
+            <option value=""></option>
+            {mockEmployees.map((emp) => (
+  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+    {emp.first_name} {emp.last_name}
+  </option>
+))}
+
+          </select>
+        </div>
+        <div>
+          <label className="block mb-1">Aesthetician</label>
+          <select
+            name="barberAssistant"
+            value={formData.barberAssistant}
+            onChange={handleChange}
+            className="w-full border rounded px-2 py-1"
+          >
+            <option value=""></option>
+            {mockEmployees.map((emp) => (
+  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+    {emp.first_name} {emp.last_name}
+  </option>
+))}
+
+          </select>
+        </div>
+      </>
+    )}
+
 
     {/* 5000-service */}
     {formData.service === "5000-service" && (
@@ -655,6 +698,28 @@ const payload = {
         <select
           name="blackShampooAssistant"
           value={formData.blackShampooAssistant}
+          onChange={handleChange}
+          className="w-full border rounded px-2 py-1"
+        >
+          <option value=""></option>
+          {mockEmployees.map((emp) => (
+  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+    {emp.first_name} {emp.last_name}
+  </option>
+))}
+
+        </select>
+      </div>
+    )}
+
+    
+    {/* Super Black Only */}
+    {formData.service === "superblack-only-8000" && (
+      <div>
+        <label className="block mb-1">Super Black Aesthetician</label>
+        <select
+          name="superBlackAssistant"
+          value={formData.superBlackAssistant}
           onChange={handleChange}
           className="w-full border rounded px-2 py-1"
         >
