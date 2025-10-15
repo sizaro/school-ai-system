@@ -1,54 +1,62 @@
 import { Routes, Route } from "react-router-dom";
+
 // Income Reports
-import OwnerIncomeDailyReport from "../../pages/owner/OwnerIncomeDailyReport.jsx";
-import OwnerIncomeWeeklyReport from "../../pages/owner/OwnerIncomeWeeklyReport.jsx";
-import OwnerIncomeMonthlyReport from "../../pages/owner/OwnerIncomeMonthlyReport.jsx";
-import OwnerIncomeYearlyReport from "../../pages/owner/OwnerIncomeYearlyReport.jsx";
+import ManagerIncomeDailyReport from "../../pages/manager/ManagerIncomeDailyReport.jsx";
+import ManagerIncomeWeeklyReport from "../../pages/manager/ManagerIncomeWeeklyReport.jsx";
+import ManagerIncomeMonthlyReport from "../../pages/manager/ManagerIncomeMonthlyReport.jsx";
+import ManagerIncomeYearlyReport from "../../pages/manager/ManagerIncomeYearlyReport.jsx";
 
 // Expenses Reports
-import OwnerExpensesDailyReport from "../../pages/owner/OwnerExpensesDailyReport.jsx";
-import OwnerExpensesWeeklyReport from "../../pages/owner/OwnerExpensesWeeklyReport.jsx";
-import OwnerExpensesMonthlyReport from "../../pages/owner/OwnerExpensesMonthlyReport.jsx";
-import OwnerExpensesYearlyReport from "../../pages/owner/OwnerExpensesYearlyReport.jsx";
+import ManagerExpensesDailyReport from "../../pages/manager/ManagerExpensesDailyReport.jsx";
+import ManagerExpensesWeeklyReport from "../../pages/manager/ManagerExpensesWeeklyReport.jsx";
+import ManagerExpensesMonthlyReport from "../../pages/manager/ManagerExpensesMonthlyReport.jsx";
+import ManagerExpensesYearlyReport from "../../pages/manager/ManagerExpensesYearlyReport.jsx";
 
 // Employees and Advances
-import OwnerEmployees from "../../pages/owner/OwnerEmployees.jsx";
-import OwnerAdvances from "../../pages/owner/OwnerAdvances.jsx";
+import ManagerEmployees from "../../pages/manager/ManagerManageStaff.jsx";
+import ManagerAdvances from "../../pages/manager/ManagerAdvances.jsx";
 
 // Staff Performance
-import OwnerStaffDailyPerformance from "../../pages/owner/OwnerStaffDailyPerfomance.jsx";
-import OwnerStaffWeeklyPerformance from "../../pages/owner/OwnerStaffWeeklyPerformance.jsx";
-import OwnerStaffMonthlyPerformance from "../../pages/owner/OwnerStaffMonthlyPerformance.jsx";
-import OwnerStaffYearlyPerformance from "../../pages/owner/OwnerStaffYearlyPerformance.jsx";
+import ManagerStaffDailyReport from "../../pages/manager/ManagerStaffDailyReport.jsx";
+import ManagerStaffWeeklyReport from "../../pages/manager/ManagerStaffWeeklyReport.jsx";
+import ManagerStaffMonthlyReport from "../../pages/manager/ManagerStaffMonthlyReport.jsx";
+import ManagerStaffYearlyReport from "../../pages/manager/ManagerStaffYearlyReport.jsx";
+
+// Layout Components
+import ManagerSidebar from "../../components/sidebars/ManagerSidebar.jsx";
+import ManagerDashboard from "../../pages/manager/ManagerDashboard.jsx";
 
 const ManagerLayout = () => {
   return (
     <div className="flex h-screen bg-gray-100">
-      <OwnerSidebar />
-      <main className="flex-1 p-6 overflow-y-auto">
+      <ManagerSidebar />
+      <main className="flex-1 p-6 overflow-y-auto ml-65">
         <Routes>
-          <Route path="/pages/owner/OwnerDashboard" element={<OwnerDashboard />} />
-          <Route path="/pages/owner/OwnerDailyIncomeReport" element={<OwnerIncomeDailyReport />} />
-          <Route path="/pages/owner/OwnerWeeklyIncomeReport" element={<OwnerIncomeWeeklyReport />} />
-          <Route path="/pages/owner/OwnerMonthlyIncomeReport" element={<OwnerIncomeMonthlyReport />} />
-          <Route path="/pages/owner/OwnerYearlyIncomeReport" element={<OwnerIncomeYearlyReport />} />
+          <Route index element={<ManagerDashboard />} />
+          <Route path="ManagerDashboard" element={<ManagerDashboard />} />
 
-            {/* Expenses Reports */}
-      <Route path="/pages/owner/OwnerExpensesDailyReport" element={<OwnerExpensesDailyReport />} />
-      <Route path="/pages/owner/OwnerExpensesWeeklyReport" element={<OwnerExpensesWeeklyReport />} />
-      <Route path="/pages/owner/OwnerExpensesMonthlyReport" element={<OwnerExpensesMonthlyReport />} />
-      <Route path="/pages/owner/OwnerExpensesYearlyReport" element={<OwnerExpensesYearlyReport />} />
+          {/* Income Reports */}
+          <Route path="/income/daily" element={<ManagerIncomeDailyReport />} />
+          <Route path="/pages/manager/ManagerWeeklyIncomeReport" element={<ManagerIncomeWeeklyReport />} />
+          <Route path="/pages/manager/ManagerMonthlyIncomeReport" element={<ManagerIncomeMonthlyReport />} />
+          <Route path="/pages/manager/ManagerYearlyIncomeReport" element={<ManagerIncomeYearlyReport />} />
 
-      {/* Employees & Advances */}
-      <Route path="/pages/owner/OwnerEmployees" element={<OwnerEmployees />} />
-      <Route path="/pages/owner/OwnerAdvances" element={<OwnerAdvances />} />
+          {/* Expenses Reports */}
+          <Route path="expenses/daily" element={<ManagerExpensesDailyReport />} />
+          <Route path="/pages/manager/ManagerExpensesWeeklyReport" element={<ManagerExpensesWeeklyReport />} />
+          <Route path="/pages/manager/ManagerExpensesMonthlyReport" element={<ManagerExpensesMonthlyReport />} />
+          <Route path="/pages/manager/ManagerExpensesYearlyReport" element={<ManagerExpensesYearlyReport />} />
 
-      {/* Worker Performance */}
-      <Route path="/pages/owner/OwnerStaffDailyPerformance" element={<OwnerStaffDailyPerformance />} />
-      <Route path="/pages/owner/OwnerStaffWeeklyPerformance" element={<OwnerStaffWeeklyPerformance />} />
-      <Route path="/pages/owner/OwnerStaffMonthlyPerformance" element={<OwnerStaffMonthlyPerformance />} />
-      <Route path="/pages/owner/OwnerStaffYearlyPerformance" element={<OwnerStaffYearlyPerformance />} /> 
-    </Routes>
+          {/* Employees & Advances */}
+          <Route path="employees" element={<ManagerEmployees />} />
+          <Route path="advances" element={<ManagerAdvances />} />
+
+          {/* Staff Performance */}
+          <Route path="report/daily" element={<ManagerStaffDailyReport />} />
+          <Route path="/pages/manager/ManagerStaffWeeklyPerformance" element={<ManagerStaffWeeklyReport />} />
+          <Route path="/pages/manager/ManagerStaffMonthlyPerformance" element={<ManagerStaffMonthlyReport />} />
+          <Route path="/pages/manager/ManagerStaffYearlyPerformance" element={<ManagerStaffYearlyReport />} />
+        </Routes>
       </main>
     </div>
   );

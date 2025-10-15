@@ -5,7 +5,6 @@ import Home from "./pages/landing/Home.jsx";
 import About from "./pages/landing/About.jsx";
 import Services from "./pages/landing/Services.jsx";
 import Contact from "./pages/landing/Contact.jsx";
-import Login from "./pages/auth/Login.jsx";
 
 import OwnerLayout from "./components/layout/OwnerLayout.jsx";
 import ManagerLayout from "./components/layout/ManagerLayout.jsx";
@@ -21,7 +20,6 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/services" element={<Services />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/login" element={<Login />} />
 
         {/* Owner Routes */}
         <Route

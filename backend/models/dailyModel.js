@@ -37,9 +37,21 @@ async function getClockingsByDay(startOfDay, endOfDay) {
   return result.rows;
 }
 
+export const fetchAllEmployees = async () => {
+  const query = `
+    SELECT e.*,
+           (e.created_at AT TIME ZONE 'Africa/Kampala') AS "employee_time" 
+    FROM employees e;
+  `;
+  const result = await db.query(query);
+  console.log("Fetched all employees:", result.rows);
+  return result.rows;
+};
+
 export default {
   getServicesByDay,
   getExpensesByDay,
   getAdvancesByDay,
   getClockingsByDay,
+  fetchAllEmployees
 };

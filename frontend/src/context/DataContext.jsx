@@ -11,6 +11,7 @@ export const DataProvider = ({ children }) => {
   const [clockings, setClockings] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5500/api";
 
@@ -45,10 +46,13 @@ export const DataProvider = ({ children }) => {
         params: { date: formatDate(date) },
       });
       const data = res.data;
+
+      console.log(`daily data in context`, res.data)
       setServices(data.services);
       setExpenses(data.expenses);
       setAdvances(data.advances);
       setClockings(data.clockings);
+      setEmployees(data.employees);
       return data;
     } catch (err) {
       console.error("Error fetching daily report:", err);
@@ -301,6 +305,52 @@ const deleteEmployee = async (id) => {
     };
         
 
+
+    const loginUser = async (credentials) => {
+  try {
+    const res = await axios.post(`${API_URL}/auth/login`, credentials, {
+      withCredentials: true, // allows backend to set HttpOnly cookie
+    });
+    const { user } = res.data;
+
+    if (!user) {
+      throw new Error("Invalid login response — user missing");
+    }
+
+    return user;
+  } catch (err) {
+    console.error("Error during loginUser:", err);
+    throw err;
+  }
+};
+
+ // --- checkAuth function ---
+  const checkAuth = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/auth/check`, {
+        withCredentials: true, // important to send httpOnly cookie
+      });
+      setUser(res.data.user); // store the user in state
+    } catch (err) {
+      setUser(null); // no session or invalid token
+      console.error("Auth check failed:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const logoutUser = async () => {
+  try {
+    await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
+  } catch (err) {
+    console.error("Error during logout:", err);
+  } finally {
+    setUser(null);
+    navigate("/");
+  }
+};
+
   // ---------- Send Form ----------
   const sendFormData = async (formIdentifier, formData) => {
     try {
@@ -389,7 +439,10 @@ const deleteEmployee = async (id) => {
     fetchExpenseById,
     createExpense,
     updateExpense,
-    deleteExpense
+    deleteExpense,
+    loginUser,
+    checkAuth,
+    logoutUser
   }}
 >
   {children}

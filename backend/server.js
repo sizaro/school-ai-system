@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import cookieParser from "cookie-parser";
 dotenv.config();
 
 import servicesRoutes from './routes/servicesRoutes.js';
@@ -12,6 +13,7 @@ import clockingsRoutes from './routes/clockingsRoutes.js';
 import sessionsRoutes from './routes/sessionsRoutes.js';
 import employeesRoutes from './routes/employeesRoutes.js';
 import reportsRoutes from './routes/reportsRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 
 const app = express();
 app.use(cors({
@@ -23,6 +25,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+app.use(cookieParser());
 
 app.use('/api/services', servicesRoutes);
 app.use('/api/expenses', expensesRoutes);
@@ -31,6 +34,7 @@ app.use('/api/clockings', clockingsRoutes);
 app.use('/api/sessions', sessionsRoutes);
 app.use('/api/employees', employeesRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/auth', authRoutes);
 
 
 const PORT = process.env.PORT || 5500;

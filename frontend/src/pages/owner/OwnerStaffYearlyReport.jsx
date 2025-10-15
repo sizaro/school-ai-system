@@ -1,58 +1,36 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useData } from "../../context/DataContext";
 
-export default function OwnerStaffWeeklyPerformance() {
-  const { services, employees, advances, fetchWeeklyData } = useData();
+const OwnerStaffYearlyReport = () => {
+  const { services, employees, advances, fetchYearlyData } = useData();
 
-  const [weekRange, setWeekRange] = useState({ start: null, end: null });
+  const [year, setYear] = useState(new Date().getFullYear());
   const [reportLabel, setReportLabel] = useState("");
 
-  // ---- Week Picker Handler ----
-  const handleWeekChange = (e) => {
-    const weekString = e.target.value; // e.g. "2025-W39"
-    if (!weekString) return;
-
-    const [year, week] = weekString.split("-W").map(Number);
-
-    // First Monday of the year
-    const firstDayOfYear = new Date(year, 0, 1);
-    const day = firstDayOfYear.getDay(); // 0=Sun, 1=Mon...
-    const firstMonday = new Date(firstDayOfYear);
-    const diff = day <= 4 ? day - 1 : day - 8;
-    firstMonday.setDate(firstDayOfYear.getDate() - diff);
-
-    // Monday of picked week
-    const monday = new Date(firstMonday);
-    monday.setDate(firstMonday.getDate() + (week - 1) * 7);
-
-    // Sunday = Monday + 6
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-
-    setWeekRange({ start: monday, end: sunday });
-    setReportLabel(
-      `${monday.toLocaleDateString("en-US")} → ${sunday.toLocaleDateString("en-US")}`
-    );
-
-    fetchWeeklyData(monday, sunday);
+  // ---- Handle year change ----
+  const handleYearChange = (e) => {
+    const selectedYear = parseInt(e.target.value, 10);
+    setYear(selectedYear);
+    setReportLabel(`Year ${selectedYear}`);
+    fetchYearlyData(selectedYear);
   };
 
-  // ---- On Page Load: Current Week ----
+  // ---- Generate year options ----
+  const generateYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let y = currentYear; y >= currentYear - 10; y--) {
+      years.push(y);
+    }
+    return years;
+  };
+
+  // ---- On page load: current year ----
   useEffect(() => {
-    const today = new Date();
-
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - today.getDay() + 1);
-
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-
-    setWeekRange({ start: monday, end: sunday });
-    setReportLabel(
-      `${monday.toLocaleDateString("en-US")} → ${sunday.toLocaleDateString("en-US")}`
-    );
-
-    fetchWeeklyData(monday, sunday);
+    const currentYear = new Date().getFullYear();
+    setYear(currentYear);
+    setReportLabel(`Year ${currentYear}`);
+    fetchYearlyData(currentYear);
   }, []);
 
   // ---- Employee Totals ----
@@ -85,6 +63,19 @@ export default function OwnerStaffWeeklyPerformance() {
     });
   }, [services, advances, employees]);
 
+  // ---- Format UTC to EAT ----
+  const formatEAT = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleString("en-UG", {
+      timeZone: "Africa/Kampala",
+      hour: "2-digit",
+      minute: "2-digit",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
   if (!services.length) {
     return (
       <section className="p-6">
@@ -95,31 +86,26 @@ export default function OwnerStaffWeeklyPerformance() {
     );
   }
 
-  // ---- Format UTC to EAT ----
-  const formatEAT = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleString("en-UG", {
-      timeZone: "Africa/Kampala",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  // ---- Render ----
   return (
-    <section className="p-6 max-w-6xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">
-        Workers Weekly Report
-      </h2>
+    <div className="p-6 max-w-6xl mx-auto">
+      <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
+        Yearly Workers Report
+      </h1>
 
-      {/* Week Picker */}
+      {/* Year Picker */}
       <div className="mb-4">
-        <label className="block mb-2 font-medium">Pick a week:</label>
-        <input
-          type="week"
-          onChange={handleWeekChange}
+        <label className="block mb-2 font-medium">Pick a year:</label>
+        <select
+          value={year}
+          onChange={handleYearChange}
           className="border rounded p-2"
-        />
+        >
+          {generateYearOptions().map((y) => (
+            <option key={y} value={y}>
+              {y}
+            </option>
+          ))}
+        </select>
         <p className="mt-2 text-gray-600">{reportLabel}</p>
       </div>
 
@@ -154,6 +140,8 @@ export default function OwnerStaffWeeklyPerformance() {
           </tbody>
         </table>
       </div>
-    </section>
+    </div>
   );
-}
+};
+
+export default OwnerStaffYearlyReport;

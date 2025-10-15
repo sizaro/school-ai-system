@@ -8,19 +8,23 @@ const ProtectedRoute = ({ children, role }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/auth/check-auth", {
-          withCredentials: true,
+        const res = await axios.get("http://localhost:5500/api/auth/check", {
+          withCredentials: true, // send the cookie
         });
 
-        if (res.data.role === role) {
+        console.log("Auth check response:", res.data);
+
+        if (res.data.user && res.data.user.role === role) {
           setAuthState({ loading: false, allowed: true });
         } else {
           setAuthState({ loading: false, allowed: false });
         }
       } catch (err) {
+        console.error("Auth check failed:", err);
         setAuthState({ loading: false, allowed: false });
       }
     };
+
     checkAuth();
   }, [role]);
 
@@ -32,7 +36,7 @@ const ProtectedRoute = ({ children, role }) => {
     );
   }
 
-  return authState.allowed ? children : <Navigate to="/login" replace />;
+  return authState.allowed ? children : <Navigate to="/" replace />;
 };
 
 export default ProtectedRoute;

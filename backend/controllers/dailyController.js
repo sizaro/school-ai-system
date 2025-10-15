@@ -11,7 +11,8 @@ export async function getDailyReport(req, res) {
         services: [],
         expenses: [],
         advances: [],
-        clockings: []
+        clockings: [],
+        employees: []
       });
     }
 
@@ -26,15 +27,17 @@ export async function getDailyReport(req, res) {
     endOfDay.setHours(23, 59, 59, 999);
 
     // Fetch data from the model
-    const [services, expenses, advances, clockings] = await Promise.all([
+    const [services, expenses, advances, clockings, employees] = await Promise.all([
       dailyModel.getServicesByDay(startOfDay.toISOString(), endOfDay.toISOString()),
       dailyModel.getExpensesByDay(startOfDay.toISOString(), endOfDay.toISOString()),
       dailyModel.getAdvancesByDay(startOfDay.toISOString(), endOfDay.toISOString()),
-      dailyModel.getClockingsByDay(startOfDay.toISOString(), endOfDay.toISOString())
+      dailyModel.getClockingsByDay(startOfDay.toISOString(), endOfDay.toISOString()),
+      dailyModel.fetchAllEmployees()
     ]);
 
+    console.log("this is the clocking in the controller", clockings)
     // Return as JSON
-    res.json({ services, expenses, advances, clockings });
+    res.json({ services, expenses, advances, clockings, employees });
 
   } catch (error) {
     console.error("Error fetching daily report:", error);

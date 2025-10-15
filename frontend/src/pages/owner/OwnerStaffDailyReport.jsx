@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useData } from "../../context/DataContext.jsx";
 
-export default function OwnerStaffDailyPerformance() {
+export default function OwnerStaffDailyReport() {
   const { services, employees, advances, clockings, fetchDailyData } = useData();
 
   // Initialize date state to today (YYYY-MM-DD)

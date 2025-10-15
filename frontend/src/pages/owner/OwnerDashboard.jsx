@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import Modal from "../components/Modal";
-import ServiceForm from "../components/ServiceForm";
-import ExpenseForm from "../components/ExpenseForm";
-import AdvanceForm from "../components/AdvanceForm";
-import Button from "../components/Button";
-import ClockForm from "../components/ClockForm";
-import { useData } from "../context/DataContext.jsx";
+import Modal from "../../components/Modal.jsx";
+import ServiceForm from "../../components/ServiceForm";
+import ExpenseForm from "../../components/ExpenseForm";
+import AdvanceForm from "../../components/AdvanceForm";
+import Button from "../../components/Button";
+import ClockForm from "../../components/ClockForm";
+import { useData } from "../../context/DataContext.jsx";
 
 export default function OwnerDashboard() {
   const [modalType, setModalType] = useState(null);
@@ -75,7 +75,7 @@ export default function OwnerDashboard() {
     try {
       if (type === "clockin") {
         const res = await sendFormData("createClocking", formData);
-        console.log("Clock in success:", res.data);
+        console.log("Clock in success:", res);
       } else if (type === "clockout") {
         const res = await sendFormData("updateClocking", formData);
         console.log("Clock out success:", res.data);

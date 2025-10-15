@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 const serviceMap = {
   '7000-service': { serviceAmount: 7000, salonAmount: 4000, barberAmount: 2000, barberAssistantAmount: 1000 },
+  '6000-service': { serviceAmount: 6000, salonAmount: 3000, barberAmount: 2000, barberAssistantAmount: 1000 },
   '5000-service': { serviceAmount: 5000, salonAmount: 3000, barberAmount: 2000 },
   'child-service': { serviceAmount: 3000, salonAmount: 2000, barberAmount: 1000 },
   'beard-service': { serviceAmount: 3000, salonAmount: 2000, barberAmount: 1000 },
@@ -15,7 +16,8 @@ const serviceMap = {
   'scrub-only-3000': { serviceAmount: 3000, salonAmount: 2000, scrubAmount: 2000, scrubAssistantAmount: 1000 },
   'scrub-only-5000': { serviceAmount: 5000, salonAmount: 4000,scrubAmount: 4000, scrubAssistantAmount: 1000 },
   'blackshampoo-only-3000': { serviceAmount: 3000, blackShampooAmount: 2000, blackShampooAssistantAmount: 1000 },
-  'blackshampoo-only-5000': { serviceAmount: 5000, blackShampooAmount: 4000, blackShampooAssistantAmount: 1000 }
+  'blackshampoo-only-5000': { serviceAmount: 5000, blackShampooAmount: 4000, blackShampooAssistantAmount: 1000 },
+  'superblack-only-8000': { serviceAmount: 8000, salonAmount: 6000, superBlackAssistantAmount: 2000 }
 };
 
 const mockEmployees = [

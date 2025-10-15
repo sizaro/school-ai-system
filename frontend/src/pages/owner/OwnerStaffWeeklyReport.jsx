@@ -1,43 +1,58 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useData } from "../../context/DataContext";
 
-export default function OwnerStaffMonthlyPerformance() {
-  const { services, employees, advances, fetchMonthlyData } = useData();
+export default function OwnerStaffWeeklyReport() {
+  const { services, employees, advances, fetchWeeklyData } = useData();
 
-  const [monthYear, setMonthYear] = useState(""); // "YYYY-MM"
+  const [weekRange, setWeekRange] = useState({ start: null, end: null });
   const [reportLabel, setReportLabel] = useState("");
 
-  // ---- Handle month selection ----
-  const handleMonthChange = (e) => {
-    const value = e.target.value; // "YYYY-MM"
-    if (!value) return;
+  // ---- Week Picker Handler ----
+  const handleWeekChange = (e) => {
+    const weekString = e.target.value; // e.g. "2025-W39"
+    if (!weekString) return;
 
-    const [year, month] = value.split("-").map(Number);
+    const [year, week] = weekString.split("-W").map(Number);
 
-    setMonthYear(value);
+    // First Monday of the year
+    const firstDayOfYear = new Date(year, 0, 1);
+    const day = firstDayOfYear.getDay(); // 0=Sun, 1=Mon...
+    const firstMonday = new Date(firstDayOfYear);
+    const diff = day <= 4 ? day - 1 : day - 8;
+    firstMonday.setDate(firstDayOfYear.getDate() - diff);
+
+    // Monday of picked week
+    const monday = new Date(firstMonday);
+    monday.setDate(firstMonday.getDate() + (week - 1) * 7);
+
+    // Sunday = Monday + 6
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    setWeekRange({ start: monday, end: sunday });
     setReportLabel(
-      `${new Date(year, month - 1, 1).toLocaleDateString("en-US", {
-        month: "long",
-        year: "numeric",
-      })}`
+      `${monday.toLocaleDateString("en-US")} → ${sunday.toLocaleDateString("en-US")}`
     );
 
-    fetchMonthlyData(year, month);
+    fetchWeeklyData(monday, sunday);
   };
 
-  // ---- On page load: current month ----
+  // ---- On Page Load: Current Week ----
   useEffect(() => {
     const today = new Date();
-    const month = today.getMonth() + 1;
-    const year = today.getFullYear();
-    const value = `${year}-${month.toString().padStart(2, "0")}`;
 
-    setMonthYear(value);
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - today.getDay() + 1);
+
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    setWeekRange({ start: monday, end: sunday });
     setReportLabel(
-      `${today.toLocaleString("en-US", { month: "long", year: "numeric" })}`
+      `${monday.toLocaleDateString("en-US")} → ${sunday.toLocaleDateString("en-US")}`
     );
 
-    fetchMonthlyData(year, month);
+    fetchWeeklyData(monday, sunday);
   }, []);
 
   // ---- Employee Totals ----
@@ -94,16 +109,15 @@ export default function OwnerStaffMonthlyPerformance() {
   return (
     <section className="p-6 max-w-6xl mx-auto">
       <h2 className="text-2xl font-bold mb-4 text-gray-800">
-        Workers Monthly Report
+        Workers Weekly Report
       </h2>
 
-      {/* Month Picker */}
+      {/* Week Picker */}
       <div className="mb-4">
-        <label className="block mb-2 font-medium">Pick a month:</label>
+        <label className="block mb-2 font-medium">Pick a week:</label>
         <input
-          type="month"
-          value={monthYear}
-          onChange={handleMonthChange}
+          type="week"
+          onChange={handleWeekChange}
           className="border rounded p-2"
         />
         <p className="mt-2 text-gray-600">{reportLabel}</p>

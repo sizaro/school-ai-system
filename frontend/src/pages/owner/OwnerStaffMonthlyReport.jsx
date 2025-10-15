@@ -1,36 +1,43 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useData } from "../../context/DataContext";
 
-const OwnerWorkYearlyReport = () => {
-  const { services, employees, advances, fetchYearlyData } = useData();
+export default function OwnerStaffMonthlyReport() {
+  const { services, employees, advances, fetchMonthlyData } = useData();
 
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [monthYear, setMonthYear] = useState(""); // "YYYY-MM"
   const [reportLabel, setReportLabel] = useState("");
 
-  // ---- Handle year change ----
-  const handleYearChange = (e) => {
-    const selectedYear = parseInt(e.target.value, 10);
-    setYear(selectedYear);
-    setReportLabel(`Year ${selectedYear}`);
-    fetchYearlyData(selectedYear);
+  // ---- Handle month selection ----
+  const handleMonthChange = (e) => {
+    const value = e.target.value; // "YYYY-MM"
+    if (!value) return;
+
+    const [year, month] = value.split("-").map(Number);
+
+    setMonthYear(value);
+    setReportLabel(
+      `${new Date(year, month - 1, 1).toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      })}`
+    );
+
+    fetchMonthlyData(year, month);
   };
 
-  // ---- Generate year options ----
-  const generateYearOptions = () => {
-    const currentYear = new Date().getFullYear();
-    const years = [];
-    for (let y = currentYear; y >= currentYear - 10; y--) {
-      years.push(y);
-    }
-    return years;
-  };
-
-  // ---- On page load: current year ----
+  // ---- On page load: current month ----
   useEffect(() => {
-    const currentYear = new Date().getFullYear();
-    setYear(currentYear);
-    setReportLabel(`Year ${currentYear}`);
-    fetchYearlyData(currentYear);
+    const today = new Date();
+    const month = today.getMonth() + 1;
+    const year = today.getFullYear();
+    const value = `${year}-${month.toString().padStart(2, "0")}`;
+
+    setMonthYear(value);
+    setReportLabel(
+      `${today.toLocaleString("en-US", { month: "long", year: "numeric" })}`
+    );
+
+    fetchMonthlyData(year, month);
   }, []);
 
   // ---- Employee Totals ----
@@ -63,19 +70,6 @@ const OwnerWorkYearlyReport = () => {
     });
   }, [services, advances, employees]);
 
-  // ---- Format UTC to EAT ----
-  const formatEAT = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleString("en-UG", {
-      timeZone: "Africa/Kampala",
-      hour: "2-digit",
-      minute: "2-digit",
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-  };
-
   if (!services.length) {
     return (
       <section className="p-6">
@@ -86,26 +80,32 @@ const OwnerWorkYearlyReport = () => {
     );
   }
 
-  return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
-        Yearly Workers Report
-      </h1>
+  // ---- Format UTC to EAT ----
+  const formatEAT = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleString("en-UG", {
+      timeZone: "Africa/Kampala",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
-      {/* Year Picker */}
+  // ---- Render ----
+  return (
+    <section className="p-6 max-w-6xl mx-auto">
+      <h2 className="text-2xl font-bold mb-4 text-gray-800">
+        Workers Monthly Report
+      </h2>
+
+      {/* Month Picker */}
       <div className="mb-4">
-        <label className="block mb-2 font-medium">Pick a year:</label>
-        <select
-          value={year}
-          onChange={handleYearChange}
+        <label className="block mb-2 font-medium">Pick a month:</label>
+        <input
+          type="month"
+          value={monthYear}
+          onChange={handleMonthChange}
           className="border rounded p-2"
-        >
-          {generateYearOptions().map((y) => (
-            <option key={y} value={y}>
-              {y}
-            </option>
-          ))}
-        </select>
+        />
         <p className="mt-2 text-gray-600">{reportLabel}</p>
       </div>
 
@@ -140,8 +140,6 @@ const OwnerWorkYearlyReport = () => {
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
   );
-};
-
-export default OwnerWorkYearlyReport;
+}

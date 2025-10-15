@@ -1,4 +1,8 @@
 import { Routes, Route } from "react-router-dom";
+import OwnerSidebar from "../sidebars/OwnerSidebar.jsx";
+
+import OwnerDashboard from "../../pages/owner/OwnerDashboard.jsx";
+
 // Income Reports
 import OwnerIncomeDailyReport from "../../pages/owner/OwnerIncomeDailyReport.jsx";
 import OwnerIncomeWeeklyReport from "../../pages/owner/OwnerIncomeWeeklyReport.jsx";
@@ -16,39 +20,44 @@ import OwnerEmployees from "../../pages/owner/OwnerEmployees.jsx";
 import OwnerAdvances from "../../pages/owner/OwnerAdvances.jsx";
 
 // Staff Performance
-import OwnerStaffDailyPerformance from "../../pages/owner/OwnerStaffDailyPerfomance.jsx";
-import OwnerStaffWeeklyPerformance from "../../pages/owner/OwnerStaffWeeklyPerformance.jsx";
-import OwnerStaffMonthlyPerformance from "../../pages/owner/OwnerStaffMonthlyPerformance.jsx";
-import OwnerStaffYearlyPerformance from "../../pages/owner/OwnerStaffYearlyPerformance.jsx";
+import OwnerStaffDailyReport from "../../pages/owner/OwnerStaffDailyReport.jsx";
+import OwnerStaffWeeklyReport from "../../pages/owner/OwnerStaffWeeklyReport.jsx";
+import OwnerStaffMonthlyReport from "../../pages/owner/OwnerStaffMonthlyReport.jsx";
+import OwnerStaffYearlyReport from "../../pages/owner/OwnerStaffYearlyReport.jsx";
 
 const OwnerLayout = () => {
   return (
     <div className="flex h-screen bg-gray-100">
       <OwnerSidebar />
-      <main className="flex-1 p-6 overflow-y-auto">
+      <main className="flex-1 p-6 overflow-y-auto w-full mt-15 ml-0 md:ml-64 sm:mt-15">
         <Routes>
-          <Route path="/pages/owner/OwnerDashboard" element={<OwnerDashboard />} />
-          <Route path="/pages/owner/OwnerDailyIncomeReport" element={<OwnerIncomeDailyReport />} />
-          <Route path="/pages/owner/OwnerWeeklyIncomeReport" element={<OwnerIncomeWeeklyReport />} />
-          <Route path="/pages/owner/OwnerMonthlyIncomeReport" element={<OwnerIncomeMonthlyReport />} />
-          <Route path="/pages/owner/OwnerYearlyIncomeReport" element={<OwnerIncomeYearlyReport />} />
+          {/* Dashboard */}
+          <Route index element={<OwnerDashboard />} />
+          <Route path="dashboard" element={<OwnerDashboard />} />
 
-            {/* Expenses Reports */}
-      <Route path="/pages/owner/OwnerExpensesDailyReport" element={<OwnerExpensesDailyReport />} />
-      <Route path="/pages/owner/OwnerExpensesWeeklyReport" element={<OwnerExpensesWeeklyReport />} />
-      <Route path="/pages/owner/OwnerExpensesMonthlyReport" element={<OwnerExpensesMonthlyReport />} />
-      <Route path="/pages/owner/OwnerExpensesYearlyReport" element={<OwnerExpensesYearlyReport />} />
 
-      {/* Employees & Advances */}
-      <Route path="/pages/owner/OwnerEmployees" element={<OwnerEmployees />} />
-      <Route path="/pages/owner/OwnerAdvances" element={<OwnerAdvances />} />
+          {/* Income Reports */}
+          <Route path="income/daily" element={<OwnerIncomeDailyReport />} />
+          <Route path="income/weekly" element={<OwnerIncomeWeeklyReport />} />
+          <Route path="income/monthly" element={<OwnerIncomeMonthlyReport />} />
+          <Route path="income/yearly" element={<OwnerIncomeYearlyReport />} />
 
-      {/* Worker Performance */}
-      <Route path="/pages/owner/OwnerStaffDailyPerformance" element={<OwnerStaffDailyPerformance />} />
-      <Route path="/pages/owner/OwnerStaffWeeklyPerformance" element={<OwnerStaffWeeklyPerformance />} />
-      <Route path="/pages/owner/OwnerStaffMonthlyPerformance" element={<OwnerStaffMonthlyPerformance />} />
-      <Route path="/pages/owner/OwnerStaffYearlyPerformance" element={<OwnerStaffYearlyPerformance />} /> 
-    </Routes>
+          {/* Expenses Reports */}
+          <Route path="expenses/daily" element={<OwnerExpensesDailyReport />} />
+          <Route path="expenses/weekly" element={<OwnerExpensesWeeklyReport />} />
+          <Route path="expenses/monthly" element={<OwnerExpensesMonthlyReport />} />
+          <Route path="expenses/yearly" element={<OwnerExpensesYearlyReport />} />
+
+          {/* Employees & Advances */}
+          <Route path="employees" element={<OwnerEmployees />} />
+          <Route path="advances" element={<OwnerAdvances />} />
+
+          {/* Worker Performance */}
+          <Route path="report/daily" element={<OwnerStaffDailyReport />} />
+          <Route path="report/weekly" element={<OwnerStaffWeeklyReport />} />
+          <Route path="report/monthly" element={<OwnerStaffMonthlyReport />} />
+          <Route path="report/yearly" element={<OwnerStaffYearlyReport />} />
+        </Routes>
       </main>
     </div>
   );
