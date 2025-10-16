@@ -26,6 +26,15 @@ const OwnerExpensesDailyReport = () => {
     fetchDailyData(selectedDate);
   }, []);
 
+  // ---- Format UTC Date to EAT ----
+  const formatEAT = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleString("en-UG", {
+      timeZone: "Africa/Kampala",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
   // Handle day change
   const handleDayChange = (e) => {
     const newDate = e.target.value;
@@ -128,7 +137,7 @@ const OwnerExpensesDailyReport = () => {
                     <td className="p-2">{parseInt(exp.amount, 10).toLocaleString()}</td>
                     <td className="p-2">{exp.description}</td>
                     <td className="p-2">
-                      {new Date(exp.created_at).toLocaleString("en-UG", { timeZone: "Africa/Kampala" })}
+                      {formatEAT(exp.created_at)}
                     </td>
                     <td className="p-2 space-x-1">
                       <button

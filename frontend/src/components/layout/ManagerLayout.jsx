@@ -30,22 +30,22 @@ const ManagerLayout = () => {
   return (
     <div className="flex h-screen bg-gray-100">
       <ManagerSidebar />
-      <main className="flex-1 p-6 overflow-y-auto ml-65">
+      <main className="flex-1 p-6 overflow-y-auto w-full mt-15 ml-0 md:ml-64 sm:mt-6">
         <Routes>
+          {/* Dashboard */}
           <Route index element={<ManagerDashboard />} />
-          <Route path="ManagerDashboard" element={<ManagerDashboard />} />
-
+          <Route path="dashboard" element={<ManagerDashboard />} />
           {/* Income Reports */}
-          <Route path="/income/daily" element={<ManagerIncomeDailyReport />} />
-          <Route path="/pages/manager/ManagerWeeklyIncomeReport" element={<ManagerIncomeWeeklyReport />} />
-          <Route path="/pages/manager/ManagerMonthlyIncomeReport" element={<ManagerIncomeMonthlyReport />} />
-          <Route path="/pages/manager/ManagerYearlyIncomeReport" element={<ManagerIncomeYearlyReport />} />
+          <Route path="income/daily" element={<ManagerIncomeDailyReport />} />
+          <Route path="income/weekly" element={<ManagerIncomeWeeklyReport />} />
+          <Route path="income/monthly" element={<ManagerIncomeMonthlyReport />} />
+          <Route path="income/yearly" element={<ManagerIncomeYearlyReport />} />
 
           {/* Expenses Reports */}
           <Route path="expenses/daily" element={<ManagerExpensesDailyReport />} />
-          <Route path="/pages/manager/ManagerExpensesWeeklyReport" element={<ManagerExpensesWeeklyReport />} />
-          <Route path="/pages/manager/ManagerExpensesMonthlyReport" element={<ManagerExpensesMonthlyReport />} />
-          <Route path="/pages/manager/ManagerExpensesYearlyReport" element={<ManagerExpensesYearlyReport />} />
+          <Route path="expenses/weekly" element={<ManagerExpensesWeeklyReport />} />
+          <Route path="expenses/monthly" element={<ManagerExpensesMonthlyReport />} />
+          <Route path="expenses/yearly" element={<ManagerExpensesYearlyReport />} />
 
           {/* Employees & Advances */}
           <Route path="employees" element={<ManagerEmployees />} />
@@ -53,9 +53,9 @@ const ManagerLayout = () => {
 
           {/* Staff Performance */}
           <Route path="report/daily" element={<ManagerStaffDailyReport />} />
-          <Route path="/pages/manager/ManagerStaffWeeklyPerformance" element={<ManagerStaffWeeklyReport />} />
-          <Route path="/pages/manager/ManagerStaffMonthlyPerformance" element={<ManagerStaffMonthlyReport />} />
-          <Route path="/pages/manager/ManagerStaffYearlyPerformance" element={<ManagerStaffYearlyReport />} />
+          <Route path="report/weekly" element={<ManagerStaffWeeklyReport />} />
+          <Route path="report/monthly" element={<ManagerStaffMonthlyReport />} />
+          <Route path="report/yearly" element={<ManagerStaffYearlyReport />} />
         </Routes>
       </main>
     </div>

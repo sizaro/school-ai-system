@@ -28,7 +28,6 @@ const services = Object.entries(serviceMap).map(([key, value]) => ({
   key,
   title: value.title,
   price: `${value.serviceAmount.toLocaleString()} UGX`,
-  desc: `Salon: ${value.salonAmount || "-"} UGX • Barber: ${value.barberAmount || "-"} UGX${value.barberAssistantAmount ? ` • Assistant: ${value.barberAssistantAmount} UGX` : ""}`,
 }));
 
 export default function Services() {
@@ -52,7 +51,6 @@ export default function Services() {
               <h3 className="text-xl font-semibold text-blue-700 mb-2">
                 {service.title}
               </h3>
-              <p className="text-gray-600 mb-3 text-sm">{service.desc}</p>
               <p className="text-gray-800 font-bold text-lg">{service.price}</p>
             </div>
           ))}

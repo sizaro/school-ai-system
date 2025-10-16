@@ -84,7 +84,7 @@ export default function OwnerSidebar() {
             <li><Link to="/owner/advances" className={linkClass('/owner/advances')}>Employees Advances</Link></li>
 
             {/* Workers */}
-            <li>
+            <li className='mb-[120px]'>
               <div onClick={() => setWorkersOpen(!workersOpen)} className="px-4 py-2 rounded cursor-pointer hover:bg-gray-700 flex justify-between">
                 <span>Worker Performance</span><span>{workersOpen ? '▾' : '▸'}</span>
               </div>
