@@ -6,16 +6,14 @@ export default function About() {
   const owner = {
     name: "Saleh Ntege",
     title: "Founder & Owner",
-    image:
-      "https://images.unsplash.com/photo-1607746882042-944635dfe10e?auto=format&fit=crop&w=800&q=80",
+    image:"",
     bio: "Saleh Ntege founded Salehish Beauty Salon in 2020 with a simple but powerful vision — to create a place where confidence, creativity, and care meet. With over a decade in the beauty and grooming industry, Saleh has built a salon known for excellence, precision, and warm customer service.",
   };
 
   const manager = {
     name: "Tagoole Nathan",
     title: "Salon Manager & Senior Stylist",
-    image:
-      "https://images.unsplash.com/photo-1600180758890-6c95a5473f3f?auto=format&fit=crop&w=800&q=80",
+    image:"",
     bio: "Nathan leads the salon team with expertise, mentorship, and professionalism. His hands-on approach ensures each client receives exceptional service. He manages daily operations, supports staff development, and upholds the salon’s values of quality and respect.",
   };
 
@@ -52,7 +50,7 @@ export default function About() {
         {/* Owner Section */}
         <section className="grid md:grid-cols-2 gap-8 items-center">
           <img
-            src={owner.image}
+            src="/public/images/saleh_ntege.webp"
             alt={owner.name}
             className="rounded-2xl shadow-lg w-full h-96 object-cover"
           />
@@ -103,7 +101,7 @@ export default function About() {
                 className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-lg transition"
               >
                 <img
-                  src={`https://randomuser.me/api/portraits/${index % 2 === 0 ? "men" : "women"}/${index + 10}.jpg`}
+                  src={``}
                   alt={`${emp.first_name} ${emp.last_name}`}
                   className="w-full h-48 object-cover"
                 />
