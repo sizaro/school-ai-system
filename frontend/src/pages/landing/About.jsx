@@ -11,7 +11,7 @@ export default function About() {
   };
 
   const manager = {
-    name: "Tagoole Nathan",
+    name: "Nathan",
     title: "Salon Manager & Senior Stylist",
     image:"",
     bio: "Nathan leads the salon team with expertise, mentorship, and professionalism. His hands-on approach ensures each client receives exceptional service. He manages daily operations, supports staff development, and upholds the salon’s values of quality and respect.",
@@ -102,12 +102,12 @@ export default function About() {
               >
                 <img
                   src={``}
-                  alt={`${emp.first_name} ${emp.last_name}`}
+                  alt={`${emp.last_name}`}
                   className="w-full h-48 object-cover"
                 />
                 <div className="p-4 text-center">
                   <h3 className="text-lg font-semibold text-gray-800">
-                    {emp.first_name} {emp.last_name}
+                    {emp.last_name}
                   </h3>
                   <p className="text-gray-500 text-sm mt-1">
                     Passionate & skilled salon professional
