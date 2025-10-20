@@ -1,8 +1,12 @@
 import React from "react";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
+import { useData } from "../../context/DataContext";
+
 
 export default function About() {
+
+  const {employees} = useData();
   const owner = {
     name: "Saleh Ntege",
     title: "Founder & Owner",
@@ -17,21 +21,6 @@ export default function About() {
     bio: "Nathan leads the salon team with expertise, mentorship, and professionalism. His hands-on approach ensures each client receives exceptional service. He manages daily operations, supports staff development, and upholds the salon’s values of quality and respect.",
   };
 
-  const employees = [
-    { id: 2, first_name: "Mukungu", last_name: "Ismail" },
-    { id: 3, first_name: "Direse", last_name: "Arafat" },
-    { id: 4, first_name: "Nambi", last_name: "Aisha" },
-    { id: 5, first_name: "Mutesi", last_name: "Shamina" },
-    { id: 6, first_name: "Nantongo", last_name: "Jazimin" },
-    { id: 7, first_name: "Nakaibale", last_name: "Sharon" },
-    { id: 8, first_name: "Kyewayenda", last_name: "Brenda" },
-    { id: 9, first_name: "Tusubira", last_name: "David Tobex" },
-    { id: 10, first_name: "Kwikiriza", last_name: "Phinnah" },
-    { id: 11, first_name: "Muzale Grace", last_name: "Innocent" },
-    { id: 12, first_name: "Tendo", last_name: "Mirembe" },
-    { id: 13, first_name: "Nakato", last_name: "Hilda" },
-    { id: 14, first_name: "Bazibu", last_name: "Nickolas" },
-  ];
 
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col">
@@ -39,7 +28,7 @@ export default function About() {
 
       {/* Hero Section: Salon Owner */}
       <header className="bg-gradient-to-r from-blue-700 to-blue-500 text-white py-20 text-center">
-        <h1 className="text-5xl font-bold mb-4">About Salehish Beauty Salon</h1>
+        <h1 className="text-5xl font-bold mb-4">About Salehish Beauty Parlour & Spa</h1>
         <p className="max-w-2xl mx-auto text-lg">
           Where skill meets passion — founded and led by <span className="font-semibold">{owner.name}</span>,
           dedicated to redefining beauty, confidence, and class.
@@ -67,11 +56,11 @@ export default function About() {
           <p className="text-gray-700 max-w-3xl mx-auto leading-relaxed mb-6">
             Salehish Beauty Salon was established in 2020 as a modern, inclusive, and innovative grooming space.
             Our goal is to blend artistry and professionalism, providing our clients with the highest level of
-            satisfaction in every service — from haircuts to skincare. We believe that beauty is not just how you
+            satisfaction in every service — from haircuts, nails to skincare. We believe that beauty is not just how you
             look, but how you feel when you leave our salon.
           </p>
           <p className="text-gray-700 max-w-3xl mx-auto leading-relaxed">
-            Every stylist, assistant, and beautician at Salehish Beauty Salon works with dedication to uphold our
+            Every stylist, aesthetician, and beautician at Salehish Beauty Salon works with dedication to uphold our
             promise — to deliver beauty, comfort, and confidence. Our salon is not just a place for transformation,
             it’s a community of excellence and friendship.
           </p>
@@ -110,7 +99,7 @@ export default function About() {
                     {emp.last_name}
                   </h3>
                   <p className="text-gray-500 text-sm mt-1">
-                    Passionate & skilled salon professional
+                    
                   </p>
                 </div>
               </div>

@@ -25,6 +25,18 @@ import OwnerStaffWeeklyReport from "../../pages/owner/OwnerStaffWeeklyReport.jsx
 import OwnerStaffMonthlyReport from "../../pages/owner/OwnerStaffMonthlyReport.jsx";
 import OwnerStaffYearlyReport from "../../pages/owner/OwnerStaffYearlyReport.jsx";
 
+// Late Fees Reports
+import OwnerLateFeesDailyReport from "../../pages/owner/OwnerLateFeesDailyReport.jsx";
+import OwnerLateFeesWeeklyReport from "../../pages/owner/OwnerLateFeesWeeklyReport.jsx";
+import OwnerLateFeesMonthlyReport from "../../pages/owner/OwnerLateFeesMonthlyReport.jsx";
+import OwnerLateFeesYearlyReport from "../../pages/owner/OwnerLateFeesYearlyReport.jsx";
+
+// Tag Fees Reports
+import OwnerTagFeesDailyReport from "../../pages/owner/OwnerTagFeesDailyReport.jsx";
+import OwnerTagFeesWeeklyReport from "../../pages/owner/OwnerTagFeesWeeklyReport.jsx";
+import OwnerTagFeesMonthlyReport from "../../pages/owner/OwnerTagFeesMonthlyReport.jsx";
+import OwnerTagFeesYearlyReport from "../../pages/owner/OwnerTagFeesYearlyReport.jsx";
+
 const OwnerLayout = () => {
   return (
     <div className="flex h-screen bg-gray-100">
@@ -34,7 +46,6 @@ const OwnerLayout = () => {
           {/* Dashboard */}
           <Route index element={<OwnerDashboard />} />
           <Route path="dashboard" element={<OwnerDashboard />} />
-
 
           {/* Income Reports */}
           <Route path="income/daily" element={<OwnerIncomeDailyReport />} />
@@ -57,6 +68,18 @@ const OwnerLayout = () => {
           <Route path="report/weekly" element={<OwnerStaffWeeklyReport />} />
           <Route path="report/monthly" element={<OwnerStaffMonthlyReport />} />
           <Route path="report/yearly" element={<OwnerStaffYearlyReport />} />
+
+          {/* Late Fees Reports */}
+          <Route path="late-fees/daily" element={<OwnerLateFeesDailyReport />} />
+          <Route path="late-fees/weekly" element={<OwnerLateFeesWeeklyReport />} />
+          <Route path="late-fees/monthly" element={<OwnerLateFeesMonthlyReport />} />
+          <Route path="late-fees/yearly" element={<OwnerLateFeesYearlyReport />} />
+
+          {/* Tag Fees Reports */}
+          <Route path="tag-fees/daily" element={<OwnerTagFeesDailyReport />} />
+          <Route path="tag-fees/weekly" element={<OwnerTagFeesWeeklyReport />} />
+          <Route path="tag-fees/monthly" element={<OwnerTagFeesMonthlyReport />} />
+          <Route path="tag-fees/yearly" element={<OwnerTagFeesYearlyReport />} />
         </Routes>
       </main>
     </div>

@@ -13,6 +13,7 @@ import clockingsRoutes from './routes/clockingsRoutes.js';
 import sessionsRoutes from './routes/sessionsRoutes.js';
 import employeesRoutes from './routes/employeesRoutes.js';
 import reportsRoutes from './routes/reportsRoutes.js';
+import feesRoutes from './routes/feesRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 
 const app = express();
@@ -34,6 +35,7 @@ app.use('/api/clockings', clockingsRoutes);
 app.use('/api/sessions', sessionsRoutes);
 app.use('/api/employees', employeesRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/fees', feesRoutes);
 app.use('/api/auth', authRoutes);
 
 

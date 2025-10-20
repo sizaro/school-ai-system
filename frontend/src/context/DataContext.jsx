@@ -9,6 +9,8 @@ export const DataProvider = ({ children }) => {
   const [expenses, setExpenses] = useState([]);
   const [advances, setAdvances] = useState([]);
   const [clockings, setClockings] = useState([]);
+  const [lateFees, setLateFees] = useState([]);
+  const [tagFees, setTagFees] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
@@ -303,7 +305,122 @@ const deleteEmployee = async (id) => {
         throw err;
       }
     };
-        
+
+
+    // ===============================
+// LATE FEE FUNCTIONS
+// ===============================
+
+const fetchLateFees = async () => {
+  try {
+    const res = await axios.get(`${API_URL}/fees/late_fees`);
+    setLateFees(res.data);
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching late fees:", err);
+    throw err;
+  }
+};
+
+const fetchLateFeeById = async (id) => {
+  try {
+    const res = await axios.get(`${API_URL}/fees/late_fees/${id}`);
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching late fee by ID:", err);
+    throw err;
+  }
+};
+
+const createLateFee = async (lateFeeData) => {
+  try {
+    const res = await axios.post(`${API_URL}/fees/late_fees`, lateFeeData);
+    await fetchLateFees(); // refresh list after adding
+    return res.data;
+  } catch (err) {
+    console.error("Error creating late fee:", err);
+    throw err;
+  }
+};
+
+const updateLateFee = async (id, lateFeeData) => {
+  try {
+    const res = await axios.put(`${API_URL}/fees/late_fees/${id}`, lateFeeData);
+    await fetchLateFees(); // refresh list after updating
+    return res.data;
+  } catch (err) {
+    console.error("Error updating late fee:", err);
+    throw err;
+  }
+};
+
+const deleteLateFee = async (id) => {
+  try {
+    await axios.delete(`${API_URL}/fees/late_fees/${id}`);
+    await fetchLateFees(); // refresh list after deletion
+  } catch (err) {
+    console.error("Error deleting late fee:", err);
+    throw err;
+  }
+};
+
+        // ===============================
+// TAG FEE FUNCTIONS
+// ===============================
+
+const fetchTagFees = async () => {
+  try {
+    const res = await axios.get(`${API_URL}/fees/tag_fees`);
+    setTagFees(res.data);
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching tag fees:", err);
+    throw err;
+  }
+};
+
+const fetchTagFeeById = async (id) => {
+  try {
+    const res = await axios.get(`${API_URL}/fees/tag_fees/${id}`);
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching tag fee by ID:", err);
+    throw err;
+  }
+};
+
+const createTagFee = async (tagFeeData) => {
+  try {
+    const res = await axios.post(`${API_URL}/fees/tag_fees`, tagFeeData);
+    await fetchTagFees(); // refresh list after adding
+    return res.data;
+  } catch (err) {
+    console.error("Error creating tag fee:", err);
+    throw err;
+  }
+};
+
+const updateTagFee = async (id, tagFeeData) => {
+  try {
+    const res = await axios.put(`${API_URL}/fees/tag_fees/${id}`, tagFeeData);
+    await fetchTagFees(); // refresh list after updating
+    return res.data;
+  } catch (err) {
+    console.error("Error updating tag fee:", err);
+    throw err;
+  }
+};
+
+const deleteTagFee = async (id) => {
+  try {
+    await axios.delete(`${API_URL}/fees/tag_fees/${id}`);
+    await fetchTagFees(); // refresh list after deletion
+  } catch (err) {
+    console.error("Error deleting tag fee:", err);
+    throw err;
+  }
+};
+
 
 
     const loginUser = async (credentials) => {
@@ -417,6 +534,7 @@ const deleteEmployee = async (id) => {
     clockings,
     sessions,
     loading,
+    lateFees,
     sendFormData,
     fetchDailyData,
     fetchWeeklyData,
@@ -442,7 +560,16 @@ const deleteEmployee = async (id) => {
     deleteExpense,
     loginUser,
     checkAuth,
-    logoutUser
+    logoutUser,
+    fetchLateFeeById,
+    createLateFee,
+    updateLateFee,
+    deleteLateFee,
+    fetchTagFees,
+    fetchTagFeeById,
+    createTagFee,
+    updateTagFee,
+    deleteTagFee
   }}
 >
   {children}

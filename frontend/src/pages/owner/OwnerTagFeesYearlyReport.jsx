@@ -1,34 +1,32 @@
 import React, { useState, useEffect } from "react";
 import { useData } from "../../context/DataContext.jsx";
 import Modal from "../../components/Modal.jsx";
-import ExpenseForm from "../../components/ExpenseForm.jsx";
+import TagFeeForm from "../../components/TagFeeForm.jsx";
 import ConfirmModal from "../../components/ConfirmModal.jsx";
 
-const OwnerExpensesYearlyReport = () => {
+const OwnerTagFeesYearlyReport = () => {
   const {
-    expenses,
-    fetchYearlyData,
-    fetchExpenseById,
-    updateExpense,
-    deleteExpense,
+    tagFees,
+    fetchTagFeesByYear, // make sure this exists in DataContext
+    fetchTagFeeById,
+    updateTagFee,
+    deleteTagFee,
   } = useData();
 
   const [year, setYear] = useState(new Date().getFullYear());
   const [reportLabel, setReportLabel] = useState("");
-
-  // ---- Modals for Edit/Delete ----
   const [showModal, setShowModal] = useState(false);
-  const [editingExpense, setEditingExpense] = useState(null);
+  const [editingTagFee, setEditingTagFee] = useState(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
-  const [expenseToDelete, setExpenseToDelete] = useState(null);
+  const [feeToDelete, setFeeToDelete] = useState(null);
 
-  // ---- Calculate total expenses ----
-  const totalExpenses = expenses.reduce(
-    (sum, e) => sum + (parseInt(e.amount, 10) || 0),
+  // ---- Total tag fees ----
+  const totalTagFees = tagFees.reduce(
+    (sum, f) => sum + (parseInt(f.amount, 10) || 0),
     0
   );
 
-  // ---- Format UTC date strings to EAT ----
+  // ---- Format UTC date to readable format ----
   const formatEAT = (dateString) => {
     if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString("en-UG", {
@@ -44,38 +42,38 @@ const OwnerExpensesYearlyReport = () => {
     const selectedYear = parseInt(e.target.value, 10);
     setYear(selectedYear);
     setReportLabel(`Year ${selectedYear}`);
-    await fetchYearlyData(selectedYear);
+    await fetchTagFeesByYear(selectedYear);
   };
 
-  // ---- Handle Edit/Delete ----
-  const handleEditClick = async (expenseId) => {
-    const expense = await fetchExpenseById(expenseId);
-    setEditingExpense(expense);
+  // ---- Edit/Delete ----
+  const handleEditClick = async (id) => {
+    const fee = await fetchTagFeeById(id);
+    setEditingTagFee(fee);
     setShowModal(true);
   };
 
-  const handleModalSubmit = async (updatedExpense) => {
-    await updateExpense(updatedExpense.id, updatedExpense);
-    await fetchYearlyData(year);
+  const handleModalSubmit = async (updatedTagFee) => {
+    await updateTagFee(updatedTagFee.id, updatedTagFee);
+    await fetchTagFeesByYear(year);
     setShowModal(false);
-    setEditingExpense(null);
+    setEditingTagFee(null);
   };
 
-  const handleDelete = (expenseId) => {
-    setExpenseToDelete(expenseId);
+  const handleDelete = (id) => {
+    setFeeToDelete(id);
     setConfirmModalOpen(true);
   };
 
   const confirmDelete = async () => {
-    if (expenseToDelete) {
-      await deleteExpense(expenseToDelete);
-      await fetchYearlyData(year);
+    if (feeToDelete) {
+      await deleteTagFee(feeToDelete);
+      await fetchTagFeesByYear(year);
       setConfirmModalOpen(false);
-      setExpenseToDelete(null);
+      setFeeToDelete(null);
     }
   };
 
-  // ---- Generate year options ----
+  // ---- Year options ----
   const generateYearOptions = () => {
     const currentYear = new Date().getFullYear();
     const years = [];
@@ -85,18 +83,18 @@ const OwnerExpensesYearlyReport = () => {
     return years;
   };
 
-  // ---- On page load: current year ----
+  // ---- On mount ----
   useEffect(() => {
     const currentYear = new Date().getFullYear();
     setYear(currentYear);
     setReportLabel(`Year ${currentYear}`);
-    fetchYearlyData(currentYear);
+    fetchTagFeesByYear(currentYear);
   }, []);
 
   return (
     <div className="income-page max-w-6xl mx-auto p-4 overflow-y-hidden">
       <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
-        Yearly Expenses Report
+        Yearly Tag Fees Report
       </h1>
 
       {/* Year Picker */}
@@ -120,47 +118,49 @@ const OwnerExpensesYearlyReport = () => {
       <section className="bg-white shadow-md rounded-lg p-4 mb-6">
         <h2 className="text-xl font-semibold text-blue-700 mb-2">Summary</h2>
         <p>
-          <span className="font-medium">Total Expenses:</span>{" "}
-          {totalExpenses.toLocaleString()} UGX
+          <span className="font-medium">Total Tag Fees:</span>{" "}
+          {totalTagFees.toLocaleString()} UGX
         </p>
       </section>
 
-      {/* Expenses Table */}
+      {/* Tag Fees Table */}
       <section className="bg-white shadow-md rounded-lg p-4">
         <h2 className="text-xl font-semibold text-blue-700 mb-4">
-          Expenses List
+          Tag Fees List
         </h2>
         <div className="w-full overflow-x-auto max-h-[60vh] overflow-y-auto border border-gray-300 rounded">
           <table className="min-w-full border-collapse text-sm">
             <thead className="bg-blue-700 text-white sticky top-0 z-10">
               <tr>
                 <th className="px-3 py-2 text-left">No.</th>
-                <th className="px-3 py-2 text-left">Expense Name</th>
+                <th className="px-3 py-2 text-left">Fee Name</th>
                 <th className="px-3 py-2 text-left">Amount (UGX)</th>
-                <th className="px-3 py-2 text-left">Time of Expense</th>
+                <th className="px-3 py-2 text-left">Date</th>
                 <th className="px-3 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {expenses.map((exp, index) => (
+              {tagFees.map((fee, index) => (
                 <tr
-                  key={exp.id || index}
+                  key={fee.id || index}
                   className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
                 >
                   <td className="px-3 py-2">{index + 1}</td>
-                  <td className="px-3 py-2">{exp.name}</td>
-                  <td className="px-3 py-2">{parseInt(exp.amount, 10).toLocaleString()}</td>
-                  <td className="px-3 py-2">{formatEAT(exp.created_at)}</td>
+                  <td className="px-3 py-2">{fee.name}</td>
+                  <td className="px-3 py-2">
+                    {parseInt(fee.amount, 10).toLocaleString()}
+                  </td>
+                  <td className="px-3 py-2">{formatEAT(fee.created_at)}</td>
                   <td className="px-3 py-2 space-x-1">
                     <button
                       className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
-                      onClick={() => handleEditClick(exp.id)}
+                      onClick={() => handleEditClick(fee.id)}
                     >
                       Edit
                     </button>
                     <button
                       className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
-                      onClick={() => handleDelete(exp.id)}
+                      onClick={() => handleDelete(fee.id)}
                     >
                       Delete
                     </button>
@@ -177,16 +177,16 @@ const OwnerExpensesYearlyReport = () => {
         isOpen={showModal}
         onClose={() => {
           setShowModal(false);
-          setEditingExpense(null);
+          setEditingTagFee(null);
         }}
       >
-        {editingExpense && (
-          <ExpenseForm
-            expenseData={editingExpense}
+        {editingTagFee && (
+          <TagFeeForm
+            tagFeeData={editingTagFee}
             onSubmit={handleModalSubmit}
             onClose={() => {
               setShowModal(false);
-              setEditingExpense(null);
+              setEditingTagFee(null);
             }}
           />
         )}
@@ -195,7 +195,7 @@ const OwnerExpensesYearlyReport = () => {
       {/* Confirm Delete Modal */}
       <ConfirmModal
         isOpen={confirmModalOpen}
-        message="Are you sure you want to delete this expense?"
+        message="Are you sure you want to delete this tag fee?"
         onConfirm={confirmDelete}
         onClose={() => setConfirmModalOpen(false)}
       />
@@ -203,4 +203,4 @@ const OwnerExpensesYearlyReport = () => {
   );
 };
 
-export default OwnerExpensesYearlyReport;
+export default OwnerTagFeesYearlyReport;

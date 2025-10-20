@@ -7,6 +7,8 @@ export default function OwnerSidebar() {
   const [incomeOpen, setIncomeOpen] = useState(false);
   const [expensesOpen, setExpensesOpen] = useState(false);
   const [workersOpen, setWorkersOpen] = useState(false);
+  const [lateFeesOpen, setLateFeesOpen] = useState(false);
+  const [tagFeesOpen, setTagFeesOpen] = useState(false);
 
   const menuRef = useRef();
   const location = useLocation();
@@ -79,14 +81,12 @@ export default function OwnerSidebar() {
 
             {/* Employees */}
             <li><Link to="/owner/employees" className={linkClass('/owner/employees')}>Employees</Link></li>
-
-            {/* Advances */}
             <li><Link to="/owner/advances" className={linkClass('/owner/advances')}>Employees Advances</Link></li>
 
             {/* Workers */}
-            <li className='mb-[120px]'>
+            <li>
               <div onClick={() => setWorkersOpen(!workersOpen)} className="px-4 py-2 rounded cursor-pointer hover:bg-gray-700 flex justify-between">
-                <span>Worker Performance</span><span>{workersOpen ? '▾' : '▸'}</span>
+                <span>Staff Performance</span><span>{workersOpen ? '▾' : '▸'}</span>
               </div>
               {workersOpen && (
                 <ul className="ml-4 space-y-1 mt-1">
@@ -97,6 +97,37 @@ export default function OwnerSidebar() {
                 </ul>
               )}
             </li>
+
+            {/* Late Fees */}
+            <li>
+              <div onClick={() => setLateFeesOpen(!lateFeesOpen)} className="px-4 py-2 rounded cursor-pointer hover:bg-gray-700 flex justify-between">
+                <span>Late Fees Reports</span><span>{lateFeesOpen ? '▾' : '▸'}</span>
+              </div>
+              {lateFeesOpen && (
+                <ul className="ml-4 space-y-1 mt-1">
+                  <li><Link to="/owner/late-fees/daily" className={linkClass('/owner/late-fees/daily')}>Daily</Link></li>
+                  <li><Link to="/owner/late-fees/weekly" className={linkClass('/owner/late-fees/weekly')}>Weekly</Link></li>
+                  <li><Link to="/owner/late-fees/monthly" className={linkClass('/owner/late-fees/monthly')}>Monthly</Link></li>
+                  <li><Link to="/owner/late-fees/yearly" className={linkClass('/owner/late-fees/yearly')}>Yearly</Link></li>
+                </ul>
+              )}
+            </li>
+
+            {/* Tag Fees */}
+            <li>
+              <div onClick={() => setTagFeesOpen(!tagFeesOpen)} className="px-4 py-2 rounded cursor-pointer hover:bg-gray-700 flex justify-between">
+                <span>Tag Fees Reports</span><span>{tagFeesOpen ? '▾' : '▸'}</span>
+              </div>
+              {tagFeesOpen && (
+                <ul className="ml-4 space-y-1 mt-1">
+                  <li><Link to="/owner/tag-fees/daily" className={linkClass('/owner/tag-fees/daily')}>Daily</Link></li>
+                  <li><Link to="/owner/tag-fees/weekly" className={linkClass('/owner/tag-fees/weekly')}>Weekly</Link></li>
+                  <li><Link to="/owner/tag-fees/monthly" className={linkClass('/owner/tag-fees/monthly')}>Monthly</Link></li>
+                  <li><Link to="/owner/tag-fees/yearly" className={linkClass('/owner/tag-fees/yearly')}>Yearly</Link></li>
+                </ul>
+              )}
+            </li>
+
             <SidebarFooter/>
           </ul>
         </div>
@@ -151,12 +182,12 @@ export default function OwnerSidebar() {
             <li><Link to="/owner/advances" onClick={() => setMenuOpen(false)} className={linkClass('/owner/advances')}>Employees Advances</Link></li>
 
             {/* Workers */}
-            <li className='mb-[120px]'>
+            <li>
               <div onClick={() => setWorkersOpen(!workersOpen)} className="px-4 py-2 rounded cursor-pointer hover:bg-gray-700 flex justify-between">
                 <span>Staff Performance</span><span>{workersOpen ? '▾' : '▸'}</span>
               </div>
               {workersOpen && (
-                <ul className="ml-4 space-y-1 mt-1 ">
+                <ul className="ml-4 space-y-1 mt-1">
                   <li><Link to="/owner/report/daily" onClick={() => setMenuOpen(false)} className={linkClass('/owner/report/daily')}>Daily</Link></li>
                   <li><Link to="/owner/report/weekly" onClick={() => setMenuOpen(false)} className={linkClass('/owner/report/weekly')}>Weekly</Link></li>
                   <li><Link to="/owner/report/monthly" onClick={() => setMenuOpen(false)} className={linkClass('/owner/report/monthly')}>Monthly</Link></li>
@@ -164,8 +195,39 @@ export default function OwnerSidebar() {
                 </ul>
               )}
             </li>
+
+            {/* Late Fees */}
+            <li>
+              <div onClick={() => setLateFeesOpen(!lateFeesOpen)} className="px-4 py-2 rounded cursor-pointer hover:bg-gray-700 flex justify-between">
+                <span>Late Fees Reports</span><span>{lateFeesOpen ? '▾' : '▸'}</span>
+              </div>
+              {lateFeesOpen && (
+                <ul className="ml-4 space-y-1 mt-1">
+                  <li><Link to="/owner/late-fees/daily" onClick={() => setMenuOpen(false)} className={linkClass('/owner/late-fees/daily')}>Daily</Link></li>
+                  <li><Link to="/owner/late-fees/weekly" onClick={() => setMenuOpen(false)} className={linkClass('/owner/late-fees/weekly')}>Weekly</Link></li>
+                  <li><Link to="/owner/late-fees/monthly" onClick={() => setMenuOpen(false)} className={linkClass('/owner/late-fees/monthly')}>Monthly</Link></li>
+                  <li><Link to="/owner/late-fees/yearly" onClick={() => setMenuOpen(false)} className={linkClass('/owner/late-fees/yearly')}>Yearly</Link></li>
+                </ul>
+              )}
+            </li>
+
+            {/* Tag Fees */}
+            <li>
+              <div onClick={() => setTagFeesOpen(!tagFeesOpen)} className="px-4 py-2 rounded cursor-pointer hover:bg-gray-700 flex justify-between">
+                <span>Tag Fees Reports</span><span>{tagFeesOpen ? '▾' : '▸'}</span>
+              </div>
+              {tagFeesOpen && (
+                <ul className="ml-4 space-y-1 mt-1">
+                  <li><Link to="/owner/tag-fees/daily" onClick={() => setMenuOpen(false)} className={linkClass('/owner/tag-fees/daily')}>Daily</Link></li>
+                  <li><Link to="/owner/tag-fees/weekly" onClick={() => setMenuOpen(false)} className={linkClass('/owner/tag-fees/weekly')}>Weekly</Link></li>
+                  <li><Link to="/owner/tag-fees/monthly" onClick={() => setMenuOpen(false)} className={linkClass('/owner/tag-fees/monthly')}>Monthly</Link></li>
+                  <li><Link to="/owner/tag-fees/yearly" onClick={() => setMenuOpen(false)} className={linkClass('/owner/tag-fees/yearly')}>Yearly</Link></li>
+                </ul>
+              )}
+            </li>
+
+            <SidebarFooter/>
           </ul>
-          <SidebarFooter/>
         </div>
       </div>
     </>

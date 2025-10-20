@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useData } from "../context/DataContext.jsx";
-import EmployeeForm from "../components/EmployeeForm.jsx";
-import ConfirmModal from "../components/ConfirmModal.jsx";
-import Modal from "../components/Modal.jsx";
+import { useData } from "../../context/DataContext.jsx";
+import EmployeeForm from "../../components/EmployeeForm.jsx"
+import ConfirmModal from "../../components/ConfirmModal.jsx";
+import Modal from "../../components/Modal.jsx";
 
 const OwnerManageStaff = () => {
   const { employees, fetchEmployees, fetchEmployeeById, createEmployee, updateEmployee, deleteEmployee } = useData();

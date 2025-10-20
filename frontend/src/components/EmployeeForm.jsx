@@ -10,7 +10,10 @@ const EmployeeForm = ({ employee, onSubmit, onClose }) => {
     next_of_kin_phone: "",
     email: "",
     password: "",
+    speciality: "",
     role: "",
+    bio: "",
+    status: "",
   });
 
   // Prefill form when editing
@@ -25,17 +28,22 @@ const EmployeeForm = ({ employee, onSubmit, onClose }) => {
         next_of_kin: employee.next_of_kin || "",
         next_of_kin_phone: employee.next_of_kin_phone || "",
         email: employee.email || "",
-        password: "", // don't prefill password for security
+        password: "",
+        speciality: employee.speciality || "",
         role: employee.role || "",
+        bio: employee.bio || "",
+        status: employee.status || "active",
       });
     }
   }, [employee]);
 
+  // Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Submit form
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(formData);
@@ -50,6 +58,7 @@ const EmployeeForm = ({ employee, onSubmit, onClose }) => {
         {employee ? "Edit Employee" : "Add Employee"}
       </h2>
 
+      {/* Basic Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">First Name</label>
@@ -96,7 +105,10 @@ const EmployeeForm = ({ employee, onSubmit, onClose }) => {
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
+      </div>
 
+      {/* Next of Kin Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">Next of Kin</label>
           <input
@@ -118,7 +130,10 @@ const EmployeeForm = ({ employee, onSubmit, onClose }) => {
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
+      </div>
 
+      {/* Contact Info */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">Email</label>
           <input
@@ -139,10 +154,14 @@ const EmployeeForm = ({ employee, onSubmit, onClose }) => {
             value={formData.password}
             onChange={handleChange}
             required={!employee}
+            placeholder={employee ? "Leave blank to keep current password" : ""}
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
+      </div>
 
+      {/* Job Info */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">Role</label>
           <input
@@ -154,8 +173,48 @@ const EmployeeForm = ({ employee, onSubmit, onClose }) => {
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Speciality</label>
+          <input
+            type="text"
+            name="speciality"
+            value={formData.speciality}
+            onChange={handleChange}
+            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="e.g., Professional Barber, Aesthetician"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Status</label>
+          <select
+            name="status"
+            value={formData.status}
+            onChange={handleChange}
+            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="on_leave">On Leave</option>
+          </select>
+        </div>
       </div>
 
+      {/* Bio Section */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Biography</label>
+        <textarea
+          name="bio"
+          value={formData.bio}
+          onChange={handleChange}
+          rows="4"
+          placeholder="Write a short bio about this employee..."
+          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+        ></textarea>
+      </div>
+
+      {/* Buttons */}
       <div className="flex justify-end space-x-2 mt-4">
         <button
           type="button"
