@@ -1,4 +1,3 @@
-// controllers/dailyController.js
 import dailyModel from '../models/dailyModel.js';
 
 export async function getDailyReport(req, res) {
@@ -12,35 +11,64 @@ export async function getDailyReport(req, res) {
         expenses: [],
         advances: [],
         clockings: [],
-        employees: []
+        employees: [],
+        tagFees: [],
+        lateFees: []
       });
     }
 
-    // Convert the date string to Date object
+    // Convert date string to Date object
     const selectedDate = new Date(date);
 
-    // Set start and end of the day
+    // Define the start and end of the day
     const startOfDay = new Date(selectedDate);
     startOfDay.setHours(0, 0, 0, 0);
 
     const endOfDay = new Date(selectedDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    // Fetch data from the model
-    const [services, expenses, advances, clockings, employees] = await Promise.all([
+    // Fetch all datasets concurrently
+    const [
+      services,
+      expenses,
+      advances,
+      clockings,
+      tagFees,
+      lateFees,
+      employees
+    ] = await Promise.all([
       dailyModel.getServicesByDay(startOfDay.toISOString(), endOfDay.toISOString()),
       dailyModel.getExpensesByDay(startOfDay.toISOString(), endOfDay.toISOString()),
       dailyModel.getAdvancesByDay(startOfDay.toISOString(), endOfDay.toISOString()),
       dailyModel.getClockingsByDay(startOfDay.toISOString(), endOfDay.toISOString()),
+      dailyModel.getTagFeesByDay(startOfDay.toISOString(), endOfDay.toISOString()),
+      dailyModel.getLateFeesByDay(startOfDay.toISOString(), endOfDay.toISOString()),
       dailyModel.fetchAllEmployees()
     ]);
 
-    console.log("this is the clocking in the controller", clockings)
-    // Return as JSON
-    res.json({ services, expenses, advances, clockings, employees });
+    console.log("✅ Daily Report Generated:", {
+      date,
+      servicesCount: services,
+      expensesCount: expenses,
+      advancesCount: advances,
+      clockingsCount: clockings,
+      tagFeesCount: tagFees,
+      lateFeesCount: lateFees
+    });
+
+    // Return all data in one object
+    res.json({
+      services,
+      expenses,
+      advances,
+      clockings,
+      tagFees,
+      lateFees,
+      employees
+    });
 
   } catch (error) {
-    console.error("Error fetching daily report:", error);
+    console.error("❌ Error fetching daily report:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 }

@@ -114,7 +114,7 @@ export default function OwnerSidebar() {
             </li>
 
             {/* Tag Fees */}
-            <li>
+            <li className='mb-[100px]'>
               <div onClick={() => setTagFeesOpen(!tagFeesOpen)} className="px-4 py-2 rounded cursor-pointer hover:bg-gray-700 flex justify-between">
                 <span>Tag Fees Reports</span><span>{tagFeesOpen ? '▾' : '▸'}</span>
               </div>
@@ -143,7 +143,7 @@ export default function OwnerSidebar() {
         <div className="px-6 font-bold text-xl mt-0">Salon Management</div>
         <button onClick={() => setMenuOpen(false)} className="absolute top-4 right-4 text-xl focus:outline-none">✕</button>
 
-        <div className="h-full overflow-y-auto mt-6">
+        <div className="h-full overflow-y-auto mt-6 mb-10">
           <ul className="space-y-1 text-sm">
             <li><Link to="/owner/dashboard" onClick={() => setMenuOpen(false)} className={linkClass('/owner/dashboard')}>Dashboard</Link></li>
 
@@ -212,7 +212,7 @@ export default function OwnerSidebar() {
             </li>
 
             {/* Tag Fees */}
-            <li>
+            <li className='mb-[120px]'>
               <div onClick={() => setTagFeesOpen(!tagFeesOpen)} className="px-4 py-2 rounded cursor-pointer hover:bg-gray-700 flex justify-between">
                 <span>Tag Fees Reports</span><span>{tagFeesOpen ? '▾' : '▸'}</span>
               </div>
@@ -225,10 +225,10 @@ export default function OwnerSidebar() {
                 </ul>
               )}
             </li>
-
-            <SidebarFooter/>
+            
           </ul>
         </div>
+        <SidebarFooter/>
       </div>
     </>
   );

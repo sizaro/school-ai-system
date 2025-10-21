@@ -160,7 +160,7 @@ export default function OwnerDashboard() {
       {/* Modals */}
       <Modal isOpen={modalType !== null} onClose={closeModal}>
         {modalType === "service" && (
-          <ServiceForm onSubmit={createService} onClose={closeModal} />
+          <ServiceForm onSubmit={createService} onClose={closeModal} employees={employees} />
         )}
         {modalType === "expense" && (
           <ExpenseForm onSubmit={createExpense} onClose={closeModal} />

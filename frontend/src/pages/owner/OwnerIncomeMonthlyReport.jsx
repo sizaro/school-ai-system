@@ -205,48 +205,70 @@ const OwnerIncomeMonthlyReport = () => {
           <table className="min-w-full border-collapse text-sm">
             <thead className="bg-blue-700 text-white sticky top-0 z-10">
               <tr>
-                <th className="px-3 py-2 text-left">No.</th>
-                <th className="px-3 py-2 text-left">Name</th>
-                <th className="px-3 py-2 text-left">Service Amount</th>
-                <th className="px-3 py-2 text-left">Salon Amount</th>
-                <th className="px-3 py-2 text-left">Barber</th>
-                <th className="px-3 py-2 text-left">Barber Amount</th>
-                <th className="px-3 py-2 text-left">Aesthetician</th>
-                <th className="px-3 py-2 text-left">Aesthetician Amount</th>
-                <th className="px-3 py-2 text-left">Time of Service</th>
-                <th className="px-3 py-2 text-left">Actions</th>
-              </tr>
+                    <th className="px-3 py-2 text-left">No.</th>
+                    <th className="px-3 py-2 text-left">Name</th>
+                    <th className="px-3 py-2 text-left">Service Amount</th>
+                    <th className="px-3 py-2 text-left">Salon Amount</th>
+                    <th className="px-3 py-2 text-left">Barber</th>
+                    <th className="px-3 py-2 text-left">Barber Amount</th>
+                    <th className="px-3 py-2 text-left">Aesthetician</th>
+                    <th className="px-3 py-2 text-left">Aesthetician Amount</th>
+                    <th className="px-3 py-2 text-left">Scrub Aesthetician</th>
+                    <th className="px-3 py-2 text-left">Scrubber Amount</th>
+                    <th className="px-3 py-2 text-left">Black Shampoo Aesthetician</th>
+                    <th className="px-3 py-2 text-left">Black Shampoo Aesthetician Amount</th>
+                    <th className="px-3 py-2 text-left">Black Shampoo Amount</th>
+                    <th className="px-3 py-2 text-left">Super Black Aesthetician</th>
+                    <th className="px-3 py-2 text-left">Super Black Aesthetician Amount</th>
+                    <th className="px-3 py-2 text-left">Super Black Amount</th>
+                    <th className="px-3 py-2 text-left">Black Mask Aesthetician</th>
+                    <th className="px-3 py-2 text-left">Black Mask Aesthetician Amount</th>
+                    <th className="px-3 py-2 text-left">Black Mask Amount</th>
+                    <th className="px-3 py-2 text-left">Time of Service</th>
+                    <th className="px-3 py-2 text-left">Actions</th>
+                  </tr>
             </thead>
             <tbody>
               {services.map((service, index) => (
                 <tr
-                  key={service.id}
-                  className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
-                >
-                  <td className="px-3 py-2">{index + 1}</td>
-                  <td className="px-3 py-2">{service.name}</td>
-                  <td className="px-3 py-2">{service.service_amount}</td>
-                  <td className="px-3 py-2">{service.salon_amount}</td>
-                  <td className="px-3 py-2">{service.barber}</td>
-                  <td className="px-3 py-2">{service.barber_amount}</td>
-                  <td className="px-3 py-2">{service.barber_assistant || "-"}</td>
-                  <td className="px-3 py-2">{service.barber_assistant_amount}</td>
-                  <td className="px-3 py-2">{formatEAT(service.service_timestamp)}</td>
-                  <td className="px-3 py-2 space-x-1">
-                    <button
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
-                      onClick={() => handleEditClick(service.id)}
+                      key={service.id}
+                      className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
                     >
-                      Edit
-                    </button>
-                    <button
-                      className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
-                      onClick={() => handleDelete(service.id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
+                      <td className="px-3 py-2">{index + 1}</td>
+                      <td className="px-3 py-2">{service.name}</td>
+                      <td className="px-3 py-2">{service.service_amount}</td>
+                      <td className="px-3 py-2">{service.salon_amount}</td>
+                      <td className="px-3 py-2">{service.barber}</td>
+                      <td className="px-3 py-2">{service.barber_amount}</td>
+                      <td className="px-3 py-2">{service.barber_assistant || "-"}</td>
+                      <td className="px-3 py-2">{service.barber_assistant_amount}</td>
+                      <td className="px-3 py-2">{service.scrubber_assistant || "-"}</td>
+                      <td className="px-3 py-2">{service.scrubber_assistant_amount}</td>
+                      <td className="px-3 py-2">{service.black_shampoo_assistant || "-"}</td>
+                      <td className="px-3 py-2">{service.black_shampoo_assistant_amount || "-"}</td>
+                      <td className="px-3 py-2">{service.black_shampoo_amount}</td>
+                      <td className="px-3 py-2">{service.super_black_assistant || "-"}</td>
+                      <td className="px-3 py-2">{service.super_black_assistant_amount || "-"}</td>
+                      <td className="px-3 py-2">{service.super_black_amount}</td>
+                      <td className="px-3 py-2">{service.black_mask_assistant || "-"}</td>
+                      <td className="px-3 py-2">{service.black_mask_assistant_amount || "-"}</td>
+                      <td className="px-3 py-2">{service.black_mask_amount}</td>
+                      <td className="px-3 py-2">{formatEAT(service.service_timestamp)}</td>
+                       <td className="px-3 py-2 space-x-1">
+                        <button
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
+                          onClick={() => handleEditClick(service.id)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
+                          onClick={() => handleDelete(service.id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
               ))}
             </tbody>
           </table>

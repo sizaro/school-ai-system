@@ -19,6 +19,8 @@ export const getYearlyReport = async (req, res) => {
         services: [],
         expenses: [],
         advances: [],
+        tagFees: [],
+        lateFees: []
       });
     }
 
@@ -36,22 +38,29 @@ export const getYearlyReport = async (req, res) => {
       scenario = "past";
     }
 
-    // Fetch DB data
-    const [services, expenses, advances] = await Promise.all([
+    // Fetch DB data including tag fees and late fees
+    const [services, expenses, advances, tagFees, lateFees] = await Promise.all([
       yearlyModel.getServicesByYear(year),
       yearlyModel.getExpensesByYear(year),
       yearlyModel.getAdvancesByYear(year),
+      yearlyModel.getTagFeesByYear(year),
+      yearlyModel.getLateFeesByYear(year)
     ]);
+
+    console.log("Yearly tag fees:", tagFees.rows);
+    console.log("Yearly late fees:", lateFees.rows);
 
     res.json({
       scenario,
       services: services.rows,
       expenses: expenses.rows,
       advances: advances.rows,
+      tagFees: tagFees.rows,
+      lateFees: lateFees.rows
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching yearly report:", err);
     res.status(500).json({ error: "Server error" });
   }
 };

@@ -25,8 +25,26 @@ async function getAdvancesByMonth(startDate, endDate) {
   );
 }
 
+// ✅ Query tag fees for a month
+async function getTagFeesByMonth(startDate, endDate) {
+  return db.query(
+    "SELECT * FROM tag_fees WHERE created_at BETWEEN $1 AND $2 ORDER BY id DESC",
+    [startDate, endDate]
+  );
+}
+
+// ✅ Query late fees for a month
+async function getLateFeesByMonth(startDate, endDate) {
+  return db.query(
+    "SELECT * FROM late_fees WHERE created_at BETWEEN $1 AND $2 ORDER BY id DESC",
+    [startDate, endDate]
+  );
+}
+
 export default {
   getServicesByMonth,
   getExpensesByMonth,
-  getAdvancesByMonth
+  getAdvancesByMonth,
+  getTagFeesByMonth,
+  getLateFeesByMonth
 };

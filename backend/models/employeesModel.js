@@ -5,9 +5,11 @@ import db from '../models/database.js';
  */
 export const fetchAllEmployees = async () => {
   const query = `
-    SELECT e.*,
-           (e.created_at AT TIME ZONE 'Africa/Kampala') AS "employee_time" 
-    FROM employees e;
+    SELECT u.*,
+           (u.created_at AT TIME ZONE 'Africa/Kampala') AS employee_time
+    FROM users u
+    WHERE u.role IN ('employee', 'manager', 'owner')
+    ORDER BY u.id ASC;
   `;
   const result = await db.query(query);
   console.log("Fetched all employees:", result.rows);

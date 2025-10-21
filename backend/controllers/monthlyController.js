@@ -22,7 +22,9 @@ export const getMonthlyReport = async (req, res) => {
         scenario,
         services: [],
         expenses: [],
-        advances: []
+        advances: [],
+        tagFees: [],
+        lateFees: []
       });
     }
 
@@ -41,25 +43,32 @@ export const getMonthlyReport = async (req, res) => {
       // already adjusted rangeEnd to last day 23:59:59
     }
 
-    // Fetch DB data
-    const [services, expenses, advances] = await Promise.all([
+    // ✅ Fetch all data from DB (including Tag Fees and Late Fees)
+    const [services, expenses, advances, tagFees, lateFees] = await Promise.all([
       monthlyModel.getServicesByMonth(rangeStart, rangeEnd),
       monthlyModel.getExpensesByMonth(rangeStart, rangeEnd),
-      monthlyModel.getAdvancesByMonth(rangeStart, rangeEnd)
+      monthlyModel.getAdvancesByMonth(rangeStart, rangeEnd),
+      monthlyModel.getTagFeesByMonth(rangeStart, rangeEnd),
+      monthlyModel.getLateFeesByMonth(rangeStart, rangeEnd)
     ]);
 
-    console.log("monthly services in the controller", services.rows);
-    console.log("monthly expenses in the controller", expenses.rows);
-    console.log("monthly advances in the controller", advances.rows);
+    console.log("monthly services in the controller:", services.rows);
+    console.log("monthly expenses in the controller:", expenses.rows);
+    console.log("monthly advances in the controller:", advances.rows);
+    console.log("monthly tag fees in the controller:", tagFees.rows);
+    console.log("monthly late fees in the controller:", lateFees.rows);
 
+    // ✅ Return all collected data
     res.json({
-      scenario, // useful for debugging
+      scenario, // helpful for debugging
       services: services.rows,
       expenses: expenses.rows,
-      advances: advances.rows
+      advances: advances.rows,
+      tagFees: tagFees.rows,
+      lateFees: lateFees.rows
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching monthly report:", err);
     res.status(500).json({ error: "Server error" });
   }
 };

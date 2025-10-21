@@ -20,24 +20,8 @@ const serviceMap = {
   'superblack-only-8000': { serviceAmount: 8000, salonAmount: 6000, superBlackAssistantAmount: 2000 }
 };
 
-const mockEmployees = [
-  { id: 1, first_name: "Tagoole", last_name: "Nathan" },
-  { id: 2, first_name: "Mukungu", last_name: "Ismail" },
-  { id: 3, first_name: "Direse", last_name: "Arafat" },
-  { id: 4, first_name: "Nambi", last_name: "Aisha" },
-  { id: 5, first_name: "Mutesi", last_name: "Shamina" },
-  { id: 6, first_name: "Nantongo", last_name: "Jazimin" },
-  { id: 7, first_name: "Nakaibale", last_name: "Sharon" },
-  { id: 8, first_name: "Kyewayenda", last_name: "Brenda" },
-  { id: 9, first_name: "Tusubira", last_name: "David tobex" },
-  { id: 10, first_name: "Kwikiriza", last_name: "Phinnah" },
-  { id: 11, first_name: "Muzale Grace", last_name: "innocent" },
-  { id: 12, first_name: "Tendo", last_name: "Mirembe" },
-  { id: 13, first_name: "Nakato", last_name: "Hilda" },
-  { id: 14, first_name: "Bazibu", last_name: "Nickolas" }
-];
 
-export default function ServiceForm({ onSubmit, onClose, serviceData }) {
+export default function ServiceForm({ onSubmit, onClose, serviceData, employees }) {
   const [formData, setFormData] = useState({
     service: "",
     barber: "",
@@ -95,24 +79,24 @@ const payload = {
   service_amount: calculation.serviceAmount || 0,
   salon_amount: calculation.salonAmount || 0,
 
-  barber: barber || null,
+  barber_id: barber || null,
   barber_amount: calculation.barberAmount || 0,
 
-  barber_assistant: barberAssistant || null,
+  barber_assistant_id: barberAssistant || null,
   barber_assistant_amount: calculation.barberAssistantAmount || 0,
 
-  scrubber_assistant: scrubberAssistant || null,
+  scrubber_assistant_id: scrubberAssistant || null,
   scrubber_assistant_amount: calculation.scrubAssistantAmount || 0,
 
-  black_shampoo_assistant: blackShampooAssistant || null,
+  black_shampoo_assistant_id: blackShampooAssistant || null,
   black_shampoo_assistant_amount: calculation.blackShampooAssistantAmount || 0,
   black_shampoo_amount: calculation.blackShampooAmount || 0,
 
-  super_black_assistant: superBlackAssistant || null,
+  super_black_assistant_id: superBlackAssistant || null,
   super_black_assistant_amount: calculation.superBlackAssistantAmount || 0,
   super_black_amount: calculation.superBlackAmount || 0,
 
-  black_mask_assistant: blackMaskAssistant || null,
+  black_mask_assistant_id: blackMaskAssistant || null,
   black_mask_assistant_amount: calculation.blackMaskAssistantAmount || 0,
   black_mask_amount: calculation.blackMaskAmount || 0,
   service_timestamp
@@ -166,8 +150,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -183,8 +167,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -206,8 +190,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -223,8 +207,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -246,8 +230,8 @@ const payload = {
           className="w-full border rounded px-2 py-1"
         >
           <option value=""></option>
-          {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+          {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -267,8 +251,8 @@ const payload = {
           className="w-full border rounded px-2 py-1"
         >
           <option value=""></option>
-          {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+          {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -288,8 +272,8 @@ const payload = {
           className="w-full border rounded px-2 py-1"
         >
           <option value=""></option>
-          {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+          {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -310,8 +294,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -327,8 +311,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -343,8 +327,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -367,8 +351,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -384,8 +368,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -407,8 +391,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -424,8 +408,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -446,8 +430,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -470,8 +454,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -486,8 +470,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -503,8 +487,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -526,8 +510,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -543,8 +527,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -560,8 +544,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -583,8 +567,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -600,8 +584,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -617,8 +601,8 @@ const payload = {
             className="w-full border rounded px-2 py-1"
           >
             <option value=""></option>
-            {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+            {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -639,8 +623,8 @@ const payload = {
           className="w-full border rounded px-2 py-1"
         >
           <option value=""></option>
-          {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+          {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -660,8 +644,8 @@ const payload = {
           className="w-full border rounded px-2 py-1"
         >
           <option value=""></option>
-          {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+          {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -681,8 +665,8 @@ const payload = {
           className="w-full border rounded px-2 py-1"
         >
           <option value=""></option>
-          {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+          {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -702,8 +686,8 @@ const payload = {
           className="w-full border rounded px-2 py-1"
         >
           <option value=""></option>
-          {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+          {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
@@ -724,8 +708,8 @@ const payload = {
           className="w-full border rounded px-2 py-1"
         >
           <option value=""></option>
-          {mockEmployees.map((emp) => (
-  <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+          {employees.map((emp) => (
+  <option key={emp.id} value={emp.id}>
     {emp.first_name} {emp.last_name}
   </option>
 ))}
