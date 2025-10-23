@@ -15,6 +15,7 @@ export default function OwnerDashboard() {
   const [selectedFee, setSelectedFee] = useState(null);
 
   const { sendFormData, sessions, employees } = useData();
+  const Employees = employees.filter((emp)=> `${emp.first_name} ${emp.last_name}`.toLowerCase() !== 'saleh ntege')
 
   // ✅ Handle Salon open/close
   const handleSalonSession = async (status) => {
@@ -160,7 +161,7 @@ export default function OwnerDashboard() {
       {/* Modals */}
       <Modal isOpen={modalType !== null} onClose={closeModal}>
         {modalType === "service" && (
-          <ServiceForm onSubmit={createService} onClose={closeModal} employees={employees} />
+          <ServiceForm onSubmit={createService} onClose={closeModal} employees={Employees} />
         )}
         {modalType === "expense" && (
           <ExpenseForm onSubmit={createExpense} onClose={closeModal} />

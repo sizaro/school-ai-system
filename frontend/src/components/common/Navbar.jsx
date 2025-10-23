@@ -68,20 +68,13 @@ export default function Navbar() {
           <Link to="/services" className="block px-4 py-2 hover:text-blue-600 font-medium">Services</Link>
           <Link to="/contact" className="block px-4 py-2 hover:text-blue-600 font-medium">Contact</Link>
 
-          {!user && (
             <button
               onClick={() => setLoginOpen(true)}
               className="block bg-blue-600 text-white mx-4 my-2 px-4 py-2 rounded hover:bg-blue-700 transition"
             >
               Login
             </button>
-          )}
 
-          {user && (
-            <span className="block mx-4 my-2 px-4 py-2 font-medium">
-              Hi, {user.firstName}
-            </span>
-          )}
         </div>
       </div>
 

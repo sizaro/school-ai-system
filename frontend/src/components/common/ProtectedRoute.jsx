@@ -12,8 +12,6 @@ const ProtectedRoute = ({ children, role }) => {
           withCredentials: true, // send the cookie
         });
 
-        console.log("Auth check response:", res.data);
-
         if (res.data.user && res.data.user.role === role) {
           setAuthState({ loading: false, allowed: true });
         } else {

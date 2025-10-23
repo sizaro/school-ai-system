@@ -8,19 +8,19 @@ async function getServicesByDay(startOfDay, endOfDay) {
     SELECT 
       s.*,
       (s.service_timestamp AT TIME ZONE 'Africa/Kampala') AS service_time,
-      CONCAT(b.first_name, '', b.last_name) AS barber,
-      CONCAT(a.first_name, '', a.last_name) AS barber_assistant,
-      CONCAT(sc.first_name, '', sc.last_name) AS scrubber_assistant,
-      CONCAT(bs.first_name, '', bs.last_name) AS black_shampoo_assistant,
-      CONCAT(sb.first_name, '', sb.last_name) AS super_black_assistant,
-      CONCAT(bm.first_name, '', bm.last_name) AS black_mask_assistant
+      CONCAT(b.first_name, ' ', b.last_name) AS barber,
+      CONCAT(a.first_name, ' ', a.last_name) AS barber_assistant,
+      CONCAT(sc.first_name, ' ', sc.last_name) AS scrubber_assistant,
+      CONCAT(bs.first_name, ' ', bs.last_name) AS black_shampoo_assistant,
+      CONCAT(sb.first_name, ' ', sb.last_name) AS super_black_assistant,
+      CONCAT(bm.first_name, ' ', bm.last_name) AS black_mask_assistant
     FROM services s
-    LEFT JOIN users b  ON s.barber = b.id
-    LEFT JOIN users a  ON s.barber_assistant = a.id
-    LEFT JOIN users sc ON s.scrubber_assistant = sc.id
-    LEFT JOIN users bs ON s.black_shampoo_assistant = bs.id
-    LEFT JOIN users sb ON s.super_black_assistant = sb.id
-    LEFT JOIN users bm ON s.black_mask_assistant = bm.id
+    LEFT JOIN users b  ON s.barber_id = b.id
+    LEFT JOIN users a  ON s.barber_assistant_id = a.id
+    LEFT JOIN users sc ON s.scrubber_assistant_id = sc.id
+    LEFT JOIN users bs ON s.black_shampoo_assistant_id = bs.id
+    LEFT JOIN users sb ON s.super_black_assistant_id = sb.id
+    LEFT JOIN users bm ON s.black_mask_assistant_id = bm.id
     WHERE s.service_timestamp BETWEEN $1 AND $2
     ORDER BY s.id DESC;
   `;

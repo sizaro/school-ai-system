@@ -9,6 +9,8 @@ const OwnerIncomeDailyReport = () => {
   const { services, employees, advances, expenses, sessions, fetchDailyData, fetchServiceById,
     updateService, deleteService, } = useData();
 
+    const Employees = employees.filter((emp)=> `${emp.first_name} ${emp.last_name}`.toLowerCase() !== 'saleh ntege')
+
   const today = new Date();
   const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
   const reportDate = today.toLocaleDateString("en-US", options);
@@ -269,6 +271,7 @@ const OwnerIncomeDailyReport = () => {
                   setShowModal(false);
                   setEditingService(null);
                 }}
+                employees={Employees}
               />
             )}
           </Modal>

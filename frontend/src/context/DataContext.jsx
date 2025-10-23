@@ -113,6 +113,7 @@ export const DataProvider = ({ children }) => {
   // ---------- NEW: CRUD for Services ----------
   const fetchServiceById = async (id) => {
     try {
+      console.log("service id to be fetched",id)
       const res = await axios.get(`${API_URL}/services/${id}`);
       return res.data;
     } catch (err) {
@@ -433,6 +434,8 @@ const deleteTagFee = async (id) => {
     });
     const { user } = res.data;
 
+    setUser(user);
+
     if (!user) {
       throw new Error("Invalid login response — user missing");
     }
@@ -450,7 +453,8 @@ const deleteTagFee = async (id) => {
       const res = await axios.get(`${API_URL}/auth/check`, {
         withCredentials: true, // important to send httpOnly cookie
       });
-      setUser(res.data.user); // store the user in state
+      setUser(res.data.user); 
+      // store the user in state
     } catch (err) {
       setUser(null); // no session or invalid token
       console.error("Auth check failed:", err);
@@ -526,10 +530,15 @@ const deleteTagFee = async (id) => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+  checkAuth(); // will set user if token is valid
+}, []);
+
   // ---------- Export ----------
   return (
     <DataContext.Provider
   value={{
+    user,
     services,
     employees,
     expenses,

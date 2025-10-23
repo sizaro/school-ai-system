@@ -102,9 +102,21 @@ export const fetchServiceById = async (id) => {
   const query = `
     SELECT 
       s.*,
-      (s.service_timestamp AT TIME ZONE 'Africa/Kampala') AS "service_time"
+      (s.service_timestamp AT TIME ZONE 'Africa/Kampala') AS service_time,
+      CONCAT(b.first_name, ' ', b.last_name) AS barber,
+      CONCAT(a.first_name, ' ', a.last_name) AS barber_assistant,
+      CONCAT(sc.first_name, ' ', sc.last_name) AS scrubber_assistant,
+      CONCAT(bs.first_name, ' ', bs.last_name) AS black_shampoo_assistant,
+      CONCAT(sb.first_name, ' ', sb.last_name) AS super_black_assistant,
+      CONCAT(bm.first_name, ' ', bm.last_name) AS black_mask_assistant
     FROM services s
-    WHERE s.id = $1;
+    LEFT JOIN users b  ON s.barber_id = b.id
+    LEFT JOIN users a  ON s.barber_assistant_id = a.id
+    LEFT JOIN users sc ON s.scrubber_assistant_id = sc.id
+    LEFT JOIN users bs ON s.black_shampoo_assistant_id = bs.id
+    LEFT JOIN users sb ON s.super_black_assistant_id = sb.id
+    LEFT JOIN users bm ON s.black_mask_assistant_id = bm.id
+    WHERE s.id =$1
   `;
   const result = await db.query(query, [id]);
   return result.rows[0] || null;
@@ -116,23 +128,23 @@ export const fetchServiceById = async (id) => {
 export const updateServiceById = async (
   {
     name,
-    service_amount,
-    salon_amount,
-    barber,
-    barber_amount,
-    barber_assistant,
-    barber_assistant_amount,
-    scrubber_assistant,
-    scrubber_assistant_amount,
-    black_shampoo_assistant,
-    black_shampoo_assistant_amount,
-    black_shampoo_amount,
-    super_black_assistant,
-    super_black_assistant_amount,
-    super_black_amount,
-    black_mask_assistant,
-    black_mask_assistant_amount,
-    black_mask_amount,
+  service_amount,
+  salon_amount,
+  barber_id,
+  barber_amount,
+  barber_assistant_id,
+  barber_assistant_amount,
+  scrubber_assistant_id,
+  scrubber_assistant_amount,
+  black_shampoo_assistant_id,
+  black_shampoo_assistant_amount,
+  black_shampoo_amount,
+  super_black_assistant_id,
+  super_black_assistant_amount,
+  super_black_amount,
+  black_mask_assistant_id,
+  black_mask_assistant_amount,
+  black_mask_amount,
     service_timestamp,
     id
   }
@@ -143,19 +155,19 @@ export const updateServiceById = async (
       name = $1,
       service_amount = $2,
       salon_amount = $3,
-      barber = $4,
+      barber_id = $4,
       barber_amount = $5,
-      barber_assistant = $6,
+      barber_assistant_id = $6,
       barber_assistant_amount = $7,
-      scrubber_assistant = $8,
+      scrubber_assistant_id = $8,
       scrubber_assistant_amount = $9,
-      black_shampoo_assistant = $10,
+      black_shampoo_assistant_id = $10,
       black_shampoo_assistant_amount = $11,
       black_shampoo_amount = $12,
-      super_black_assistant = $13,
+      super_black_assistant_id = $13,
       super_black_assistant_amount = $14,
       super_black_amount = $15,
-      black_mask_assistant = $16,
+      black_mask_assistant_id = $16,
       black_mask_assistant_amount = $17,
       black_mask_amount = $18,
       service_timestamp = $19
@@ -165,23 +177,23 @@ export const updateServiceById = async (
 
   const values = [
     name,
-    service_amount,
-    salon_amount,
-    barber,
-    barber_amount,
-    barber_assistant,
-    barber_assistant_amount,
-    scrubber_assistant,
-    scrubber_assistant_amount,
-    black_shampoo_assistant,
-    black_shampoo_assistant_amount,
-    black_shampoo_amount,
-    super_black_assistant,
-    super_black_assistant_amount,
-    super_black_amount,
-    black_mask_assistant,
-    black_mask_assistant_amount,
-    black_mask_amount,
+  service_amount,
+  salon_amount,
+  barber_id,
+  barber_amount,
+  barber_assistant_id,
+  barber_assistant_amount,
+  scrubber_assistant_id,
+  scrubber_assistant_amount,
+  black_shampoo_assistant_id,
+  black_shampoo_assistant_amount,
+  black_shampoo_amount,
+  super_black_assistant_id,
+  super_black_assistant_amount,
+  super_black_amount,
+  black_mask_assistant_id,
+  black_mask_assistant_amount,
+  black_mask_amount,
     service_timestamp,
     id
   ];

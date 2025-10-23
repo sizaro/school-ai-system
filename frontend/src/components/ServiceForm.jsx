@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 
 const serviceMap = {
@@ -14,14 +15,13 @@ const serviceMap = {
   'haircut-honey-10000': { serviceAmount: 10000, salonAmount: 6000, barberAmount: 2000, barberAssistantAmount: 2000 },
   'haircut-women': { serviceAmount: 10000, salonAmount: 6000, barberAmount: 4000 },
   'scrub-only-3000': { serviceAmount: 3000, salonAmount: 2000, scrubAmount: 2000, scrubAssistantAmount: 1000 },
-  'scrub-only-5000': { serviceAmount: 5000, salonAmount: 4000,scrubAmount: 4000, scrubAssistantAmount: 1000 },
+  'scrub-only-5000': { serviceAmount: 5000, salonAmount: 4000, scrubAmount: 4000, scrubAssistantAmount: 1000 },
   'blackshampoo-only-3000': { serviceAmount: 3000, blackShampooAmount: 2000, blackShampooAssistantAmount: 1000 },
   'blackshampoo-only-5000': { serviceAmount: 5000, blackShampooAmount: 4000, blackShampooAssistantAmount: 1000 },
   'superblack-only-8000': { serviceAmount: 8000, salonAmount: 6000, superBlackAssistantAmount: 2000 }
 };
 
-
-export default function ServiceForm({ onSubmit, onClose, serviceData, employees }) {
+export default function ServiceForm({ onSubmit, onClose, serviceData, employees, isCustomer = false }) {
   const [formData, setFormData] = useState({
     service: "",
     barber: "",
@@ -30,14 +30,16 @@ export default function ServiceForm({ onSubmit, onClose, serviceData, employees 
     blackMaskAssistant: "",
     blackShampooAssistant: "",
     superBlackAssistant: "",
-    service_timestamp:"",
+    service_timestamp: "",
+    customerNote: "" // Added for customer notes
   });
 
-  // Prefill form when editing
+  const [serviceAmount, setServiceAmount] = useState(0); // Added for dynamic service amount display
+
   useEffect(() => {
     if (serviceData) {
       setFormData({
-        id:serviceData.id,
+        id: serviceData.id,
         service: serviceData.name || "",
         barber: serviceData.barber || "",
         barberAssistant: serviceData.barber_assistant || "",
@@ -45,10 +47,17 @@ export default function ServiceForm({ onSubmit, onClose, serviceData, employees 
         blackMaskAssistant: serviceData.black_mask_assistant || "",
         blackShampooAssistant: serviceData.black_shampoo_assistant || "",
         superBlackAssistant: serviceData.super_black_assistant || "",
-        service_timestamp: serviceData.service_timestamp
+        service_timestamp: serviceData.service_timestamp,
+        customerNote: serviceData.customer_note || ""
       });
     }
   }, [serviceData]);
+
+  // Update service amount dynamically
+  useEffect(() => {
+    const selected = serviceMap[formData.service];
+    setServiceAmount(selected ? selected.serviceAmount : 0);
+  }, [formData.service]);
 
   const handleChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -56,87 +65,81 @@ export default function ServiceForm({ onSubmit, onClose, serviceData, employees 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-const { 
-  id,
-  service, 
-  barber, 
-  barberAssistant, 
-  scrubberAssistant, 
-  blackShampooAssistant, 
-  superBlackAssistant, 
-  blackMaskAssistant,
-  service_timestamp,
-} = formData;
+    const {
+      id,
+      service,
+      barber,
+      barberAssistant,
+      scrubberAssistant,
+      blackShampooAssistant,
+      superBlackAssistant,
+      blackMaskAssistant,
+      service_timestamp,
+      customerNote
+    } = formData;
 
-const calculation = serviceMap[service];
-if (!calculation) return alert('Invalid service selected');
+    const calculation = serviceMap[service];
+    if (!calculation) return alert('Invalid service selected');
 
-const payload = {
-  id,
-  name: service,
-
-  service_amount: calculation.serviceAmount || 0,
-  salon_amount: calculation.salonAmount || 0,
-
-  barber_id: barber || null,
-  barber_amount: calculation.barberAmount || 0,
-
-  barber_assistant_id: barberAssistant || null,
-  barber_assistant_amount: calculation.barberAssistantAmount || 0,
-
-  scrubber_assistant_id: scrubberAssistant || null,
-  scrubber_assistant_amount: calculation.scrubAssistantAmount || 0,
-
-  black_shampoo_assistant_id: blackShampooAssistant || null,
-  black_shampoo_assistant_amount: calculation.blackShampooAssistantAmount || 0,
-  black_shampoo_amount: calculation.blackShampooAmount || 0,
-
-  super_black_assistant_id: superBlackAssistant || null,
-  super_black_assistant_amount: calculation.superBlackAssistantAmount || 0,
-  super_black_amount: calculation.superBlackAmount || 0,
-
-  black_mask_assistant_id: blackMaskAssistant || null,
-  black_mask_assistant_amount: calculation.blackMaskAssistantAmount || 0,
-  black_mask_amount: calculation.blackMaskAmount || 0,
-  service_timestamp
-};
+    const payload = {
+      id,
+      name: service,
+      service_amount: calculation.serviceAmount || 0,
+      salon_amount: calculation.salonAmount || 0,
+      barber_id: barber || null,
+      barber_amount: calculation.barberAmount || 0,
+      barber_assistant_id: barberAssistant || null,
+      barber_assistant_amount: calculation.barberAssistantAmount || 0,
+      scrubber_assistant_id: scrubberAssistant || null,
+      scrubber_assistant_amount: calculation.scrubAssistantAmount || 0,
+      black_shampoo_assistant_id: blackShampooAssistant || null,
+      black_shampoo_assistant_amount: calculation.blackShampooAssistantAmount || 0,
+      black_shampoo_amount: calculation.blackShampooAmount || 0,
+      super_black_assistant_id: superBlackAssistant || null,
+      super_black_assistant_amount: calculation.superBlackAssistantAmount || 0,
+      super_black_amount: calculation.superBlackAmount || 0,
+      black_mask_assistant_id: blackMaskAssistant || null,
+      black_mask_assistant_amount: calculation.blackMaskAssistantAmount || 0,
+      black_mask_amount: calculation.blackMaskAmount || 0,
+      service_timestamp,
+      ...(isCustomer && { customer_note: customerNote }) // Add note only if customer
+    };
 
     onSubmit(payload);
     onClose();
   };
 
-    return (
-  <form onSubmit={handleSubmit} className="space-y-4">
-    {/* Service selection */}
-    <div>
-      <label className="block mb-1 font-medium">Choose service</label>
-      <select
-        name="service"
-        value={formData.service}
-        onChange={handleChange}
-        className="w-full border rounded px-2 py-1"
-      >
-        <option value=""></option>
-        <option value="7000-service">7000 service</option>
-        <option value="6000-service">6000 service</option>
-        <option value="5000-service">5000 service</option>
-        <option value="child-service">Child Service</option>
-        <option value="beard-service">Beard Service</option>
-        <option value="haircut-blackmask-12000">Haircut + Blackmask (12000)</option>
-        <option value="haircut-blackshampoo-12000">Haircut + Blackshampoo (12000)</option>
-        <option value="trimming-scrub-5000">Trimming + Scrub (5000)</option>
-        <option value="haircut-honey-10000">Haircut + Honey (10000)</option>
-        <option value="haircut-women">Haircut Women</option>
-        <option value="haircut-blackshampoo-10000">Haircut + Blackshampoo (10000)</option>
-        <option value="haircut-superblack-15000">Haircut + SuperBlack (15000)</option>
-        <option value="scrub-only-3000">Scrub only (3000)</option>
-        <option value="scrub-only-5000">Scrub only (5000)</option>
-        <option value="blackshampoo-only-3000">Blackshampoo only (3000)</option>
-        <option value="blackshampoo-only-5000">Blackshampoo only (5000)</option>
-        <option value="superblack-only-8000">superblack only (8000)</option>
-      </select>
-    </div>
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Service selection */}
+      <div>
+        <label className="block mb-1 font-medium">Choose service</label>
+        <select
+          name="service"
+          value={formData.service}
+          onChange={handleChange}
+          className="w-full border rounded px-2 py-1"
+        >
+          <option value=""></option>
+          <option value="7000-service">7000 service</option>
+          <option value="6000-service">6000 service</option>
+          <option value="5000-service">5000 service</option>
+          <option value="child-service">Child Service</option>
+          <option value="beard-service">Beard Service</option>
+          <option value="haircut-blackmask-12000">Haircut + Blackmask (12000)</option>
+          <option value="haircut-blackshampoo-12000">Haircut + Blackshampoo (12000)</option>
+          <option value="trimming-scrub-5000">Trimming + Scrub (5000)</option>
+          <option value="haircut-honey-10000">Haircut + Honey (10000)</option>
+          <option value="haircut-women">Haircut Women</option>
+          <option value="haircut-blackshampoo-10000">Haircut + Blackshampoo (10000)</option>
+          <option value="haircut-superblack-15000">Haircut + SuperBlack (15000)</option>
+          <option value="scrub-only-3000">Scrub only (3000)</option>
+          <option value="scrub-only-5000">Scrub only (5000)</option>
+          <option value="blackshampoo-only-3000">Blackshampoo only (3000)</option>
+          <option value="blackshampoo-only-5000">Blackshampoo only (5000)</option>
+          <option value="superblack-only-8000">superblack only (8000)</option>
+        </select>
+      </div>
 
     {/* 7000-service */}
     {formData.service === "7000-service" && (
@@ -716,15 +719,40 @@ const payload = {
 
         </select>
       </div>
-    )}
+      )}
 
-    <button
-      className="mt-4 bg-blue-400 hover:bg-blue-600 text-white py-2 px-4 rounded"
-      type="submit"
-    >
-      Submit
-    </button>
-  </form>
-);
+      {isCustomer && (
+        <>
+          <p className="text-sm text-gray-700 bg-yellow-100 p-2 rounded">
+            Note: Your appointment will only remain valid for <b>10 minutes</b> after the scheduled time.
+            After that, the employee may attend to another client, and you may have to wait.
+          </p>
 
+          {formData.service && (
+            <p className="text-gray-700 font-medium">
+              The total amount for this service is <span className="text-green-700">UGX {serviceAmount}</span>
+            </p>
+          )}
+
+          <div>
+            <label className="block mb-1 font-medium">Additional Information</label>
+            <textarea
+              name="customerNote"
+              value={formData.customerNote}
+              onChange={handleChange}
+              placeholder="Any special requests or details..."
+              className="w-full border rounded px-2 py-1"
+            />
+          </div>
+        </>
+      )}
+
+      <button
+        className="mt-4 bg-blue-400 hover:bg-blue-600 text-white py-2 px-4 rounded"
+        type="submit"
+      >
+        Submit
+      </button>
+    </form>
+  );
 }
