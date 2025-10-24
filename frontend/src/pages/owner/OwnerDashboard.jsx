@@ -9,6 +9,7 @@ import LateFeeForm from "../../components/LateFeeForm.jsx";
 import Button from "../../components/Button";
 import { useData } from "../../context/DataContext.jsx";
 
+
 export default function OwnerDashboard() {
   const [modalType, setModalType] = useState(null);
   const [salonStatus, setSalonStatus] = useState("closed");
@@ -161,7 +162,7 @@ export default function OwnerDashboard() {
       {/* Modals */}
       <Modal isOpen={modalType !== null} onClose={closeModal}>
         {modalType === "service" && (
-          <ServiceForm onSubmit={createService} onClose={closeModal} employees={Employees} />
+          <ServiceForm onSubmit={createService} onClose={closeModal} employees={Employees} createdBy={"owner"} serviceStatus={null} />
         )}
         {modalType === "expense" && (
           <ExpenseForm onSubmit={createExpense} onClose={closeModal} />

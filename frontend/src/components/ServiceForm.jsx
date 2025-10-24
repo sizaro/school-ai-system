@@ -21,7 +21,7 @@ const serviceMap = {
   'superblack-only-8000': { serviceAmount: 8000, salonAmount: 6000, superBlackAssistantAmount: 2000 }
 };
 
-export default function ServiceForm({ onSubmit, onClose, serviceData, employees, isCustomer = false }) {
+export default function ServiceForm({ onSubmit, onClose, serviceData, employees, isCustomer = false, createdBy, serviceStatus }) {
   const [formData, setFormData] = useState({
     service: "",
     barber: "",
@@ -31,7 +31,9 @@ export default function ServiceForm({ onSubmit, onClose, serviceData, employees,
     blackShampooAssistant: "",
     superBlackAssistant: "",
     service_timestamp: "",
-    customerNote: "" // Added for customer notes
+    customerNote: "",
+    created_by: createdBy,
+    status: serviceStatus,
   });
 
   const [serviceAmount, setServiceAmount] = useState(0); // Added for dynamic service amount display
@@ -48,7 +50,6 @@ export default function ServiceForm({ onSubmit, onClose, serviceData, employees,
         blackShampooAssistant: serviceData.black_shampoo_assistant || "",
         superBlackAssistant: serviceData.super_black_assistant || "",
         service_timestamp: serviceData.service_timestamp,
-        customerNote: serviceData.customer_note || ""
       });
     }
   }, [serviceData]);
@@ -75,7 +76,10 @@ export default function ServiceForm({ onSubmit, onClose, serviceData, employees,
       superBlackAssistant,
       blackMaskAssistant,
       service_timestamp,
-      customerNote
+      customerNote,
+      created_by,
+      status
+
     } = formData;
 
     const calculation = serviceMap[service];
@@ -101,8 +105,10 @@ export default function ServiceForm({ onSubmit, onClose, serviceData, employees,
       black_mask_assistant_id: blackMaskAssistant || null,
       black_mask_assistant_amount: calculation.blackMaskAssistantAmount || 0,
       black_mask_amount: calculation.blackMaskAmount || 0,
+      customer_note: customerNote,
+      created_by:created_by,
+      status:status,
       service_timestamp,
-      ...(isCustomer && { customer_note: customerNote }) // Add note only if customer
     };
 
     onSubmit(payload);

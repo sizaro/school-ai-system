@@ -68,6 +68,8 @@ export default function CustomerDashboard() {
           onSubmit={handleAppointmentSubmit}
           onClose={closeModal}
           isCustomer={true}
+          serviceStatus={"pending"}
+          createdBy={"customer"}
         />
       </Modal>
     </div>

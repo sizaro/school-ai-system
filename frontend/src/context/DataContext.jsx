@@ -526,6 +526,7 @@ const deleteTagFee = async (id) => {
 
   useEffect(() => {
     fetchSessions();
+    fetchAllData();
     const interval = setInterval(fetchSessions, 60 * 1000);
     return () => clearInterval(interval);
   }, []);
