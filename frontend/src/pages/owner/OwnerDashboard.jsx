@@ -15,8 +15,8 @@ export default function OwnerDashboard() {
   const [salonStatus, setSalonStatus] = useState("closed");
   const [selectedFee, setSelectedFee] = useState(null);
 
-  const { sendFormData, sessions, employees } = useData();
-  const Employees = employees.filter((emp)=> `${emp.first_name} ${emp.last_name}`.toLowerCase() !== 'saleh ntege')
+  const { sendFormData, sessions, users } = useData();
+  const Employees = users.filter((user)=> `${emp.first_name} ${emp.last_name}`.toLowerCase() !== 'saleh ntege' && user.role !== 'customer')
 
   // ✅ Handle Salon open/close
   const handleSalonSession = async (status) => {

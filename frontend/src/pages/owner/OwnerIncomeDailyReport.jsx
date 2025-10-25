@@ -165,19 +165,27 @@ const OwnerIncomeDailyReport = () => {
     fetchDailyData(selectedDate);
   }, []);
 
-  // ✅ ---- NEW SECTION: SERVICE COUNT SUMMARY ----
-  // Using reduce() to count how many times each service appears
+  // ---- Service Count Summary ----
   const serviceCount = services.reduce((acc, service) => {
-    const name = service.name || "Unknown"; // if name is null, fallback
-    acc[name] = (acc[name] || 0) + 1; // increment the count
+    const name = service.name || "Unknown";
+    acc[name] = (acc[name] || 0) + 1;
     return acc;
-  }, {}); // starts with an empty object {}
+  }, {});
+
+  // ---- Tabbed Appointments ----
+  const [activeTab, setActiveTab] = useState("pending");
 
   const pendingAppointments = services.filter(s => s.status === 'pending');
   const confirmedAppointments = services.filter(s => s.status === 'confirmed');
   const completedAppointments = services.filter(s => s.status === 'completed');
   const cancelledAppointments = services.filter(s => s.status === 'cancelled');
 
+  const appointmentsByStatus = {
+    pending: pendingAppointments,
+    confirmed: confirmedAppointments,
+    completed: completedAppointments,
+    cancelled: cancelledAppointments,
+  };
 
   return (
     <div className="income-page max-w-4xl mx-auto p-4 overflow-y-hidden">
@@ -206,16 +214,43 @@ const OwnerIncomeDailyReport = () => {
             <p><span className="font-medium">Duration:</span> {liveDuration} {!session.close_time && "(Counting...)"}</p>
           </section>
 
+          {/* TABBED APPOINTMENTS */}
           <section className="bg-white shadow-md rounded-lg p-4 mb-6">
-          <h2 className="text-xl font-semibold text-blue-700 mb-4">Appointments</h2>
+            <h2 className="text-xl font-semibold text-blue-700 mb-4">Appointments</h2>
 
-          {/* Pending Appointments */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Pending</h3>
+            {/* Tabs */}
+            <div className="flex gap-2 mb-4 flex-wrap">
+              {['pending', 'confirmed', 'completed', 'cancelled'].map((status) => (
+                <button
+                  key={status}
+                  className={`px-4 py-2 rounded ${
+                    activeTab === status
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  onClick={() => setActiveTab(status)}
+                >
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content */}
             <div className="flex flex-wrap gap-4">
-              {pendingAppointments.length > 0 ? (
-                pendingAppointments.map((s) => (
-                  <div key={s.id} className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
+              {appointmentsByStatus[activeTab].length > 0 ? (
+                appointmentsByStatus[activeTab].map((s) => (
+                  <div
+                    key={s.id}
+                    className={`border rounded-lg p-4 w-[calc(33.333%-1rem)] min-w-[180px] ${
+                      activeTab === 'pending'
+                        ? 'bg-yellow-50 border-yellow-200'
+                        : activeTab === 'confirmed'
+                        ? 'bg-green-50 border-green-200'
+                        : activeTab === 'completed'
+                        ? 'bg-blue-50 border-blue-200'
+                        : 'bg-red-50 border-red-200'
+                    }`}
+                  >
                     <p className="font-medium">{s.name}</p>
                     <p>Customer: {s.customer_name || 'N/A'}</p>
                     <p>Time: {formatEAT(s.service_timestamp)}</p>
@@ -223,74 +258,14 @@ const OwnerIncomeDailyReport = () => {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500">No pending appointments</p>
+                <p className="text-gray-500">No {activeTab} appointments</p>
               )}
             </div>
-          </div>
-
-          {/* Repeat for Confirmed, Completed, Cancelled */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Confirmed</h3>
-            <div className="flex flex-wrap gap-4">
-              {confirmedAppointments.length > 0 ? (
-                confirmedAppointments.map((s) => (
-                  <div key={s.id} className="bg-green-50 border border-green-200 rounded-lg p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-                    <p className="font-medium">{s.name}</p>
-                    <p>Customer: {s.customer_name || 'N/A'}</p>
-                    <p>Time: {formatEAT(s.service_timestamp)}</p>
-                    <p>Barber: {s.barber}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500">No confirmed appointments</p>
-              )}
-            </div>
-          </div>
-
-          {/* Repeat Completed */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Completed</h3>
-            <div className="flex flex-wrap gap-4">
-              {completedAppointments.length > 0 ? (
-                completedAppointments.map((s) => (
-                  <div key={s.id} className="bg-blue-50 border border-blue-200 rounded-lg p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-                    <p className="font-medium">{s.name}</p>
-                    <p>Customer: {s.customer_name || 'N/A'}</p>
-                    <p>Time: {formatEAT(s.service_timestamp)}</p>
-                    <p>Barber: {s.barber}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500">No completed appointments</p>
-              )}
-            </div>
-          </div>
-
-          {/* Repeat Cancelled */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Cancelled</h3>
-            <div className="flex flex-wrap gap-4">
-              {cancelledAppointments.length > 0 ? (
-                cancelledAppointments.map((s) => (
-                  <div key={s.id} className="bg-red-50 border border-red-200 rounded-lg p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-                    <p className="font-medium">{s.name}</p>
-                    <p>Customer: {s.customer_name || 'N/A'}</p>
-                    <p>Time: {formatEAT(s.service_timestamp)}</p>
-                    <p>Barber: {s.barber}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500">No cancelled appointments</p>
-              )}
-            </div>
-          </div>
-        </section>
-
+          </section>
 
           {/* SUMMARY Section in Divs */}
           <section className="bg-white shadow-md rounded-lg p-4 mb-6">
             <h2 className="text-xl font-semibold text-blue-700 mb-4">Summary</h2>
-
             <div className="flex flex-wrap gap-4">
               <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
                 <span className="font-medium text-gray-700">Gross Income</span>
@@ -329,14 +304,11 @@ const OwnerIncomeDailyReport = () => {
             </div>
           </section>
 
-          {/* ✅ SERVICES COUNT SECTION */}
-          {/* Services Summary Section */}
+          {/* SERVICES COUNT SECTION */}
           <section className="w-full bg-white shadow-md rounded-lg p-4 mb-6">
             <h2 className="text-xl font-semibold text-blue-700 mb-4">
               Service Summary (By Count)
             </h2>
-
-            {/* Service Count Grid */}
             <div className="flex flex-wrap gap-4">
               {Object.entries(serviceCount).map(([name, count]) => (
                 <div
@@ -349,7 +321,6 @@ const OwnerIncomeDailyReport = () => {
               ))}
             </div>
           </section>
-
 
           {/* SERVICES TABLE */}
           <section className="bg-white shadow-md rounded-lg p-4">
@@ -382,81 +353,77 @@ const OwnerIncomeDailyReport = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {services.map((service, index) => (
-                    <tr
-                      key={service.id}
-                      className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
-                    >
-                      <td className="px-3 py-2">{index + 1}</td>
-                      <td className="px-3 py-2">{service.name}</td>
-                      <td className="px-3 py-2">{service.service_amount}</td>
-                      <td className="px-3 py-2">{service.salon_amount}</td>
-                      <td className="px-3 py-2">{service.barber}</td>
-                      <td className="px-3 py-2">{service.barber_amount}</td>
-                      <td className="px-3 py-2">{service.barber_assistant || "-"}</td>
-                      <td className="px-3 py-2">{service.barber_assistant_amount}</td>
-                      <td className="px-3 py-2">{service.scrubber_assistant || "-"}</td>
-                      <td className="px-3 py-2">{service.scrubber_assistant_amount}</td>
-                      <td className="px-3 py-2">{service.black_shampoo_assistant || "-"}</td>
-                      <td className="px-3 py-2">{service.black_shampoo_assistant_amount || "-"}</td>
-                      <td className="px-3 py-2">{service.black_shampoo_amount}</td>
-                      <td className="px-3 py-2">{service.super_black_assistant || "-"}</td>
-                      <td className="px-3 py-2">{service.super_black_assistant_amount || "-"}</td>
-                      <td className="px-3 py-2">{service.super_black_amount}</td>
-                      <td className="px-3 py-2">{service.black_mask_assistant || "-"}</td>
-                      <td className="px-3 py-2">{service.black_mask_assistant_amount || "-"}</td>
-                      <td className="px-3 py-2">{service.black_mask_amount}</td>
-                      <td className="px-3 py-2">{formatEAT(service.service_timestamp)}</td>
-                      <td className="px-3 py-2 space-x-1">
-                        <button
-                          className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
-                          onClick={() => handleEditClick(service.id)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
-                          onClick={() => handleDelete(service.id)}
-                        >
-                          Delete
-                        </button>
+                  {services.length > 0 ? (
+                    services.map((s, index) => (
+                      <tr key={s.id} className="border-b hover:bg-gray-50">
+                        <td className="px-3 py-2">{index + 1}</td>
+                        <td className="px-3 py-2">{s.name}</td>
+                        <td className="px-3 py-2">{s.service_amount}</td>
+                        <td className="px-3 py-2">{s.salon_amount}</td>
+                        <td className="px-3 py-2">{s.barber}</td>
+                        <td className="px-3 py-2">{s.barber_amount}</td>
+                        <td className="px-3 py-2">{s.barber_assistant}</td>
+                        <td className="px-3 py-2">{s.barber_assistant_amount}</td>
+                        <td className="px-3 py-2">{s.scrubber_assistant}</td>
+                        <td className="px-3 py-2">{s.scrubber_assistant_amount}</td>
+                        <td className="px-3 py-2">{s.black_shampoo_assistant}</td>
+                        <td className="px-3 py-2">{s.black_shampoo_assistant_amount}</td>
+                        <td className="px-3 py-2">{s.black_shampoo_amount}</td>
+                        <td className="px-3 py-2">{s.super_black_assistant}</td>
+                        <td className="px-3 py-2">{s.super_black_assistant_amount}</td>
+                        <td className="px-3 py-2">{s.super_black_amount}</td>
+                        <td className="px-3 py-2">{s.black_mask_assistant}</td>
+                        <td className="px-3 py-2">{s.black_mask_assistant_amount}</td>
+                        <td className="px-3 py-2">{s.black_mask_amount}</td>
+                        <td className="px-3 py-2">{formatEAT(s.service_timestamp)}</td>
+                        <td className="px-3 py-2 flex gap-2">
+                          <button
+                            onClick={() => handleEditClick(s.id)}
+                            className="text-blue-700 hover:underline"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(s.id)}
+                            className="text-red-600 hover:underline"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="21" className="text-center py-4">
+                        No services found for this day
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
           </section>
-
-          <Modal
-            isOpen={showModal}
-            onClose={() => {
-              setShowModal(false);
-              setEditingService(null);
-            }}
-          >
-            {editingService && (
-              <ServiceForm
-                serviceData={editingService}
-                onSubmit={handleModalSubmit}
-                onClose={() => {
-                  setShowModal(false);
-                  setEditingService(null);
-                }}
-                employees={Employees}
-              />
-            )}
-          </Modal>
-
-          <ConfirmModal
-            isOpen={confirmModalOpen}
-            message="Are you sure you want to delete this service?"
-            onConfirm={confirmDelete}
-            onClose={() => setConfirmModalOpen(false)}
-          />
         </>
       ) : (
-        <p>Salon not open today yet</p>
+        <p className="text-red-600 font-medium">No session data available.</p>
+      )}
+
+      {showModal && editingService && (
+        <Modal onClose={() => setShowModal(false)}>
+          <ServiceForm
+            service={editingService}
+            onSubmit={handleModalSubmit}
+            onCancel={() => setShowModal(false)}
+          />
+        </Modal>
+      )}
+
+      {confirmModalOpen && (
+        <ConfirmModal
+          message="Are you sure you want to delete this service?"
+          onConfirm={confirmDelete}
+          onCancel={() => setConfirmModalOpen(false)}
+        />
       )}
     </div>
   );

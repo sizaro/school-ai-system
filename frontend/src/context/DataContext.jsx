@@ -5,7 +5,7 @@ const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
   const [services, setServices] = useState([]);
-  const [employees, setEmployees] = useState([]);
+  const [users, setUsers] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [advances, setAdvances] = useState([]);
   const [clockings, setClockings] = useState([]);
@@ -20,14 +20,14 @@ export const DataProvider = ({ children }) => {
   // ---------- Fetch All ----------
   const fetchAllData = async () => {
     try {
-      const [clockingsRes, employeesRes] =
+      const [clockingsRes, UsersRes] =
         await Promise.all([
           axios.get(`${API_URL}/clockings`),
-          axios.get(`${API_URL}/employees`),
+          axios.get(`${API_URL}/users`),
 
         ]);
       setClockings(clockingsRes.data);
-      setEmployees(employeesRes.data);
+      setUsers(UsersRes.data);
     } catch (err) {
       console.error("Error fetching static data:", err);
     }
@@ -57,7 +57,7 @@ export const DataProvider = ({ children }) => {
       setExpenses(data.expenses);
       setAdvances(data.advances);
       setClockings(data.clockings);
-      setEmployees(data.employees);
+      setUsers(data.users);
       return data;
     } catch (err) {
       console.error("Error fetching daily report:", err);
@@ -145,9 +145,9 @@ export const DataProvider = ({ children }) => {
 
 
   // ---------- Employees CRUD ----------
-const fetchEmployees = async () => {
+const fetchUsers = async () => {
   try {
-    const res = await axios.get(`${API_URL}/employees`);
+    const res = await axios.get(`${API_URL}/users`);
     setEmployees(res.data);
     return res.data;
   } catch (err) {
@@ -156,9 +156,9 @@ const fetchEmployees = async () => {
   }
 };
 
-const fetchEmployeeById = async (id) => {
+const fetchUserById = async (id) => {
     try {
-      const res = await axios.get(`${API_URL}/employees/${id}`);
+      const res = await axios.get(`${API_URL}/users/${id}`);
       return res.data;
     } catch (err) {
       console.error("Error fetching employee by ID:", err);
@@ -166,34 +166,34 @@ const fetchEmployeeById = async (id) => {
     }
   };
 
-const createEmployee = async (employeeData) => {
+const createUser = async (userData) => {
   try {
-    const res = await axios.post(`${API_URL}/employees`, employeeData);
-    await fetchEmployees(); // refresh list
+    const res = await axios.post(`${API_URL}/users`, userData);
+    await fetchUsers(); // refresh list
     return res.data;
   } catch (err) {
-    console.error("Error creating employee:", err);
+    console.error(`error creating ${userData.role}`, err);
     throw err;
   }
 };
 
-const updateEmployee = async (id, employeeData) => {
+const updateUser = async (id, userData) => {
   try {
-    const res = await axios.put(`${API_URL}/employees/${id}`, employeeData);
-    await fetchEmployees();
+    const res = await axios.put(`${API_URL}/users/${id}`, userData);
+    await fetchUsers();
     return res.data;
   } catch (err) {
-    console.error("Error updating employee:", err);
+    console.error(`error updating ${userData.role}`, err);
     throw err;
   }
 };
 
-const deleteEmployee = async (id) => {
+const deleteUser = async (id) => {
   try {
-    await axios.delete(`${API_URL}/employees/${id}`);
-    await fetchEmployees();
+    await axios.delete(`${API_URL}/user/${id}`);
+    await fetchUsers();
   } catch (err) {
-    console.error("Error deleting employee:", err);
+    console.error(`error in deleting`, err);
     throw err;
   }
 };
@@ -480,10 +480,6 @@ const deleteTagFee = async (id) => {
     try {
       let res;
       switch (formIdentifier) {
-        case "createEmployee":
-          res = await axios.post(`${API_URL}/employees`, formData);
-          await fetchAllData();
-          break;
         case "createService":
           res = await axios.post(`${API_URL}/services`, formData);
           await fetchAllData();
@@ -526,13 +522,15 @@ const deleteTagFee = async (id) => {
 
   useEffect(() => {
     fetchSessions();
+    fetchUsers();
     fetchAllData();
     const interval = setInterval(fetchSessions, 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-  checkAuth(); // will set user if token is valid
+  checkAuth(); 
+  fetchUsers();// will set user if token is valid
 }, []);
 
   // ---------- Export ----------
@@ -541,7 +539,7 @@ const deleteTagFee = async (id) => {
   value={{
     user,
     services,
-    employees,
+    users,
     expenses,
     advances,
     clockings,
@@ -556,11 +554,11 @@ const deleteTagFee = async (id) => {
     fetchServiceById,
     updateService,
     deleteService,
-    fetchEmployees,
-    fetchEmployeeById,
-    createEmployee,
-    updateEmployee,
-    deleteEmployee,
+    fetchUsers,
+    fetchUserById,
+    createUser,
+    updateUser,
+    deleteUser,
     fetchAdvances,
     fetchAdvanceById,
     createAdvance,

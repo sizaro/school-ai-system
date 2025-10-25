@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useData } from "../../context/DataContext.jsx";
-import EmployeeForm from "../../components/EmployeeForm.jsx"
+import UserForm from "../../components/UserForm.jsx"
 import ConfirmModal from "../../components/ConfirmModal.jsx";
 import Modal from "../../components/Modal.jsx";
 
@@ -9,6 +9,7 @@ const OwnerEmployees = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
+  const [addEmployee, setaddingEmployee] = useState(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState(null);
 
@@ -18,6 +19,8 @@ const OwnerEmployees = () => {
 
   const handleAdd = () => {
     setEditingEmployee(null);
+    setaddingEmployee("employee")
+
     setShowModal(true);
   };
 
@@ -117,8 +120,21 @@ const OwnerEmployees = () => {
             setEditingEmployee(null);
         }}
         >
+          {addEmployee && (
+            <UserForm
+            role="employee"
+            employee={editingEmployee}
+            onSubmit={handleModalSubmit}
+            onClose={() => {
+                setShowModal(false);
+                setEditingService(null);
+            }}
+            />
+        )}
+
         {editingEmployee && (
-            <EmployeeForm
+            <UserForm
+            role="employee"
             employee={editingEmployee}
             onSubmit={handleModalSubmit}
             onClose={() => {
