@@ -9,6 +9,8 @@ import {
   deleteUserById
 } from '../controllers/usersController.js';
 
+import upload from "../middleware/upload.js";
+
 // GET all users
 router.get('/', getAllUsers);
 
@@ -16,10 +18,10 @@ router.get('/', getAllUsers);
 router.get('/:id', getUserById);
 
 // POST create a new user
-router.post('/', createUser);
+router.post('/', upload.single("image_url"), createUser);
 
 // PUT update an existing user by ID
-router.put('/:id', updateUserById);
+router.put('/:id', upload.single("image_url"),  updateUserById);
 
 // DELETE remove a user by ID
 router.delete('/:id', deleteUserById);

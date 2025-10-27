@@ -8,20 +8,19 @@ import ConfirmModal from "../../components/ConfirmModal.jsx";
 const OwnerIncomeDailyReport = () => {
   const {
     services,
-    employees,
+    users =[],
     advances,
     expenses,
     sessions,
+    fetchUsers,
     fetchDailyData,
     fetchServiceById,
     updateService,
     deleteService,
   } = useData();
 
-  const Employees = employees.filter(
-    (emp) =>
-      `${emp.first_name} ${emp.last_name}`.toLowerCase() !== "saleh ntege"
-  );
+  console.log("users in the daily report:", users)
+  const Employees = users.filter((user)=> `${user.first_name} ${user.last_name}`.toLowerCase() !== 'saleh ntege' && user.role !== 'customer')
 
   const today = new Date();
   const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
@@ -163,6 +162,11 @@ const OwnerIncomeDailyReport = () => {
 
   useEffect(() => {
     fetchDailyData(selectedDate);
+    fetchUsers()
+  }, []);
+
+  useEffect(() => {
+    fetchUsers()
   }, []);
 
   // ---- Service Count Summary ----

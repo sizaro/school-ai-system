@@ -16,7 +16,7 @@ const UserForm = ({ user, onSubmit, onClose, role = "customer" }) => {
     status: "active",
     bio: "",
     created_at: "",
-    image: null, // file upload
+    image_url: null, // file upload
   });
 
   // Prefill if editing user
@@ -38,7 +38,7 @@ const UserForm = ({ user, onSubmit, onClose, role = "customer" }) => {
         status: user.status || "active",
         bio: user.bio || "",
         created_at: user.created_at || "",
-        image: null,
+        image_url: null,
       });
     }
   }, [user, role]);
@@ -63,7 +63,7 @@ const UserForm = ({ user, onSubmit, onClose, role = "customer" }) => {
       data.append(key, value || ""); // append all values, even empty ones
     });
 
-    onSubmit(data); // pass to parent
+    onSubmit(data);
   };
 
   return (
@@ -80,7 +80,7 @@ const UserForm = ({ user, onSubmit, onClose, role = "customer" }) => {
         <label className="block text-sm font-medium text-gray-700">Profile Image</label>
         <input
           type="file"
-          name="image"
+          name="image_url"
           accept="image/*"
           onChange={handleChange}
           className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2"

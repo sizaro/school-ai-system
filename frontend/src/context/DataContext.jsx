@@ -148,7 +148,8 @@ export const DataProvider = ({ children }) => {
 const fetchUsers = async () => {
   try {
     const res = await axios.get(`${API_URL}/users`);
-    setEmployees(res.data);
+    setUsers(res.data);
+    console.log("users in context:", res.data)
     return res.data;
   } catch (err) {
     console.error("Error fetching employees:", err);
@@ -190,7 +191,7 @@ const updateUser = async (id, userData) => {
 
 const deleteUser = async (id) => {
   try {
-    await axios.delete(`${API_URL}/user/${id}`);
+    await axios.delete(`${API_URL}/users/${id}`);
     await fetchUsers();
   } catch (err) {
     console.error(`error in deleting`, err);

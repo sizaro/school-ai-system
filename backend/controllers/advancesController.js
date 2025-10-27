@@ -41,12 +41,12 @@ export const getAdvanceById = async (req, res) => {
  */
 export const createAdvance = async (req, res) => {
   try {
-    const { employee_name, amount, description } = req.body;
+    const { employee_id, amount, description } = req.body;
 
     console.log("Received new advance data:", req.body);
 
     const newAdvance = await saveAdvance({
-      employee_name,
+      employee_id,
       amount,
       description,
     });
@@ -63,13 +63,13 @@ export const createAdvance = async (req, res) => {
  */
 export const updateAdvanceById = async (req, res) => {
   try {
-    const { id, employee_name, amount, description, created_at } = req.body;
+    const { id, employee_id, amount, description, created_at } = req.body;
 
     if (!id) return res.status(400).json({ error: "Missing advance ID" });
 
     const updatedAdvance = await UpdateAdvanceById({
       id,
-      employee_name,
+      employee_id,
       amount,
       description,
       created_at,

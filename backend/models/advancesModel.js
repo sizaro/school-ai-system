@@ -4,13 +4,13 @@ import db from './database.js';
  * Save a new advance record
  */
 export const saveAdvance = async ({
-  employee_name,
+  employee_id,
   amount,
   description
 }) => {
   const query = `
     INSERT INTO advances (
-      employee_name,
+      employee_id,
       amount,
       description,
       created_at
@@ -19,7 +19,7 @@ export const saveAdvance = async ({
     RETURNING *;
   `;
 
-  const values = [employee_name, amount, description];
+  const values = [employee_id, amount, description];
   const result = await db.query(query, values);
   return result.rows[0];
 };
@@ -55,7 +55,7 @@ export const fetchAdvanceById = async (id) => {
  */
 export const UpdateAdvanceById = async ({
   id,
-  employee_name,
+  employee_id,
   amount,
   description,
   created_at,
@@ -63,14 +63,14 @@ export const UpdateAdvanceById = async ({
   const query = `
     UPDATE advances
     SET 
-      employee_name = $1,
+      employee_id = $1,
       amount = $2,
       description = $3,
       created_at = $4
     WHERE id = $5
     RETURNING *;
   `;
-  const values = [employee_name, amount, description, created_at, id];
+  const values = [employee_id, amount, description, created_at, id];
   const result = await db.query(query, values);
   return result.rows[0];
 };

@@ -15,8 +15,10 @@ export default function OwnerDashboard() {
   const [salonStatus, setSalonStatus] = useState("closed");
   const [selectedFee, setSelectedFee] = useState(null);
 
-  const { sendFormData, sessions, users } = useData();
-  const Employees = users.filter((user)=> `${emp.first_name} ${emp.last_name}`.toLowerCase() !== 'saleh ntege' && user.role !== 'customer')
+  const { sendFormData, sessions, users, fetchUsers } = useData();
+
+  console.log("users in Owner dashboard", users)
+  const Employees = users.filter((user)=> `${user.first_name} ${user.last_name}`.toLowerCase() !== 'saleh ntege' && user.role !== 'customer')
 
   // ✅ Handle Salon open/close
   const handleSalonSession = async (status) => {
@@ -135,6 +137,9 @@ export default function OwnerDashboard() {
     fetchStatus();
   }, [sessions]);
 
+  useEffect(()=>{
+    fetchUsers()
+  },[])
   return (
     <div className="space-y-10">
       <div className="space-y-10">
