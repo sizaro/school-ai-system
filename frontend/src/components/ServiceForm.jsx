@@ -21,7 +21,7 @@ const serviceMap = {
   'superblack-only-8000': { serviceAmount: 8000, salonAmount: 6000, superBlackAssistantAmount: 2000 }
 };
 
-export default function ServiceForm({ onSubmit, onClose, serviceData, employees, isCustomer = false, createdBy, serviceStatus }) {
+export default function ServiceForm({ onSubmit, onClose, services, serviceData, Employees, isCustomer = false, createdBy, serviceStatus, customerId=null }) {
   const [formData, setFormData] = useState({
     service: "",
     barber: "",
@@ -34,9 +34,14 @@ export default function ServiceForm({ onSubmit, onClose, serviceData, employees,
     customerNote: "",
     created_by: createdBy,
     status: serviceStatus,
+    appointment_time:"",
+    appointment_date: "",
+    customer_id: customerId,
   });
 
   const [serviceAmount, setServiceAmount] = useState(0); // Added for dynamic service amount display
+  const [employees, setFilteredEmployees] = useState(Employees);
+
 
   useEffect(() => {
     if (serviceData) {
@@ -60,9 +65,57 @@ export default function ServiceForm({ onSubmit, onClose, serviceData, employees,
     setServiceAmount(selected ? selected.serviceAmount : 0);
   }, [formData.service]);
 
+  useEffect(() => {
+  if (!formData.appointment_date || !formData.appointment_time) {
+    setFilteredEmployees(Employees);
+    return;
+  }
+
+  // Filter out employees who already have CONFIRMED services at the selected date & time
+  const unavailableEmployeeIds = services
+    ?.filter(
+      (service) =>
+        service.status === "confirmed" && // ✅ Only confirmed services matter
+        service.appointment_date === formData.appointment_date &&
+        service.appointment_time === formData.appointment_time
+    )
+    .flatMap((s) => [
+      s.barber_id,
+      s.barber_assistant_id,
+      s.scrubber_assistant_id,
+      s.black_mask_assistant_id,
+      s.black_shampoo_assistant_id,
+      s.super_black_assistant_id,
+    ])
+    .filter(Boolean); // remove null or undefined IDs
+
+  const availableEmployees = Employees.filter(
+    (emp) => !unavailableEmployeeIds.includes(emp.id)
+  );
+
+  setFilteredEmployees(availableEmployees);
+}, [formData.appointment_date, formData.appointment_time, serviceData, Employees]);
+
+
   const handleChange = (e) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  let { name, value } = e.target;
+
+  // ✅ Convert appointment time to 24-hour format for consistency
+  if (name === "appointment_time" && value) {
+    const [time, modifier] = value.split(" ");
+    let [hours, minutes] = time.split(":").map(Number);
+
+    if (modifier === "PM" && hours !== 12) hours += 12;
+    if (modifier === "AM" && hours === 12) hours = 0;
+
+    value = `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}`;
+  }
+
+  setFormData((prev) => ({ ...prev, [name]: value }));
+};
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -78,7 +131,10 @@ export default function ServiceForm({ onSubmit, onClose, serviceData, employees,
       service_timestamp,
       customerNote,
       created_by,
-      status
+      status,
+      appointment_date,
+      appointment_time,
+      customer_id,
 
     } = formData;
 
@@ -108,6 +164,9 @@ export default function ServiceForm({ onSubmit, onClose, serviceData, employees,
       customer_note: customerNote,
       created_by:created_by,
       status:status,
+      appointment_date,
+      appointment_time,
+      customer_id,
       service_timestamp,
     };
 
@@ -116,7 +175,7 @@ export default function ServiceForm({ onSubmit, onClose, serviceData, employees,
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto h-[80vh]">
       {/* Service selection */}
       <div>
         <label className="block mb-1 font-medium">Choose service</label>
@@ -146,6 +205,47 @@ export default function ServiceForm({ onSubmit, onClose, serviceData, employees,
           <option value="superblack-only-8000">superblack only (8000)</option>
         </select>
       </div>
+
+      {isCustomer && (
+  <>
+    {/* Appointment Date */}
+    <div>
+      <label className="block mb-1 font-medium">Appointment Date</label>
+      <input
+        type="date"
+        name="appointment_date"
+        value={formData.appointment_date || ""}
+        onChange={handleChange
+        }
+        className="w-full border rounded px-2 py-1"
+      />
+    </div>
+
+    {/* Appointment Time */}
+    <div>
+      <label className="block mb-1 font-medium">Appointment Time</label>
+      <select
+        name="appointment_time"
+        value={formData.appointment_time || ""}
+        onChange={handleChange}
+        className="w-full border rounded px-2 py-1"
+      >
+        <option value="">Select time</option>
+        {[
+          "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
+          "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM",
+          "04:00 PM", "05:00 PM", "06:00 PM", "07:00 PM", "08:00 PM",
+        ].map((time) => (
+          <option key={time} value={time}>
+            {time}
+          </option>
+        ))}
+      </select>
+    </div>
+
+
+  </>
+)}
 
     {/* 7000-service */}
     {formData.service === "7000-service" && (

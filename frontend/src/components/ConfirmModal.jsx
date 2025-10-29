@@ -1,6 +1,6 @@
 import React from "react";
 
-const ConfirmModal = ({ isOpen, onClose, onConfirm, message }) => {
+const ConfirmModal = ({ isOpen, onClose, onConfirm, message, confirmMessage =""}) => {
   if (!isOpen) return null;
 
   return (
@@ -12,7 +12,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, message }) => {
             onClick={onConfirm}
             className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
           >
-            Yes, delete
+            {confirmMessage}
           </button>
           <button
             onClick={onClose}

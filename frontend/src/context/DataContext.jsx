@@ -20,14 +20,17 @@ export const DataProvider = ({ children }) => {
   // ---------- Fetch All ----------
   const fetchAllData = async () => {
     try {
-      const [clockingsRes, UsersRes] =
+      const [clockingsRes, UsersRes, servicesRes] =
         await Promise.all([
           axios.get(`${API_URL}/clockings`),
           axios.get(`${API_URL}/users`),
+          axios.get(`${API_URL}/services`),
 
         ]);
       setClockings(clockingsRes.data);
       setUsers(UsersRes.data);
+      setServices(servicesRes.data);
+      console.log("all services in the data context:", servicesRes.data)
     } catch (err) {
       console.error("Error fetching static data:", err);
     }
@@ -125,7 +128,7 @@ export const DataProvider = ({ children }) => {
   const updateService = async (id, formData) => {
     try {
       const res = await axios.put(`${API_URL}/services/${id}`, formData);
-      await fetchAllData(); // global refresh (still useful)
+      await fetchAllData();// global refresh (still useful)
       return res.data;
     } catch (err) {
       console.error("Error updating service:", err);
@@ -199,8 +202,6 @@ const deleteUser = async (id) => {
   }
 };
 
-
-//--- Advances layer
 
   const fetchAdvances = async () => {
       try {
@@ -547,6 +548,7 @@ const deleteTagFee = async (id) => {
     sessions,
     loading,
     lateFees,
+    fetchAllData,
     sendFormData,
     fetchDailyData,
     fetchWeeklyData,

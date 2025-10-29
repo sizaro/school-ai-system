@@ -2,16 +2,17 @@ import {
   saveService,
   fetchAllServices,
   fetchServiceById,
-  updateServiceById,
-  deleteServiceById
+  UpdateServiceById,
+  DeleteServiceById
 } from "../models/servicesModel.js";
 
 /**
- * Create new service
+ * Create new service / appointment
  */
 export const createService = async (req, res) => {
   try {
     const {
+      id,
       name,
       service_amount,
       salon_amount,
@@ -29,12 +30,20 @@ export const createService = async (req, res) => {
       super_black_amount,
       black_mask_assistant_id,
       black_mask_assistant_amount,
-      black_mask_amount
+      black_mask_amount,
+      customer_note,
+      created_by,
+      status,
+      appointment_date,
+      appointment_time,
+      customer_id,
+      service_timestamp
     } = req.body;
 
-    console.log("Received new service data:", req.body);
+    console.log("🟢 Received service creation request:");
 
     const newService = await saveService({
+      id,
       name,
       service_amount,
       salon_amount,
@@ -52,13 +61,23 @@ export const createService = async (req, res) => {
       super_black_amount,
       black_mask_assistant_id,
       black_mask_assistant_amount,
-      black_mask_amount
+      black_mask_amount,
+      customer_note,
+      created_by,
+      status,
+      appointment_date,
+      appointment_time,
+      customer_id,
+      service_timestamp,
     });
 
-    res.status(201).json({ message: "Service saved successfully", data: newService });
+    res.status(201).json({
+      message: "✅ Service/Appointment created successfully",
+      data: newService
+    });
   } catch (err) {
-    console.error("Error saving service:", err);
-    res.status(500).json({ error: "Failed to save service" });
+    console.error("❌ Error creating service:", err);
+    res.status(500).json({ error: "Failed to create service" });
   }
 };
 
@@ -95,7 +114,6 @@ export const getServiceById = async (req, res) => {
  */
 export const updateService = async (req, res) => {
   try {
-
     const {
       id,
       name,
@@ -116,13 +134,22 @@ export const updateService = async (req, res) => {
       black_mask_assistant_id,
       black_mask_assistant_amount,
       black_mask_amount,
-      service_timestamp,
+      customer_note,
+      created_by,
+      status,
+      appointment_date,
+      appointment_time,
+      customer_id,
+      service_timestamp
     } = req.body;
 
-     console.log("This is the id of the service to be updated", id)
     if (!id) return res.status(400).json({ error: "Missing service ID" });
 
-    const updatedService = await updateServiceById({
+    // Handle new file upload
+    const image_url = req.file ? `/uploads/${req.file.filename}` : req.body.image_url || null;
+
+    const updatedService = await UpdateServiceById({
+      id,
       name,
       service_amount,
       salon_amount,
@@ -141,15 +168,23 @@ export const updateService = async (req, res) => {
       black_mask_assistant_id,
       black_mask_assistant_amount,
       black_mask_amount,
+      customer_note,
+      created_by,
+      status,
+      appointment_date,
+      appointment_time,
+      customer_id,
       service_timestamp,
-      id
     });
 
     if (!updatedService) {
       return res.status(404).json({ error: "Service not found or not updated" });
     }
 
-    res.status(200).json({ message: "Service updated successfully", data: updatedService });
+    res.status(200).json({
+      message: "✅ Service updated successfully",
+      data: updatedService
+    });
   } catch (err) {
     console.error("Error updating service:", err);
     res.status(500).json({ error: "Failed to update service" });
@@ -162,9 +197,9 @@ export const updateService = async (req, res) => {
 export const deleteService = async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await deleteServiceById(id);
+    const deleted = await DeleteServiceById(id);
     if (!deleted) return res.status(404).json({ error: "Service not found" });
-    res.status(200).json({ message: "Service deleted successfully" });
+    res.status(200).json({ message: "🗑️ Service deleted successfully" });
   } catch (err) {
     console.error("Error deleting service:", err);
     res.status(500).json({ error: "Failed to delete service" });
