@@ -3,18 +3,18 @@ import db from './database.js';
 /**
  * Save a new tag fee record
  */
-export const saveTagFee = async ({ employee_id, amount, description }) => {
+export const saveTagFee = async ({ employee_id, amount, reason }) => {
   const query = `
-    INSERT INTO tag_fees (
+    INSERT INTO tag_fee (
       employee_id,
       amount,
-      description,
+      reason,
       created_at
     )
     VALUES ($1, $2, $3, NOW())
     RETURNING *;
   `;
-  const values = [employee_id, amount, description];
+  const values = [employee_id, amount, reason];
   const result = await db.query(query, values);
   return result.rows[0];
 };
@@ -25,7 +25,7 @@ export const saveTagFee = async ({ employee_id, amount, description }) => {
 export const fetchAllTagFees = async () => {
   const query = `
     SELECT t.*, (t.created_at AT TIME ZONE 'Africa/Kampala') AS created_at
-    FROM tag_fees t
+    FROM tag_fee t
     WHERE (t.created_at AT TIME ZONE 'Africa/Kampala')::date = CURRENT_DATE
     ORDER BY id DESC;
   `;
@@ -39,7 +39,7 @@ export const fetchAllTagFees = async () => {
 export const fetchTagFeeById = async (id) => {
   const query = `
     SELECT t.*, (t.created_at AT TIME ZONE 'Africa/Kampala') AS created_at
-    FROM tag_fees t
+    FROM tag_fee t
     WHERE t.id = $1;
   `;
   const result = await db.query(query, [id]);
@@ -51,7 +51,7 @@ export const fetchTagFeeById = async (id) => {
  */
 export const UpdateTagFeeById = async ({ id, employee_id, amount, description, created_at }) => {
   const query = `
-    UPDATE tag_fees
+    UPDATE tag_fee
     SET 
       employee_id = $1,
       amount = $2,
@@ -69,7 +69,7 @@ export const UpdateTagFeeById = async ({ id, employee_id, amount, description, c
  * Delete a tag fee by ID
  */
 export const DeleteTagFeeById = async (id) => {
-  const query = `DELETE FROM tag_fees WHERE id = $1 RETURNING id;`;
+  const query = `DELETE FROM tag_fee WHERE id = $1 RETURNING id;`;
   const result = await db.query(query, [id]);
   return result.rowCount > 0;
 };

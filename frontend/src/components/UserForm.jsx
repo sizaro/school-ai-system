@@ -63,7 +63,7 @@ const UserForm = ({ user, onSubmit, onClose, role = "customer" }) => {
       data.append(key, value || ""); // append all values, even empty ones
     });
 
-    onSubmit(data);
+    onSubmit(user.id, data);
   };
 
   return (

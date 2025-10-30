@@ -10,8 +10,8 @@ export default function Home() {
 
       {/* Hero Section */}
       <header className="bg-gradient-to-r from-blue-700 to-blue-500 text-white text-center py-24">
-        <h1 className="text-5xl font-bold mb-4">Welcome to Salehish Beauty Parlour & Spa</h1>
-        <h3 className="text-3xl font-bold mb-2">The Core of Beauty Parlour</h3>
+        <h1 className="md:text-5xl font-bold mb-4 text-3xl">Welcome to Salehish Beauty Parlour & Spa</h1>
+        <h3 className="md:text-3xl font-bold mb-2 text-2xl">The Core of Beauty Parlour</h3>
         <p className="text-lg mb-6 max-w-2xl mx-auto">
           Redefining beauty and confidence through professional styling,
           creativity, and care — your transformation starts here.

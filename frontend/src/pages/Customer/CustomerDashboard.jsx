@@ -201,7 +201,7 @@ export default function CustomerDashboard() {
 
   return (
     <div className="p-8 space-y-10">
-      <h1 className="text-2xl font-bold">Welcome to Your Dashboard</h1>
+      <h1 className="text-2xl font-bold">Welcome to Your Dashboard {user.last_name}</h1>
 
       {/* Special Offers */}
       <section className="space-y-4">

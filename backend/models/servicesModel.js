@@ -179,7 +179,107 @@ export const UpdateServiceById = async ({
   status,
   appointment_date,
   appointment_time,
-  customer_id
+  customer_id,
+  service_timestamp
+}) => {
+  const query = `
+    UPDATE services
+    SET
+      name = $1,
+      service_amount = $2,
+      salon_amount = $3,
+      barber_id = $4,
+      barber_amount = $5,
+      barber_assistant_id = $6,
+      barber_assistant_amount = $7,
+      scrubber_assistant_id = $8,
+      scrubber_assistant_amount = $9,
+      black_shampoo_assistant_id = $10,
+      black_shampoo_assistant_amount = $11,
+      black_shampoo_amount = $12,
+      super_black_assistant_id = $13,
+      super_black_assistant_amount = $14,
+      super_black_amount = $15,
+      black_mask_assistant_id = $16,
+      black_mask_assistant_amount = $17,
+      black_mask_amount = $18,
+      customer_note = $19,
+      created_by = $20,
+      status = $21,
+      appointment_date =$22,
+      appointment_time = $23,
+      customer_id = $24,
+      service_timestamp = $25
+    WHERE id = $26
+    RETURNING *;
+  `;
+
+  const values = [
+    name,
+    service_amount,
+    salon_amount,
+    barber_id,
+    barber_amount,
+    barber_assistant_id,
+    barber_assistant_amount,
+    scrubber_assistant_id,
+    scrubber_assistant_amount,
+    black_shampoo_assistant_id,
+    black_shampoo_assistant_amount,
+    black_shampoo_amount,
+    super_black_assistant_id,
+    super_black_assistant_amount,
+    super_black_amount,
+    black_mask_assistant_id,
+    black_mask_assistant_amount,
+    black_mask_amount,
+    customer_note,
+    created_by,
+    status,
+    appointment_date,
+    appointment_time,
+    customer_id,
+    service_timestamp,
+    id
+  ];
+
+  const result = await db.query(query, values);
+  return result.rows[0] || null;
+};
+
+
+
+
+/**
+ * Update a service by ID
+ */
+export const UpdateServiceByIdt = async ({
+  id,
+  name,
+  service_amount,
+  salon_amount,
+  barber_id,
+  barber_amount,
+  barber_assistant_id,
+  barber_assistant_amount,
+  scrubber_assistant_id,
+  scrubber_assistant_amount,
+  black_shampoo_assistant_id,
+  black_shampoo_assistant_amount,
+  black_shampoo_amount,
+  super_black_assistant_id,
+  super_black_assistant_amount,
+  super_black_amount,
+  black_mask_assistant_id,
+  black_mask_assistant_amount,
+  black_mask_amount,
+  customer_note,
+  created_by,
+  status,
+  appointment_date,
+  appointment_time,
+  customer_id,
+  service_timestamp
 }) => {
   const query = `
     UPDATE services
@@ -245,6 +345,7 @@ export const UpdateServiceById = async ({
   return result.rows[0] || null;
 };
 
+
 /**
  * Delete a service by ID
  */
@@ -260,4 +361,5 @@ export default {
   fetchServiceById,
   UpdateServiceById,
   DeleteServiceById,
+  UpdateServiceByIdt
 };

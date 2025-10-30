@@ -22,11 +22,14 @@ async function getServicesByDay(startOfDay, endOfDay) {
     LEFT JOIN users sb ON s.super_black_assistant_id = sb.id
     LEFT JOIN users bm ON s.black_mask_assistant_id = bm.id
     WHERE s.service_timestamp BETWEEN $1 AND $2
+      AND (s.status IS NULL OR LOWER(s.status) = 'completed')
     ORDER BY s.id DESC;
   `;
+
   const result = await db.query(query, [startOfDay, endOfDay]);
   return result.rows;
 }
+
 
 // ===============================
 // EXPENSES

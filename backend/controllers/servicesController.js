@@ -3,7 +3,8 @@ import {
   fetchAllServices,
   fetchServiceById,
   UpdateServiceById,
-  DeleteServiceById
+  DeleteServiceById, 
+  UpdateServiceByIdt
 } from "../models/servicesModel.js";
 
 /**
@@ -191,6 +192,92 @@ export const updateService = async (req, res) => {
   }
 };
 
+
+
+
+/**
+ * Update service by ID
+ */
+export const updateServicet = async (req, res) => {
+  try {
+    const {
+      id,
+      name,
+      service_amount,
+      salon_amount,
+      barber_id,
+      barber_amount,
+      barber_assistant_id,
+      barber_assistant_amount,
+      scrubber_assistant_id,
+      scrubber_assistant_amount,
+      black_shampoo_assistant_id,
+      black_shampoo_assistant_amount,
+      black_shampoo_amount,
+      super_black_assistant_id,
+      super_black_assistant_amount,
+      super_black_amount,
+      black_mask_assistant_id,
+      black_mask_assistant_amount,
+      black_mask_amount,
+      customer_note,
+      created_by,
+      status,
+      appointment_date,
+      appointment_time,
+      customer_id,
+      service_timestamp
+    } = req.body;
+
+    if (!id) return res.status(400).json({ error: "Missing service ID" });
+
+    // Handle new file upload
+    const image_url = req.file ? `/uploads/${req.file.filename}` : req.body.image_url || null;
+
+    const updatedService = await UpdateServiceByIdt({
+      id,
+      name,
+      service_amount,
+      salon_amount,
+      barber_id,
+      barber_amount,
+      barber_assistant_id,
+      barber_assistant_amount,
+      scrubber_assistant_id,
+      scrubber_assistant_amount,
+      black_shampoo_assistant_id,
+      black_shampoo_assistant_amount,
+      black_shampoo_amount,
+      super_black_assistant_id,
+      super_black_assistant_amount,
+      super_black_amount,
+      black_mask_assistant_id,
+      black_mask_assistant_amount,
+      black_mask_amount,
+      customer_note,
+      created_by,
+      status,
+      appointment_date,
+      appointment_time,
+      customer_id,
+      service_timestamp,
+    });
+
+    if (!updatedService) {
+      return res.status(404).json({ error: "Service not found or not updated" });
+    }
+
+    res.status(200).json({
+      message: "✅ Service updated successfully",
+      data: updatedService
+    });
+  } catch (err) {
+    console.error("Error updating service:", err);
+    res.status(500).json({ error: "Failed to update service" });
+  }
+};
+
+
 /**
  * Delete service by ID
  */
@@ -211,5 +298,6 @@ export default {
   getAllServices,
   getServiceById,
   updateService,
-  deleteService
+  deleteService,
+  updateServicet
 };

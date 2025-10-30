@@ -6,6 +6,7 @@ import AdvanceForm from "../../components/AdvanceForm";
 import ClockForm from "../../components/ClockForm";
 import TagFeeForm from "../../components/TagFeeForm.jsx";
 import LateFeeForm from "../../components/LateFeeForm.jsx";
+import CancelReasonForm from "../../components/CancelReasonForm.jsx"; // ✅ Added
 import Button from "../../components/Button";
 import { useData } from "../../context/DataContext.jsx";
 
@@ -13,6 +14,8 @@ export default function OwnerDashboard() {
   const [modalType, setModalType] = useState(null);
   const [salonStatus, setSalonStatus] = useState("closed");
   const [selectedFee, setSelectedFee] = useState(null);
+  const [showCancelModal, setShowCancelModal] = useState(false); // ✅ Added
+  const [cancelServiceId, setCancelServiceId] = useState(null); // ✅ Added
 
   const {
     services,
@@ -21,7 +24,18 @@ export default function OwnerDashboard() {
     users,
     fetchUsers,
     updateService,
+    updateServicet,
     fetchServiceById,
+    fetchLateFeeById,
+    createLateFee,
+    updateLateFee,
+    deleteLateFee,
+    fetchTagFees,
+    fetchTagFeeById,
+    createTagFee,
+    updateTagFee,
+    deleteTagFee
+
   } = useData();
 
   const Employees = users.filter(
@@ -30,20 +44,16 @@ export default function OwnerDashboard() {
       user.role !== "customer"
   );
 
-  const Customers = users.filter(
-    (user) => user.role === "customer"
-  );
+  const Customers = users.filter((user) => user.role === "customer");
 
-  // Format time in 12-hour format
-  const formatTime12h = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleTimeString("en-UG", {
-      timeZone: "Africa/Kampala",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
+  // Helper to convert 24-hour to 12-hour AM/PM
+  const formatTime12h = (time24) => {
+    if (!time24) return "N/A";
+    let [hour, minute] = time24.split(":").map(Number);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    if (hour === 0) hour = 12;
+    else if (hour > 12) hour -= 12;
+    return `${hour}:${minute.toString().padStart(2, "0")} ${ampm}`;
   };
 
   // Format date only
@@ -75,7 +85,10 @@ export default function OwnerDashboard() {
         setSalonStatus(status);
       }
     } catch (err) {
-      console.error("Error handling salon session:", err.response?.data || err.message);
+      console.error(
+        "Error handling salon session:",
+        err.response?.data || err.message
+      );
     }
   };
 
@@ -121,22 +134,25 @@ export default function OwnerDashboard() {
         console.error("Invalid clocking type");
       }
     } catch (err) {
-      console.error("Error handling clocking:", err.response?.data || err.message);
+      console.error(
+        "Error handling clocking:",
+        err.response?.data || err.message
+      );
     }
   };
 
-  const createTagFee = async (formData) => {
+  const CreateTagFee = async (formData) => {
     try {
-      await sendFormData("createTagFee", formData);
+      await createTagFee(formData);
       closeModal();
     } catch (err) {
       console.error("Failed to submit tag fee", err);
     }
   };
 
-  const createLateFee = async (formData) => {
+  const CreateLateFee = async (formData) => {
     try {
-      await sendFormData("createLateFee", formData);
+      await createLateFee (formData);
       closeModal();
     } catch (err) {
       console.error("Failed to submit late fee", err);
@@ -158,11 +174,21 @@ export default function OwnerDashboard() {
     fetchUsers();
   }, []);
 
-  const handleStatusUpdate = async (serviceId, newStatus) => {
+  const handleStatusUpdate = async (serviceId, newStatus, cancel_reason = null) => {
     try {
       const service = await fetchServiceById(serviceId);
       if (!service) return;
-      await updateService(serviceId, { ...service, status: newStatus });
+      await updateService(serviceId, { ...service, status: newStatus, customer_note: cancel_reason });
+    } catch (err) {
+      console.error("Failed to update service status", err);
+    }
+  };
+
+  const handleStatusUpdatet = async (serviceId, newStatus) => {
+    try {
+      const service = await fetchServiceById(serviceId);
+      if (!service) return;
+      await updateServicet(serviceId, { ...service, status: newStatus });
     } catch (err) {
       console.error("Failed to update service status", err);
     }
@@ -173,44 +199,85 @@ export default function OwnerDashboard() {
       <div className="space-y-10">
         <div className="space-y-10">
           {salonStatus === "closed" && (
-            <Button className="bg-green-400 hover:bg-green-300" onClick={() => handleSalonSession("open")}>
+            <Button
+              className="bg-green-400 hover:bg-green-300"
+              onClick={() => handleSalonSession("open")}
+            >
               Open Salon
             </Button>
           )}
-          {salonStatus === "open" && <Button onClick={() => handleSalonSession("closed")}>Close Salon</Button>}
+          {salonStatus === "open" && (
+            <Button onClick={() => handleSalonSession("closed")}>
+              Close Salon
+            </Button>
+          )}
         </div>
 
         {/* Action Buttons */}
         <Button onClick={() => setModalType("service")}>Add Service</Button>
         <Button onClick={() => setModalType("expense")}>Add Expense</Button>
         <Button onClick={() => setModalType("advance")}>Add Advance</Button>
-        <Button onClick={() => setModalType("clocking")}>Employee Clocking</Button>
+        <Button onClick={() => setModalType("clocking")}>
+          Employee Clocking
+        </Button>
         <Button onClick={() => setModalType("tagfee")}>Add Tag Fee</Button>
         <Button onClick={() => setModalType("latefee")}>Add Late Fee</Button>
 
         {/* Modals */}
         <Modal isOpen={modalType !== null} onClose={closeModal}>
           {modalType === "service" && (
-            <ServiceForm onSubmit={createService} onClose={closeModal} employees={Employees} createdBy="owner" serviceStatus={null} />
+            <ServiceForm
+              onSubmit={createService}
+              onClose={closeModal}
+              employees={Employees}
+              createdBy="owner"
+              serviceStatus={null}
+            />
           )}
-          {modalType === "expense" && <ExpenseForm onSubmit={createExpense} onClose={closeModal} />}
-          {modalType === "advance" && <AdvanceForm onSubmit={createAdvance} onClose={closeModal} />}
-          {modalType === "clocking" && <ClockForm onSubmit={handleClocking} onClose={closeModal} />}
-          {modalType === "tagfee" && <TagFeeForm onSubmit={createTagFee} onClose={closeModal} feeData={selectedFee} employees={Employees || []} />}
-          {modalType === "latefee" && <LateFeeForm onSubmit={createLateFee} onClose={closeModal} feeData={selectedFee} employees={Employees || []} />}
+          {modalType === "expense" && (
+            <ExpenseForm onSubmit={createExpense} onClose={closeModal} />
+          )}
+          {modalType === "advance" && (
+            <AdvanceForm onSubmit={createAdvance} onClose={closeModal} />
+          )}
+          {modalType === "clocking" && (
+            <ClockForm onSubmit={handleClocking} onClose={closeModal} employees={Employees}/>
+          )}
+          {modalType === "tagfee" && (
+            <TagFeeForm
+              onSubmit={CreateTagFee}
+              onClose={closeModal}
+              feeData={selectedFee}
+              employees={Employees || []}
+            />
+          )}
+          {modalType === "latefee" && (
+            <LateFeeForm
+              onSubmit={CreateLateFee}
+              onClose={closeModal}
+              feeData={selectedFee}
+              employees={Employees || []}
+            />
+          )}
         </Modal>
       </div>
 
       {/* TABBED APPOINTMENTS */}
       <section className="bg-white shadow-md rounded-lg p-4 mb-6">
-        <h2 className="text-xl font-semibold text-blue-700 mb-4">Appointments</h2>
+        <h2 className="text-xl font-semibold text-blue-700 mb-4">
+          Appointments
+        </h2>
 
         {/* Tabs */}
         <div className="flex gap-2 mb-4 flex-wrap">
           {["pending", "confirmed", "completed", "cancelled"].map((status) => (
             <button
               key={status}
-              className={`px-4 py-2 rounded ${activeTab === status ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+              className={`px-4 py-2 rounded ${
+                activeTab === status
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
               onClick={() => setActiveTab(status)}
             >
               {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -233,7 +300,9 @@ export default function OwnerDashboard() {
                 .filter((a) => a.id)
                 .map((a) => {
                   const emp = Employees.find((e) => e.id === a.id);
-                  return emp ? { label: a.label, name: `${emp.first_name} ${emp.last_name}` } : null;
+                  return emp
+                    ? { label: a.label, name: `${emp.first_name} ${emp.last_name}` }
+                    : null;
                 })
                 .filter((a) => a !== null);
 
@@ -253,31 +322,62 @@ export default function OwnerDashboard() {
                   }`}
                 >
                   <p className="font-medium">{s.name}</p>
-                  <p>Customer: {customer ? `${customer.first_name} ${customer.last_name}` : "N/A"}</p>
+                  <p>
+                    Customer:{" "}
+                    {customer
+                      ? `${customer.first_name} ${customer.last_name}`
+                      : "N/A"}
+                  </p>
                   <p>Date: {formatDate(s.appointment_date)}</p>
-                  <p>Time: {formatTime12h(s.appointment_date)}</p>
+                  <p>Time: {formatTime12h(s.appointment_time)}</p>
 
                   {assigned.length > 0 ? (
                     assigned.map((a, idx) => (
                       <p key={idx} className="text-sm text-gray-700">
-                        {a.label}: <span className="font-medium">{a.name}</span>
+                        {a.label}:{" "}
+                        <span className="font-medium">{a.name}</span>
                       </p>
                     ))
                   ) : (
                     <p className="text-sm text-gray-500">No staff assigned</p>
                   )}
 
+                  {/* ✅ Show Cancel Reason */}
+                  {s.status === "cancelled" && s.cancel_reason && (
+                    <p className="text-red-600 text-sm mt-2">
+                      <strong>Reason:</strong> {s.cancel_reason}
+                    </p>
+                  )}
+
                   {/* Status Buttons */}
                   {activeTab === "pending" && (
                     <div className="flex gap-2 mt-2">
-                      <Button onClick={() => handleStatusUpdate(s.id, "confirmed")}>Confirm</Button>
-                      <Button onClick={() => handleStatusUpdate(s.id, "cancelled")}>Cancel</Button>
+                      <Button onClick={() => handleStatusUpdate(s.id, "confirmed")}>
+                        Confirm
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setCancelServiceId(s.id);
+                          setShowCancelModal(true);
+                        }}
+                      >
+                        Cancel
+                      </Button>
                     </div>
                   )}
                   {activeTab === "confirmed" && (
                     <div className="flex gap-2 mt-2">
-                      <Button onClick={() => handleStatusUpdate(s.id, "completed")}>Complete</Button>
-                      <Button onClick={() => handleStatusUpdate(s.id, "cancelled")}>Cancel</Button>
+                      <Button onClick={() => handleStatusUpdatet(s.id, "completed")}>
+                        Complete
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setCancelServiceId(s.id);
+                          setShowCancelModal(true);
+                        }}
+                      >
+                        Cancel
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -288,6 +388,15 @@ export default function OwnerDashboard() {
           )}
         </div>
       </section>
+
+      {/* Cancel Modal */}
+      <Modal isOpen={showCancelModal} onClose={() => setShowCancelModal(false)}>
+        <CancelReasonForm
+          serviceId={cancelServiceId}
+          onSubmit={handleStatusUpdate}
+          onClose={() => setShowCancelModal(false)}
+        />
+      </Modal>
     </>
   );
 }

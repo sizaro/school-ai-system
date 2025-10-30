@@ -111,8 +111,7 @@ export const UpdateUserById = async ({
       specialty = $11,
       status = $12,
       bio = $13,
-      image_url = $14,
-      updated_at = NOW()
+      image_url = $14
     WHERE id = $15
     RETURNING *;
   `;

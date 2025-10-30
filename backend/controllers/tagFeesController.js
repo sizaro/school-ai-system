@@ -41,11 +41,11 @@ export const getTagFeeById = async (req, res) => {
  */
 export const createTagFee = async (req, res) => {
   try {
-    const { employee_id } = req.body; // fee is inside model logic
+    const { employee_id, amount, reason } = req.body; // fee is inside model logic
 
     console.log("Received new tag fee data:", req.body);
 
-    const newTagFee = await saveTagFee({ employee_id });
+    const newTagFee = await saveTagFee({ employee_id, amount, reason });
 
     res.status(201).json({ message: "Tag fee created successfully", data: newTagFee });
   } catch (err) {

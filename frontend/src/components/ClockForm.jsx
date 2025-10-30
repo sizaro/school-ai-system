@@ -1,26 +1,11 @@
 import { useState, useEffect } from "react";
 
-const mockEmployees = [
-  { id: 1, first_name: "Tagoole", last_name: "Nathan", phone: "705715763" },
-  { id: 2, first_name: "Mukungu", last_name: "Ismail", phone: "755686550" },
-  { id: 3, first_name: "Direse", last_name: "Arafat", phone: "742259330" },
-  { id: 4, first_name: "Nambi", last_name: "Aisha", phone: "753541883" },
-  { id: 5, first_name: "Mutesi", last_name: "Shamina", phone: "745930298" },
-  { id: 6, first_name: "Nantongo", last_name: "Jazimin", phone: "703093092" },
-  { id: 7, first_name: "Nakaibale", last_name: "Sharon", phone: "752272415" },
-  { id: 8, first_name: "Kyewayenda", last_name: "Brenda", phone: "752853209" },
-  { id: 9, first_name: "Tusubira", last_name: "David tobex", phone: "788517650" },
-  { id: 10, first_name: "Kwikiriza", last_name: "Phinnah", phone: "742927521" },
-  { id: 11, first_name: "Muzale Grace", last_name: "innocent", phone: "754954054" },
-  { id: 12, first_name: "Tendo", last_name: "Mirembe", phone: "750795036" },
-  { id: 13, first_name: "Nakato", last_name: "Hilda", phone: "700465015" },
-  { id: 14, first_name: "Bazibu", last_name: "Nickolas", phone: "750411158" },
-];
 
-export default function ClockForm({ onSubmit, onClose }) {
+
+export default function ClockForm({ onSubmit, onClose, employees}) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [formData, setFormData] = useState({
-    employeeName: "",
+    employee_id: "",
   });
 
   useEffect(() => {
@@ -29,7 +14,7 @@ export default function ClockForm({ onSubmit, onClose }) {
   }, []);
 
   const handleEmployeeChange = (e) => {
-    setFormData((prev) => ({ ...prev, employeeName: e.target.value }));
+    setFormData((prev) => ({ ...prev, employee_id: e.target.value }));
   };
 
   const handleClockIn = () => { 
@@ -54,14 +39,14 @@ export default function ClockForm({ onSubmit, onClose }) {
       {/* Employee dropdown */}
       <select
         name="employeeName"
-        value={formData.employeeName}
+        value={formData.employee_id}
         onChange={handleEmployeeChange}
         required
         className="w-full border px-2 py-1"
       >
         <option value="">Select Employee</option>
-        {mockEmployees.map((emp) => (
-          <option key={emp.id} value={`${emp.first_name} ${emp.last_name}`}>
+        {employees.map((emp) => (
+          <option key={emp.id} value={emp.id}>
             {emp.first_name} {emp.last_name}
           </option>
         ))}

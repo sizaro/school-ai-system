@@ -99,20 +99,6 @@ export default function ServiceForm({ onSubmit, onClose, services, serviceData, 
 
   const handleChange = (e) => {
   let { name, value } = e.target;
-
-  // ✅ Convert appointment time to 24-hour format for consistency
-  if (name === "appointment_time" && value) {
-    const [time, modifier] = value.split(" ");
-    let [hours, minutes] = time.split(":").map(Number);
-
-    if (modifier === "PM" && hours !== 12) hours += 12;
-    if (modifier === "AM" && hours === 12) hours = 0;
-
-    value = `${hours.toString().padStart(2, "0")}:${minutes
-      .toString()
-      .padStart(2, "0")}`;
-  }
-
   setFormData((prev) => ({ ...prev, [name]: value }));
 };
 
@@ -137,6 +123,17 @@ export default function ServiceForm({ onSubmit, onClose, services, serviceData, 
       customer_id,
 
     } = formData;
+
+    let formattedTime = appointment_time; // "09:00 AM"
+
+// Convert to 24-hour format when saving:
+if (formattedTime) {
+  const [time, modifier] = formattedTime.split(" ");
+  let [hours, minutes] = time.split(":").map(Number);
+  if (modifier === "PM" && hours !== 12) hours += 12;
+  if (modifier === "AM" && hours === 12) hours = 0;
+  formattedTime = `${hours.toString().padStart(2, "0")}:${minutes}`;
+}
 
     const calculation = serviceMap[service];
     if (!calculation) return alert('Invalid service selected');
@@ -165,7 +162,7 @@ export default function ServiceForm({ onSubmit, onClose, services, serviceData, 
       created_by:created_by,
       status:status,
       appointment_date,
-      appointment_time,
+      appointment_time:formattedTime,
       customer_id,
       service_timestamp,
     };

@@ -65,6 +65,14 @@ const OwnerEmployees = () => {
     await fetchUsers();
   };
 
+
+  const handleModalEdit = async ( id, userData) => {
+    await updateUser(id, userData);
+    setShowModal(false);
+    setEditingUser(null);
+    await fetchUsers();
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
@@ -151,11 +159,31 @@ const OwnerEmployees = () => {
           setEditingUser(null);
         }}
       >
-        {(addingUser || editingUser) && (
+        {(addingUser) && (
+          <UserForm
+            role="employee"
+            user={null}
+            onSubmit={handleModalSubmit}
+            onClose={() => {
+              setShowModal(false);
+              setEditingUser(null);
+            }}
+          />
+        )}
+      </Modal>
+
+      <Modal
+        isOpen={showModal}
+        onClose={() => {
+          setShowModal(false);
+          setEditingUser(null);
+        }}
+      >
+        {(editingUser) && (
           <UserForm
             role="employee"
             user={editingUser}
-            onSubmit={handleModalSubmit}
+            onSubmit={handleModalEdit}
             onClose={() => {
               setShowModal(false);
               setEditingUser(null);

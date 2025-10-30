@@ -136,6 +136,17 @@ export const DataProvider = ({ children }) => {
     }
   };
 
+   const updateServicet = async (id, formData) => {
+    try {
+      const res = await axios.put(`${API_URL}/servicet/${id}`, formData);
+      await fetchAllData();// global refresh (still useful)
+      return res.data;
+    } catch (err) {
+      console.error("Error updating service:", err);
+      throw err;
+    }
+  };
+
   const deleteService = async (id) => {
     try {
       await axios.delete(`${API_URL}/services/${id}`);
@@ -376,7 +387,7 @@ const deleteLateFee = async (id) => {
 
 const fetchTagFees = async () => {
   try {
-    const res = await axios.get(`${API_URL}/fees/tag_fees`);
+    const res = await axios.get(`${API_URL}/fees/tag`);
     setTagFees(res.data);
     return res.data;
   } catch (err) {
@@ -387,7 +398,7 @@ const fetchTagFees = async () => {
 
 const fetchTagFeeById = async (id) => {
   try {
-    const res = await axios.get(`${API_URL}/fees/tag_fees/${id}`);
+    const res = await axios.get(`${API_URL}/fees/tag/${id}`);
     return res.data;
   } catch (err) {
     console.error("Error fetching tag fee by ID:", err);
@@ -408,7 +419,7 @@ const createTagFee = async (tagFeeData) => {
 
 const updateTagFee = async (id, tagFeeData) => {
   try {
-    const res = await axios.put(`${API_URL}/fees/tag_fees/${id}`, tagFeeData);
+    const res = await axios.put(`${API_URL}/fees/tag/${id}`, tagFeeData);
     await fetchTagFees(); // refresh list after updating
     return res.data;
   } catch (err) {
@@ -419,7 +430,7 @@ const updateTagFee = async (id, tagFeeData) => {
 
 const deleteTagFee = async (id) => {
   try {
-    await axios.delete(`${API_URL}/fees/tag_fees/${id}`);
+    await axios.delete(`${API_URL}/fees/tag/${id}`);
     await fetchTagFees(); // refresh list after deletion
   } catch (err) {
     console.error("Error deleting tag fee:", err);
@@ -556,6 +567,7 @@ const deleteTagFee = async (id) => {
     fetchYearlyData,
     fetchServiceById,
     updateService,
+    updateServicet,
     deleteService,
     fetchUsers,
     fetchUserById,

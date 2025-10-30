@@ -12,6 +12,17 @@ export default function CustomerAppointments() {
   return date.toLocaleDateString("en-UG", { timeZone: "Africa/Kampala" });
 };
 
+
+ // Helper to convert 24-hour to 12-hour AM/PM
+  const formatTime12h = (time24) => {
+    if (!time24) return "N/A";
+    let [hour, minute] = time24.split(":").map(Number);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    if (hour === 0) hour = 12;
+    else if (hour > 12) hour -= 12;
+    return `${hour}:${minute.toString().padStart(2, "0")} ${ampm}`;
+  };
+
   // Filter services for the logged-in customer
   useEffect(() => {
     if (user && services.length > 0) {
@@ -108,6 +119,9 @@ export default function CustomerAppointments() {
                 <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">
                   Status
                 </th>
+                <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">
+                  Reason
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -121,13 +135,16 @@ export default function CustomerAppointments() {
                   </td>
 
                   <td className="py-3 px-4 border-b">
-                    {appointment.appointment_time}
+                    {formatTime12h(appointment.appointment_time)}
                   </td>
                   <td className="py-3 px-4 border-b">
                     {getAssignedEmployees(appointment) || "N/A"}
                   </td>
                   <td className="py-3 px-4 border-b capitalize">
                     {appointment.status}
+                  </td>
+                  <td className="py-5 px-6 border-b capitalize text-black-700 bg-red-300">
+                    {appointment.customer_note}
                   </td>
                 </tr>
               ))}

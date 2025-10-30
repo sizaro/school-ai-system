@@ -41,11 +41,11 @@ export const getLateFeeById = async (req, res) => {
  */
 export const createLateFee = async (req, res) => {
   try {
-    const { employee_id } = req.body; // fee amount handled in model logic
+    const { employee_id, amount, reason } = req.body; // fee amount handled in model logic
 
     console.log("Received new late fee data:", req.body);
 
-    const newLateFee = await saveLateFee({ employee_id });
+    const newLateFee = await saveLateFee({ employee_id, amount, reason });
 
     res.status(201).json({ message: "Late fee created successfully", data: newLateFee });
   } catch (err) {
@@ -59,10 +59,10 @@ export const createLateFee = async (req, res) => {
  */
 export const updateLateFeeById = async (req, res) => {
   try {
-    const { id, employee_id, created_at } = req.body;
+    const { id, employee_id, amount, reason, created_at } = req.body;
     if (!id) return res.status(400).json({ error: "Missing late fee ID" });
 
-    const updatedLateFee = await UpdateLateFeeById({ id, employee_id, created_at });
+    const updatedLateFee = await UpdateLateFeeById({ id, employee_id, amount, reason, created_at });
 
     if (!updatedLateFee) {
       return res.status(404).json({ error: "Late fee not found or not updated" });

@@ -21,19 +21,19 @@ import {
 /* -------------------- LATE FEES ROUTES -------------------- */
 
 // Get all late fees
-router.get('/late', getAllLateFees);
+router.get('/late_fees', getAllLateFees);
 
 // Get late fee by ID
-router.get('/late/:id', getLateFeeById);
+router.get('/late_fees/:id', getLateFeeById);
 
 // Create new late fee
-router.post('/late', createLateFee);
+router.post('/late_fees', createLateFee);
 
 // Update late fee
-router.put('/late/:id', updateLateFeeById);
+router.put('/late_fees/:id', updateLateFeeById);
 
 // Delete late fee
-router.delete('/late/:id', deleteLateFeeById);
+router.delete('/late_fees/:id', deleteLateFeeById);
 
 /* -------------------- TAG FEES ROUTES -------------------- */
 
@@ -44,7 +44,7 @@ router.get('/tag', getAllTagFees);
 router.get('/tag/:id', getTagFeeById);
 
 // Create new tag fee
-router.post('/tag', createTagFee);
+router.post('/tag_fees', createTagFee);
 
 // Update tag fee
 router.put('/tag/:id', updateTagFeeById);

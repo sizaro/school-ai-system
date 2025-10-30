@@ -2,12 +2,12 @@ import { saveClocking, updateClockingModel, fetchAllClockings} from '../models/c
 
 export const createClocking = async (req, res) => {
   try {
-    const { employeeName } = req.body;
+    const { employee_id } = req.body;
 
-    console.log("data coming from the frontend", employeeName)
+    console.log("data coming from the frontend", employee_id)
 
     // Call the model to save in DB
-    await saveClocking(employeeName);
+    await saveClocking(employee_id);
 
     res.status(201).json({
       message: "Clocking created successfully",
@@ -20,10 +20,10 @@ export const createClocking = async (req, res) => {
 
 export const updateClocking = async (req, res) => {
   try {
-    const { employeeName } = req.body
+    const { employee_id } = req.body
 
-    console.log("data arriving for update", employeeName)
-    await updateClockingModel(employeeName);
+    console.log("data arriving for update", employee_id)
+    await updateClockingModel(employee_id);
 
     res.status(200).json({
       message: "Clocking updated successfully",
