@@ -69,52 +69,53 @@ export const saveUser = async ({
     specialty || null,
     status || 'active',
     bio || null,
-    image_url || null
+    image_url
   ];
 
   const result = await db.query(query, values);
   return result.rows[0];
 };
+export const UpdateUserById = async (data) => {
+  let {
+    id,
+    first_name,
+    middle_name,
+    last_name,
+    email,
+    password,
+    birthdate,
+    contact,
+    next_of_kin,
+    next_of_kin_contact,
+    role,
+    specialty,
+    status,
+    bio,
+    image_url,
+  } = data;
 
-/**
- * Update user by ID
- */
-export const UpdateUserById = async ({
-  id,
-  first_name,
-  middle_name,
-  last_name,
-  email,
-  password,
-  birthdate,
-  contact,
-  next_of_kin,
-  next_of_kin_contact,
-  role,
-  specialty,
-  status,
-  bio,
-  image_url
-}) => {
-  const query = `
-    UPDATE users SET
-      first_name = $1,
-      middle_name = $2,
-      last_name = $3,
-      email = $4,
-      password = $5,
-      birthdate = $6,
-      contact = $7,
-      next_of_kin = $8,
-      next_of_kin_contact = $9,
-      role = $10,
-      specialty = $11,
-      status = $12,
-      bio = $13,
-      image_url = $14
-    WHERE id = $15
-    RETURNING *;
-  `;
+  // Ensure ID is a valid integer
+  id = parseInt(id, 10);
+  if (isNaN(id)) {
+    throw new Error("Invalid user ID (NaN or undefined)");
+  }
+
+  // Base fields to update
+  const fields = [
+    "first_name = $1",
+    "middle_name = $2",
+    "last_name = $3",
+    "email = $4",
+    "password = $5",
+    "birthdate = $6",
+    "contact = $7",
+    "next_of_kin = $8",
+    "next_of_kin_contact = $9",
+    "role = $10",
+    "specialty = $11",
+    "status = $12",
+    "bio = $13",
+  ];
 
   const values = [
     first_name || null,
@@ -126,17 +127,35 @@ export const UpdateUserById = async ({
     contact || null,
     next_of_kin || null,
     next_of_kin_contact || null,
-    role || 'customer',
+    role || "customer",
     specialty || null,
-    status || 'active',
+    status || "active",
     bio || null,
-    image_url || null,
-    id
   ];
+
+  // Only update image_url if it’s explicitly provided
+  if (image_url !== undefined && image_url !== "") {
+    fields.push(`image_url = $${fields.length + 1}`);
+    values.push(image_url);
+  }
+
+  // Add id for WHERE clause
+  values.push(id);
+
+  const query = `
+    UPDATE users
+    SET ${fields.join(", ")}
+    WHERE id = $${values.length}
+    RETURNING *;
+  `;
+
+  console.log("Final SQL:", query);
+  console.log("Values:", values);
 
   const result = await db.query(query, values);
   return result.rows[0];
 };
+
 
 /**
  * Delete user by ID

@@ -93,13 +93,10 @@ export const createUser = async (req, res) => {
     res.status(500).json({ error: "Failed to create user" });
   }
 };
-
-/**
- * Update existing user (with optional new image)
- */
 export const updateUserById = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log("this is there request file in the controller:", req.file)
     const {
       first_name,
       middle_name,
@@ -137,23 +134,31 @@ export const updateUserById = async (req, res) => {
       bio,
     };
 
-    // If password updated
+    // ✅ Password logic: hash only if not already hashed
     if (password) {
-      const salt = await bcrypt.genSalt(10);
-      updatedData.password = await bcrypt.hash(password, salt);
+      const isHashed =
+        typeof password === "string" &&
+        password.startsWith("$2") &&
+        password.length === 60;
+
+      if (!isHashed) {
+        const salt = await bcrypt.genSalt(10);
+        updatedData.password = await bcrypt.hash(password, salt);
+      } else {
+        updatedData.password = password; // already hashed, leave as is
+      }
     }
 
-    // If new image uploaded → delete old + set new
-    if (req.file) {
-      if (existingUser.image_url) {
-        const oldImagePath = path.join(process.cwd(), existingUser.image_url);
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
-          console.log(`Deleted old image: ${oldImagePath}`);
-        }
-      }
-      updatedData.image_url = `/uploads/images/${req.file.filename}`;
-    }
+    if (req.file && req.file.filename) {
+      console.log("this is there request file in the controller:", req.file)
+  // real file uploaded
+  if (existingUser.image_url && existingUser.image_url !== "") {
+    const oldPath = path.join(process.cwd(), existingUser.image_url);
+    if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+  }
+  updatedData.image_url = `/uploads/images/${req.file.filename}`;
+} 
+
 
     const updatedUser = await UpdateUserById(updatedData);
 

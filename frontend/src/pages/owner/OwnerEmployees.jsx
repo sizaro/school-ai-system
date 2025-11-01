@@ -16,9 +16,7 @@ const OwnerEmployees = () => {
 
   // Filter out 'Saleh Ntege' and customers
   const employees = users.filter(
-    (user) =>
-      `${user.first_name} ${user.last_name}`.toLowerCase() !== "saleh ntege" &&
-      user.role !== "customer"
+    (user) =>user.role !== "customer"
   );
 
   const [showModal, setShowModal] = useState(false);
@@ -195,6 +193,7 @@ const OwnerEmployees = () => {
       {/* Confirm Delete Modal */}
       <ConfirmModal
         isOpen={confirmModalOpen}
+        confirmMessage="yes"
         message="Are you sure you want to delete this employee?"
         onConfirm={confirmDelete}
         onClose={() => setConfirmModalOpen(false)}

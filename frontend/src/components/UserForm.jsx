@@ -16,7 +16,7 @@ const UserForm = ({ user, onSubmit, onClose, role = "customer" }) => {
     status: "active",
     bio: "",
     created_at: "",
-    image_url: null, // file upload
+    image_url: "", // file upload
   });
 
   // Prefill if editing user
@@ -38,7 +38,7 @@ const UserForm = ({ user, onSubmit, onClose, role = "customer" }) => {
         status: user.status || "active",
         bio: user.bio || "",
         created_at: user.created_at || "",
-        image_url: null,
+        image_url: user.image_url,
       });
     }
   }, [user, role]);
@@ -55,16 +55,26 @@ const UserForm = ({ user, onSubmit, onClose, role = "customer" }) => {
 
   // Submit handler
   const handleSubmit = (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    // Prepare form data for submission (especially if includes an image)
-    const data = new FormData();
-    Object.entries(formData).forEach(([key, value]) => {
-      data.append(key, value || ""); // append all values, even empty ones
-    });
+  // Convert formData to FormData for file upload
+  const data = new FormData();
 
-    onSubmit(user.id, data);
-  };
+  Object.entries(formData).forEach(([key, value]) => {
+    if (key === "image_url") {
+      // only append if a file was selected
+      if (value && value instanceof File) {
+        data.append(key, value);
+      }
+    } else if (value !== "") {
+      data.append(key, value);
+    }
+  });
+
+  // Pass this FormData object instead
+  onSubmit(user.id, data);
+};
+
 
   return (
     <form
