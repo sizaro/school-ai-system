@@ -32,8 +32,9 @@ app.use(
       conString:
         process.env.NODE_ENV === "production"
           ? process.env.DATABASE_URL
-          : process.env.LOCAL_DATABASE_URL,
-      createTableIfMissing: true, // <-- add this
+          : process.env.DATABASE_URL,
+      createTableIfMissing: true,
+      ssl: { rejectUnauthorized: false },
     }),
     secret: process.env.SESSION_SECRET || "sssssss",
     resave: false,
