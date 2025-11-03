@@ -548,7 +548,7 @@ const deleteTagFee = async (id) => {
  useEffect(() => {
   checkAuth(); 
   fetchUsers();// will set user if token is valid
-}, [user]);
+}, []);
 
 
 

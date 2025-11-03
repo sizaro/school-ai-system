@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Navigate } from "react-router-dom";
 
-const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5500";
+const VITE_API_URL=import.meta.env.VITE_API_URL
+
 
 
 const ProtectedRoute = ({ children, role }) => {
@@ -12,7 +12,7 @@ const ProtectedRoute = ({ children, role }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await axios.get(`${API_URL}/api/auth/check`, {
+        const res = await axios.get(`${VITE_API_URL}/api/auth/check`, {
   withCredentials: true,
 });
 
