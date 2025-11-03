@@ -1,6 +1,6 @@
 // controllers/authController.js
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { findUserByEmail, findUserById } from "../models/usersModel.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
