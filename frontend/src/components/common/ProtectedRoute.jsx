@@ -1,9 +1,9 @@
 import React, { useContext } from "react";
 import { Navigate } from "react-router-dom";
-import { DataContext } from "../context/DataContext.jsx"; // your context
+import { useData } from "../../context/DataContext"
 
 const ProtectedRoute = ({ children, role }) => {
-  const { user, loading } = useContext(DataContext);
+  const { user, loading } = useData();
 
   // While user state is loading
   if (loading) {
