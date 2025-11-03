@@ -20,11 +20,11 @@ export const login = async (req, res) => {
     delete user.password;
 
     res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production", // keep true for prod
+  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // cross-site in prod
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+});
 
      res.json({
       user: {
@@ -68,10 +68,11 @@ export const logoutUser = (req, res) => {
   try {
     // Clear the cookie that stores the session or JWT
     res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
-    });
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+});
+
 
     return res.status(200).json({ message: "Logged out successfully" });
   } catch (err) {
