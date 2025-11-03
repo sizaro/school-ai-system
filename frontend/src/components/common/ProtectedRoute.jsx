@@ -2,15 +2,20 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Navigate } from "react-router-dom";
 
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5500";
+
+
 const ProtectedRoute = ({ children, role }) => {
   const [authState, setAuthState] = useState({ loading: true, allowed: false });
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await axios.get("http://localhost:5500/api/auth/check", {
-          withCredentials: true, // send the cookie
-        });
+        const res = await axios.get(`${API_URL}/api/auth/check`, {
+  withCredentials: true,
+});
+
 
         if (res.data.user && res.data.user.role === role) {
           setAuthState({ loading: false, allowed: true });

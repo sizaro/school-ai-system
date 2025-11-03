@@ -543,10 +543,15 @@ const deleteTagFee = async (id) => {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
+
+
+ useEffect(() => {
   checkAuth(); 
   fetchUsers();// will set user if token is valid
-}, []);
+}, [user]);
+
+
+
 
   // ---------- Export ----------
   return (
