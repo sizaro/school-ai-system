@@ -26,8 +26,8 @@ const __dirname = path.dirname(__filename);
 
 // --- CORS setup ---
 const allowedOrigins = [
-  "http://localhost:5173",
   "https://salonmanagementsystem.vercel.app",
+  "http://localhost:5173",
 ];
 
 app.use(cors({
