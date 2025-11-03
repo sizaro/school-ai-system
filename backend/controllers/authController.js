@@ -1,82 +1,38 @@
-// controllers/authController.js
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
-import { findUserByEmail, findUserById } from "../models/usersModel.js";
+import passport from "passport";
 
-const JWT_SECRET = process.env.JWT_SECRET;
+// LOGIN
+export const login = (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) return next(err);
+    if (!user) return res.status(400).json({ message: info.message });
 
-export const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await findUserByEmail(email);
-
-    console.log("this is the user in the controler", user)
-    if (!user) return res.status(400).json({ message: "Invalid email or password" });
-
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(400).json({ message: "Invalid email or password" });
-
-    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
-    delete user.password;
-
-    res.cookie("token", token, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production", // keep true for prod
-  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // cross-site in prod
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-});
-
-     res.json({
-      user: {
-        id: user.id,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        email: user.email,
-        role: user.role,
-      },
+    req.logIn(user, (err) => {
+      if (err) return next(err);
+      const { password, ...userSafe } = user;
+      res.json({ user: userSafe });
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
+  })(req, res, next);
 };
 
-export const checkAuth = async (req, res) => {
-  try {
-    const token = req.cookies.token;
-
-    console.log("token in auth", token)
-    if (!token) return res.status(401).json({ message: "Not authenticated" });
-
-    const decoded = jwt.verify(token, JWT_SECRET);
-
-    console.log("decoded.id is", decoded.id)
-    const user = await findUserById(decoded.id);
-
-    console.log("user in auth", user)
-    if (!user) return res.status(401).json({ message: "User not found" });
-
-    res.json({ user });
-  } catch (err) {
-    console.error(err);
-    res.status(401).json({ message: "Invalid token" });
-  }
-};
-
-
+// LOGOUT
 export const logoutUser = (req, res) => {
-  try {
-    // Clear the cookie that stores the session or JWT
-    res.clearCookie("token", {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-});
+  req.logout((err) => {
+    if (err) return res.status(500).json({ error: "Logout failed" });
+    res.status(200).json({ message: "Logged out successfully" });
+  });
+};
 
+// CHECK AUTH
+export const checkAuth = (req, res) => {
+  if (!req.isAuthenticated())
+    return res.status(401).json({ message: "Not authenticated" });
 
-    return res.status(200).json({ message: "Logged out successfully" });
-  } catch (err) {
-    console.error("Logout error:", err);
-    res.status(500).json({ error: "Logout failed" });
-  }
+  const { password, ...userSafe } = req.user;
+  res.json({ user: userSafe });
+};
+
+// Role-protect backend routes
+export const ensureRole = (role) => (req, res, next) => {
+  if (req.isAuthenticated() && req.user.role === role) return next();
+  return res.status(401).json({ message: "Unauthorized" });
 };

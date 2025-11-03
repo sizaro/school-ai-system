@@ -4,6 +4,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import cookieParser from "cookie-parser";
+import session from "express-session";
+import passport from "passport";
+import pgSession from "connect-pg-simple";
+import "./config/passport.js";
 
 dotenv.config();
 
@@ -19,6 +23,33 @@ import feesRoutes from './routes/feesRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 
 const app = express();
+
+const PgSessionStore = pgSession(session);
+
+app.use(
+  session({
+    store: new PgSessionStore({
+      conString:
+        process.env.NODE_ENV === "production"
+          ? process.env.DATABASE_URL
+          : process.env.LOCAL_DATABASE_URL,
+      createTableIfMissing: true, // <-- add this
+    }),
+    secret: process.env.SESSION_SECRET || "sssssss",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    },
+  })
+);
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 // --- FIX: Define __dirname in ES module scope ---
 const __filename = fileURLToPath(import.meta.url);
