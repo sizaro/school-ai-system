@@ -29,19 +29,18 @@ const PgSessionStore = pgSession(session);
 app.use(
   session({
     store: new PgSessionStore({
-      conString:
-        process.env.NODE_ENV === "production"
-          ? process.env.DATABASE_URL
-          : process.env.DATABASE_URL,
-      createTableIfMissing: true,
-      ssl: { rejectUnauthorized: false },
+      conObject: {
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false } // ⚡ THIS IS REQUIRED ON RENDER
+      },
+      createTableIfMissing: true, // optional: auto-create session table
     }),
-    secret: process.env.SESSION_SECRET || "sssssss",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "production", // true on Render
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     },
