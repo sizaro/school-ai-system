@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import CustomerSidebar from "../sidebars/CustomerSidebar.jsx";
 
-import CustomerDashboard from "../../pages/customer/CustomerDashboard.jsx"
+import CustomerDashboard from "../../pages/customer/customerDashboard.jsx"
 import CustomerAppointments from "../../pages/customer/CustomerAppointments.jsx";
 
 const CustomerLayout = () => {
