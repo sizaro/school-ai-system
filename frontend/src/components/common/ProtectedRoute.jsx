@@ -1,37 +1,12 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useContext } from "react";
 import { Navigate } from "react-router-dom";
-
-const VITE_API_URL=import.meta.env.VITE_API_URL
-
-
+import { DataContext } from "../context/DataContext.jsx"; // your context
 
 const ProtectedRoute = ({ children, role }) => {
-  const [authState, setAuthState] = useState({ loading: true, allowed: false });
+  const { user, loading } = useContext(DataContext);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await axios.get(`${VITE_API_URL}/api/auth/check`, {
-  withCredentials: true,
-});
-
-
-        if (res.data.user && res.data.user.role === role) {
-          setAuthState({ loading: false, allowed: true });
-        } else {
-          setAuthState({ loading: false, allowed: false });
-        }
-      } catch (err) {
-        console.error("Auth check failed:", err);
-        setAuthState({ loading: false, allowed: false });
-      }
-    };
-
-    checkAuth();
-  }, [role]);
-
-  if (authState.loading) {
+  // While user state is loading
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-screen text-gray-600">
         Checking access...
@@ -39,7 +14,13 @@ const ProtectedRoute = ({ children, role }) => {
     );
   }
 
-  return authState.allowed ? children : <Navigate to="/" replace />;
+  // If user exists and role matches, render the protected children
+  if (user && user.role === role) {
+    return children;
+  }
+
+  // Otherwise, redirect to main page
+  return <Navigate to="/" replace />;
 };
 
 export default ProtectedRoute;
