@@ -20,27 +20,33 @@ import authRoutes from './routes/authRoutes.js';
 
 const app = express();
 
-// CORS
+// --- FIX: Define __dirname in ES module scope ---
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// --- CORS setup ---
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://salonmanagementsystem.vercel.app",
+];
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://salonmanagementsystem.vercel.app"
-  ],
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // allow Postman, curl, etc.
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error("CORS not allowed"));
+  },
   methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
+  credentials: true // allow cookies to be sent
 }));
 
 app.use(express.json());
 app.use(cookieParser());
 
-// --- FIX: Define __dirname in ES module scope ---
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 // Serve static files from uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// API routes
+// --- API routes ---
 app.use('/api/services', servicesRoutes);
 app.use('/api/servicet', serviceRoutet);
 app.use('/api/expenses', expensesRoutes);
@@ -52,5 +58,6 @@ app.use('/api/reports', reportsRoutes);
 app.use('/api/fees', feesRoutes);
 app.use('/api/auth', authRoutes);
 
+// --- Start server ---
 const PORT = process.env.PORT || 5500;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
