@@ -8,6 +8,8 @@ import ConfirmModal from "../../components/ConfirmModal.jsx";
 const OwnerIncomeDailyReport = () => {
   const {
     services,
+    lateFees,
+    tagFees,
     users =[],
     advances,
     expenses,
@@ -20,7 +22,7 @@ const OwnerIncomeDailyReport = () => {
   } = useData();
 
   console.log("users in the daily report:", users)
-  const Employees = users.filter((user)=> `${user.first_name} ${user.last_name}`.toLowerCase() !== 'saleh ntege' && user.role !== 'customer')
+  const Employees = users.filter((user)=> `${user.first_name} ${user.last_name}`.toLowerCase() !== 'ntege saleh' && user.role !== 'customer')
 
   const today = new Date();
   const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
@@ -37,6 +39,8 @@ const OwnerIncomeDailyReport = () => {
   // ---- Modal Handlers ----
   const handleEditClick = async (serviceId) => {
     const service = await fetchServiceById(serviceId);
+
+    console.log("service fetched by id in income daily report:", service)
     setEditingService(service);
     setShowModal(true);
   };
@@ -63,7 +67,7 @@ const OwnerIncomeDailyReport = () => {
   };
 
   // ---- Totals Calculation ----
-  const calculateTotals = (services, expenses, advances) => {
+  const calculateTotals = (services, expenses, advances, tagFees, lateFees) => {
     const grossIncome = services.reduce(
       (sum, s) => sum + (parseInt(s.service_amount, 10) || 0),
       0
@@ -91,11 +95,23 @@ const OwnerIncomeDailyReport = () => {
       0
     );
 
-    const netEmployeeSalary = employeesSalary - totalAdvances;
+    const totalLateFees = lateFees.reduce(
+      (sum, l) => sum + (parseInt(l.amount, 10) || 0),
+      0
+    );
+
+    const totaltagFees = tagFees.reduce(
+      (sum, t) => sum + (parseInt(t.amount, 10) || 0),
+      0
+    );
+
+    const netEmployeeSalary = employeesSalary - (totalAdvances + totalLateFees + totaltagFees);
     const netIncome = grossIncome - (totalExpenses + netEmployeeSalary);
     const cashAtHand = netIncome + netEmployeeSalary;
 
     return {
+      totalLateFees,
+      totaltagFees,
       grossIncome,
       employeesSalary,
       totalExpenses,
@@ -107,14 +123,16 @@ const OwnerIncomeDailyReport = () => {
   };
 
   const {
+    totalLateFees,
+    totaltagFees,
     grossIncome,
     employeesSalary,
     totalExpenses,
     totalAdvances,
     netEmployeeSalary,
     netIncome,
-    cashAtHand,
-  } = calculateTotals(services, expenses, advances);
+    cashAtHand
+  } = calculateTotals(services, expenses, advances,tagFees, lateFees);
 
   // ---- Format UTC Date to EAT ----
   const formatEAT = (dateString) => {
@@ -292,6 +310,16 @@ const OwnerIncomeDailyReport = () => {
               </div>
 
               <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
+                <span className="font-medium text-gray-700">Tag Fees</span>
+                <span className="text-blue-700 text-xl font-bold">{totaltagFees.toLocaleString()} UGX</span>
+              </div>
+
+              <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
+                <span className="font-medium text-gray-700">Late Fees</span>
+                <span className="text-blue-700 text-xl font-bold">{totalLateFees.toLocaleString()} UGX</span>
+              </div>
+
+              <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
                 <span className="font-medium text-gray-700">Net Employees Salary</span>
                 <span className="text-green-600 text-xl font-bold">{netEmployeeSalary.toLocaleString()} UGX</span>
               </div>
@@ -411,22 +439,21 @@ const OwnerIncomeDailyReport = () => {
       ) : (
         <p className="text-red-600 font-medium">No session data available.</p>
       )}
-
-      {showModal && editingService && (
-        <Modal onClose={() => setShowModal(false)}>
+        <Modal isOpen={showModal} onClose={() => setShowModal(false)}>
           <ServiceForm
-            service={editingService}
+            serviceData={editingService}
+            Employees={Employees}
             onSubmit={handleModalSubmit}
-            onCancel={() => setShowModal(false)}
           />
         </Modal>
-      )}
 
       {confirmModalOpen && (
-        <ConfirmModal
+        <ConfirmModal 
+        isOpen={confirmModalOpen}
+        confirmMessage="yes"
           message="Are you sure you want to delete this service?"
           onConfirm={confirmDelete}
-          onCancel={() => setConfirmModalOpen(false)}
+          onClose={() => setConfirmModalOpen(false)}
         />
       )}
     </div>

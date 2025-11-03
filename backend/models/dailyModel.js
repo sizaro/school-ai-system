@@ -98,7 +98,7 @@ async function getTagFeesByDay(startOfDay, endOfDay) {
 async function getLateFeesByDay(startOfDay, endOfDay) {
   const query = `
     SELECT lf.*, CONCAT(u.first_name, '', u.last_name) AS employee_name
-    FROM late_fee lf
+    FROM late_fees lf
     LEFT JOIN users u ON lf.employee_id = u.id
     WHERE lf.created_at BETWEEN $1 AND $2
     ORDER BY lf.id DESC;

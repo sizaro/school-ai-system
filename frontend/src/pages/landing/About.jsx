@@ -19,7 +19,7 @@ export default function About() {
   );
 
   // Helper to get full name
-  const fullName = (user) => `${user.first_name || ""} ${user.last_name || ""}`;
+  const fullName = (user) => `${user.last_name || ""}`;
 
   // Helper to get image or fallback
   const getImage = (user, fallback) =>

@@ -145,7 +145,7 @@ export const updateUserById = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         updatedData.password = await bcrypt.hash(password, salt);
       } else {
-        updatedData.password = password; // already hashed, leave as is
+        updatedData.password = password;
       }
     }
 

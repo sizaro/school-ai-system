@@ -71,8 +71,14 @@ const UserForm = ({ user, onSubmit, onClose, role = "customer" }) => {
     }
   });
 
+  if (user && user.id){
+    onSubmit(user.id, data);
+  }
+  else{
+    onSubmit(data);
+  }
   // Pass this FormData object instead
-  onSubmit(user.id, data);
+  
 };
 
 

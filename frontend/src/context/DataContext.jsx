@@ -61,6 +61,8 @@ export const DataProvider = ({ children }) => {
       setAdvances(data.advances);
       setClockings(data.clockings);
       setUsers(data.users);
+      setTagFees(data.tagFees);
+      setLateFees(data.lateFees);
       return data;
     } catch (err) {
       console.error("Error fetching daily report:", err);
@@ -559,6 +561,7 @@ const deleteTagFee = async (id) => {
     sessions,
     loading,
     lateFees,
+    tagFees,
     fetchAllData,
     sendFormData,
     fetchDailyData,

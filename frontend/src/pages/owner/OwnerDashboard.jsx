@@ -40,9 +40,11 @@ export default function OwnerDashboard() {
 
   const Employees = users.filter(
     (user) =>
-      `${user.first_name} ${user.last_name}`.toLowerCase() !== "saleh ntege" &&
+      `${user.first_name} ${user.last_name}`.toLowerCase() !== "ntege saleh" &&
       user.role !== "customer"
   );
+
+  console.log("employees in the owner Dash Board", Employees)
 
   const Customers = users.filter((user) => user.role === "customer");
 
@@ -229,7 +231,7 @@ export default function OwnerDashboard() {
             <ServiceForm
               onSubmit={createService}
               onClose={closeModal}
-              employees={Employees}
+              Employees={Employees}
               createdBy="owner"
               serviceStatus={null}
             />

@@ -39,8 +39,12 @@ export default function ServiceForm({ onSubmit, onClose, services, serviceData, 
     customer_id: customerId,
   });
 
+  console.log("these are the employees in the service form:", Employees)
+
+  console.log("this is the service to be edited in the service form:", serviceData)
+
   const [serviceAmount, setServiceAmount] = useState(0); // Added for dynamic service amount display
-  const [employees, setFilteredEmployees] = useState(Employees);
+  const [employees, setFilteredEmployees] = useState([]);
 
 
   useEffect(() => {
@@ -48,12 +52,12 @@ export default function ServiceForm({ onSubmit, onClose, services, serviceData, 
       setFormData({
         id: serviceData.id,
         service: serviceData.name || "",
-        barber: serviceData.barber || "",
-        barberAssistant: serviceData.barber_assistant || "",
-        scrubberAssistant: serviceData.scrubber_assistant || "",
-        blackMaskAssistant: serviceData.black_mask_assistant || "",
-        blackShampooAssistant: serviceData.black_shampoo_assistant || "",
-        superBlackAssistant: serviceData.super_black_assistant || "",
+        barber: serviceData.barber || null,
+        barberAssistant: serviceData.barber_assistant || null,
+        scrubberAssistant: serviceData.scrubber_assistant || null,
+        blackMaskAssistant: serviceData.black_mask_assistant || null,
+        blackShampooAssistant: serviceData.black_shampoo_assistant || null,
+        superBlackAssistant: serviceData.super_black_assistant || null,
         service_timestamp: serviceData.service_timestamp,
       });
     }
@@ -138,34 +142,44 @@ if (formattedTime) {
     const calculation = serviceMap[service];
     if (!calculation) return alert('Invalid service selected');
 
-    const payload = {
-      id,
-      name: service,
-      service_amount: calculation.serviceAmount || 0,
-      salon_amount: calculation.salonAmount || 0,
-      barber_id: barber || null,
-      barber_amount: calculation.barberAmount || 0,
-      barber_assistant_id: barberAssistant || null,
-      barber_assistant_amount: calculation.barberAssistantAmount || 0,
-      scrubber_assistant_id: scrubberAssistant || null,
-      scrubber_assistant_amount: calculation.scrubAssistantAmount || 0,
-      black_shampoo_assistant_id: blackShampooAssistant || null,
-      black_shampoo_assistant_amount: calculation.blackShampooAssistantAmount || 0,
-      black_shampoo_amount: calculation.blackShampooAmount || 0,
-      super_black_assistant_id: superBlackAssistant || null,
-      super_black_assistant_amount: calculation.superBlackAssistantAmount || 0,
-      super_black_amount: calculation.superBlackAmount || 0,
-      black_mask_assistant_id: blackMaskAssistant || null,
-      black_mask_assistant_amount: calculation.blackMaskAssistantAmount || 0,
-      black_mask_amount: calculation.blackMaskAmount || 0,
-      customer_note: customerNote,
-      created_by:created_by,
-      status:status,
-      appointment_date,
-      appointment_time:formattedTime,
-      customer_id,
-      service_timestamp,
-    };
+  const toNullableNumber = (val) => {
+  if (val === "" || val === " " || val === null || val === undefined) {
+    return null;
+  }
+  return Number(val); // convert valid value to number
+};
+
+
+  const payload = {
+  id,
+  name: service,
+  service_amount: calculation.serviceAmount || 0,
+  salon_amount: calculation.salonAmount || 0,
+  barber_id: toNullableNumber(barber),
+  barber_amount: calculation.barberAmount || 0,
+  barber_assistant_id: toNullableNumber(barberAssistant),
+  barber_assistant_amount: calculation.barberAssistantAmount || 0,
+  scrubber_assistant_id: toNullableNumber(scrubberAssistant),
+  scrubber_assistant_amount: calculation.scrubAssistantAmount || 0,
+  black_shampoo_assistant_id: toNullableNumber(blackShampooAssistant),
+  black_shampoo_assistant_amount: calculation.blackShampooAssistantAmount || 0,
+  black_shampoo_amount: calculation.blackShampooAmount || 0,
+  super_black_assistant_id: toNullableNumber(superBlackAssistant),
+  super_black_assistant_amount: calculation.superBlackAssistantAmount || 0,
+  super_black_amount: calculation.superBlackAmount || 0,
+  black_mask_assistant_id: toNullableNumber(blackMaskAssistant),
+  black_mask_assistant_amount: calculation.blackMaskAssistantAmount || 0,
+  black_mask_amount: calculation.blackMaskAmount || 0,
+  customer_note: customerNote,
+  created_by,
+  status,
+  appointment_date,
+  appointment_time: formattedTime,
+  customer_id,
+  service_timestamp,
+};
+
+
 
     onSubmit(payload);
     onClose();

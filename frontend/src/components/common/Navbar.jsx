@@ -1,6 +1,6 @@
 // src/components/common/Navbar.jsx
-import React, { useState, useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import Modal from "../../components/Modal.jsx";
 import LoginForm from "../../components/auth/login.jsx";
 import { useData } from "../../context/DataContext.jsx";
@@ -18,23 +18,17 @@ export default function Navbar() {
     setLoading(true);
     setLoginError(null);
     try {
-      // Call the loginUser from context
       const res = await loginUser({ email, password });
+      console.log("this is from the backend", res);
 
-      console.log("this is from the backend", res)
-
-      // Update session by calling checkAuth
       await checkAuth();
-
       setLoginOpen(false);
 
-      // Navigate based on role
       if (res.role === "owner") navigate("/owner");
       else if (res.role === "manager") navigate("/manager");
       else if (res.role === "employee") navigate("/employee");
       else if (res.role === "customer") navigate("/customer");
       else navigate("/"); // fallback
-
     } catch (err) {
       setLoginError(err?.response?.data?.message || "Sign in failed");
     } finally {
@@ -45,9 +39,9 @@ export default function Navbar() {
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-        <Link to="/" className="text-2xl font-bold text-blue-700">
+        <NavLink to="/" className="text-2xl font-bold text-blue-700">
           Salehish Beauty Parlour & Spa
-        </Link>
+        </NavLink>
 
         {/* Hamburger for small screens */}
         <button
@@ -58,23 +52,70 @@ export default function Navbar() {
           ☰
         </button>
 
-        {/* Nav Links */}
-        <div className={`${
+        {/* Navigation Links */}
+        <div
+          className={`${
             menuOpen ? "block" : "hidden"
           } absolute sm:static top-16 left-0 w-full sm:w-auto bg-white sm:flex sm:space-x-6 shadow sm:shadow-none`}
         >
-          <Link to="/" className="block px-4 py-2 hover:text-blue-600 font-medium">Home</Link>
-          <Link to="/about" className="block px-4 py-2 hover:text-blue-600 font-medium">About</Link>
-          <Link to="/services" className="block px-4 py-2 hover:text-blue-600 font-medium">Services</Link>
-          <Link to="/contact" className="block px-4 py-2 hover:text-blue-600 font-medium">Contact</Link>
+          <NavLink
+            to="/"
+            className={({ isActive }) =>
+              `block px-2 py-2 rounded-md font-medium transition ${
+                isActive
+                  ? "text-blue-700 bg-blue-100 shadow-sm"
+                  : "text-gray-700 hover:text-blue-600"
+              }`
+            }
+          >
+            Home
+          </NavLink>
 
-            <button
-              onClick={() => setLoginOpen(true)}
-              className="block bg-blue-600 text-white mx-4 my-2 px-4 py-2 rounded hover:bg-blue-700 transition"
-            >
-              Login
-            </button>
+          <NavLink
+            to="/about"
+            className={({ isActive }) =>
+              `block px-2 py-2 rounded-md font-medium transition ${
+                isActive
+                  ? "text-blue-700 bg-blue-100 shadow-sm"
+                  : "text-gray-700 hover:text-blue-600"
+              }`
+            }
+          >
+            About
+          </NavLink>
 
+          <NavLink
+            to="/services"
+            className={({ isActive }) =>
+              `block px-2 py-2 rounded-md font-medium transition ${
+                isActive
+                  ? "text-blue-700 bg-blue-100 shadow-sm"
+                  : "text-gray-700 hover:text-blue-600"
+              }`
+            }
+          >
+            Services
+          </NavLink>
+
+          <NavLink
+            to="/contact"
+            className={({ isActive }) =>
+              `block px-2 py-2 rounded-md font-medium transition ${
+                isActive
+                  ? "text-blue-700 bg-blue-100 shadow-sm"
+                  : "text-gray-700 hover:text-blue-600"
+              }`
+            }
+          >
+            Contact
+          </NavLink>
+
+          <button
+            onClick={() => setLoginOpen(true)}
+            className="block bg-blue-600 text-white mx-4 my-2 px-4 py-2 rounded hover:bg-blue-700 transition"
+          >
+            Login
+          </button>
         </div>
       </div>
 

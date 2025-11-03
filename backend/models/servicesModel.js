@@ -3,32 +3,39 @@ import db from '../models/database.js';
 /**
  * Save a new service (or appointment)
  */
-export const saveService = async ({
-  name,
-  service_amount,
-  salon_amount,
-  barber_id,
-  barber_amount,
-  barber_assistant_id,
-  barber_assistant_amount,
-  scrubber_assistant_id,
-  scrubber_assistant_amount,
-  black_shampoo_assistant_id,
-  black_shampoo_assistant_amount,
-  black_shampoo_amount,
-  super_black_assistant_id,
-  super_black_assistant_amount,
-  super_black_amount,
-  black_mask_assistant_id,
-  black_mask_assistant_amount,
-  black_mask_amount,
-  customer_note,
-  created_by,
-  status,
-  appointment_date,
-  appointment_time,
-  customer_id
-}) => {
+
+export const saveService = async (service) => {
+  const {
+    name,
+    service_amount,
+    salon_amount,
+    barber_id,
+    barber_amount,
+    barber_assistant_id,
+    barber_assistant_amount,
+    scrubber_assistant_id,
+    scrubber_assistant_amount,
+    black_shampoo_assistant_id,
+    black_shampoo_assistant_amount,
+    black_shampoo_amount,
+    super_black_assistant_id,
+    super_black_assistant_amount,
+    super_black_amount,
+    black_mask_assistant_id,
+    black_mask_assistant_amount,
+    black_mask_amount,
+    customer_note,
+    created_by,
+    status,
+    appointment_date,
+    appointment_time,
+    customer_id
+  } = service;
+
+  // ✅ Convert empty strings to null for date/time
+  const safeAppointmentDate = appointment_date === "" ? null : appointment_date;
+  const safeAppointmentTime = appointment_time === "" ? null : appointment_time;
+
   const query = `
     INSERT INTO services (
       name,
@@ -88,14 +95,15 @@ export const saveService = async ({
     customer_note,
     created_by,
     status,
-    appointment_date,
-    appointment_time,
+    safeAppointmentDate,
+    safeAppointmentTime,
     customer_id
   ];
 
   const result = await db.query(query, values);
   return result.rows[0];
 };
+
 
 /**
  * Fetch all services for the current day (Kampala timezone)

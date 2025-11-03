@@ -30,9 +30,9 @@ const OwnerEmployees = () => {
   }, []);
 
   const handleAdd = () => {
-    setEditingUser(null);
-    setAddingUser("employee");
-    setShowModal(true);
+     setAddingUser("employee")
+     setShowModal(true);
+    
   };
 
   const handleEdit = async (userId) => {
@@ -59,7 +59,7 @@ const OwnerEmployees = () => {
   const handleModalSubmit = async (userData) => {
     await createUser(userData);
     setShowModal(false);
-    setEditingUser(null);
+    setAddingUser(null);
     await fetchUsers();
   };
 
@@ -126,7 +126,7 @@ const OwnerEmployees = () => {
                 <td className="px-4 py-2">{emp.last_name}</td>
                 <td className="px-4 py-2">{emp.email}</td>
                 <td className="px-4 py-2">{emp.role}</td>
-                <td className="px-4 py-2">{emp.phone}</td>
+                <td className="px-4 py-2">{emp.contact}</td>
                 <td className="px-4 py-2">{emp.next_of_kin}</td>
                 <td className="px-4 py-2">{emp.next_of_kin_phone}</td>
                 <td className="px-4 py-2 flex gap-2">
@@ -150,25 +150,6 @@ const OwnerEmployees = () => {
       </div>
 
       {/* Add / Edit Modal */}
-      <Modal
-        isOpen={showModal}
-        onClose={() => {
-          setShowModal(false);
-          setEditingUser(null);
-        }}
-      >
-        {(addingUser) && (
-          <UserForm
-            role="employee"
-            user={null}
-            onSubmit={handleModalSubmit}
-            onClose={() => {
-              setShowModal(false);
-              setEditingUser(null);
-            }}
-          />
-        )}
-      </Modal>
 
       <Modal
         isOpen={showModal}
@@ -188,6 +169,20 @@ const OwnerEmployees = () => {
             }}
           />
         )}
+
+        {(addingUser) && (
+          <UserForm
+            role="employee"
+            user={null}
+            onSubmit={handleModalSubmit}
+            onClose={() => {
+              setShowModal(false);
+              setAddingUser(null);
+            }}
+          />
+        )}
+
+
       </Modal>
 
       {/* Confirm Delete Modal */}

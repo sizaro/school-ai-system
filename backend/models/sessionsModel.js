@@ -43,10 +43,10 @@ export const fetchTodaySalonSession = async () => {
       `SELECT 
   s.id,
   s.status,
-  s.open_time AT TIME ZONE 'UTC' AS open_time,
-  s.close_time AT TIME ZONE 'UTC' AS close_time,
-  s.created_at AT TIME ZONE 'UTC' AS created_at,
-  s.updated_at AT TIME ZONE 'UTC' AS updated_at,
+  s.open_time AT TIME ZONE 'Africa/Kampala' AS open_time,
+  s.close_time AT TIME ZONE 'Africa/Kampala' AS close_time,
+  s.created_at AT TIME ZONE 'Africa/Kampala' AS created_at,
+  s.updated_at AT TIME ZONE 'Africa/Kampala' AS updated_at,
   NOW() AS server_now
 FROM salon_sessions s
 WHERE DATE(open_time) = CURRENT_DATE
