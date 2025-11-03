@@ -5,7 +5,7 @@ import Button from "../../components/Button.jsx";
 import ConfirmModal from "../../components/ConfirmModal.jsx";
 import { useData } from "../../context/DataContext.jsx";
 
-export default function CustomerDashboard() {
+export default function customerDashboard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [messageModal, setMessageModal] = useState({ open: false, text: "", type: "" });
   const [adverts, setAdverts] = useState([]);
