@@ -113,9 +113,7 @@ app.use("/api/reports", reportsRoutes);
 app.use("/api/fees", feesRoutes);
 app.use("/api/auth", authRoutes);
 
-app.get("/*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
-});
+
 
 const PORT = process.env.PORT || 5500;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
