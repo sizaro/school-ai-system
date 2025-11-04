@@ -112,7 +112,7 @@ app.use("/api/users", usersRoutes);
 app.use("/api/reports", reportsRoutes);
 app.use("/api/fees", feesRoutes);
 app.use("/api/auth", authRoutes);
-// --- SPA fallback for Vercel frontend refresh ---
+
 app.get("/*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
 });
