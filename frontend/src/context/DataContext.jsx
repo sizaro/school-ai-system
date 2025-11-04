@@ -16,7 +16,9 @@ export const DataProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5500/api";
+  const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "/api";
 
   // ---------- Fetch All ----------
   const fetchAllData = async () => {

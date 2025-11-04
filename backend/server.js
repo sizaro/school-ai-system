@@ -33,8 +33,8 @@ const __dirname = path.dirname(__filename);
 // 🌍  CORS CONFIGURATION
 // =========================
 const allowedOrigins = [
-  "https://salehishsalonmanagementsystem.onrender.com", // your frontend
-  "http://localhost:5173", // local dev
+  "https://salonmanagementsystem.vercel.app",
+  "http://localhost:5173",
 ];
 
 app.use(cors({
@@ -62,7 +62,7 @@ app.use(cookieParser());
 const PgSessionStore = pgSession(session);
 const isProd = process.env.NODE_ENV === "production";
 
-app.set("trust proxy", 1); // ✅ Needed for Render or any proxy
+app.set("trust proxy", 1);
 
 const sessionConfig = {
   store: new PgSessionStore({
