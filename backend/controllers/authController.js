@@ -8,7 +8,9 @@ export const login = (req, res, next) => {
 
     req.logIn(user, (err) => {
       if (err) return next(err);
-      const { password, ...userSafe } = user;
+      const { password, ...userSafe } = user;    
+      console.log("user in login auth cont:", user.data)    
+      console.log("usersafe in login auth cont:", userSafe)                                                                                                                                                                                                                                                                                                                                                                              
       res.json({ user: userSafe });
     });
   })(req, res, next);

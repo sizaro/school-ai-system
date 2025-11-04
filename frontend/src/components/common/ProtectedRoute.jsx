@@ -10,8 +10,8 @@ const ProtectedRoute = ({ children, role }) => {
   console.log("📦 Context user:", user);
   console.log("⏳ Loading state:", loading);
 
+  // While the user is being fetched, show a loading message
   if (loading) {
-    console.log("⏳ Still loading user info...");
     return (
       <div className="flex items-center justify-center h-screen text-gray-600">
         Checking access...
@@ -19,11 +19,13 @@ const ProtectedRoute = ({ children, role }) => {
     );
   }
 
+  // Only redirect if loading is finished and user is truly null
   if (!user) {
     console.warn("🚫 No logged-in user found — redirecting to home");
     return <Navigate to="/" replace />;
   }
 
+  // Check role if required
   if (role && user.role !== role) {
     console.warn(
       `🚫 Role mismatch — required: ${role}, but user role is ${user.role}`
@@ -31,7 +33,7 @@ const ProtectedRoute = ({ children, role }) => {
     return <Navigate to="/" replace />;
   }
 
-  console.log("✅ Access granted for user:", user.username, "Role:", user.role);
+  console.log("✅ Access granted for user:", user.last_name, "Role:", user.role);
   return children;
 };
 

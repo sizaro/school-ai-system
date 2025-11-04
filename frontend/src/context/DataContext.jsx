@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const DataContext = createContext();
@@ -448,6 +449,7 @@ const deleteTagFee = async (id) => {
       withCredentials: true, // allows backend to set HttpOnly cookie
     });
     const { user } = res.data;
+    console.log("user in the data context:", user)
 
     setUser(user);
 
@@ -468,6 +470,7 @@ const deleteTagFee = async (id) => {
       const res = await axios.get(`${API_URL}/auth/check`, {
         withCredentials: true, // important to send httpOnly cookie
       });
+      console.log("user in the checkAuth Context:", res)
       setUser(res.data.user); 
       // store the user in state
     } catch (err) {
