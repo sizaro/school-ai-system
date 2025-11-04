@@ -1,8 +1,8 @@
-import express from 'express';
-import cors from 'cors';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
+import express from "express";
+import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import passport from "passport";
@@ -11,85 +11,95 @@ import "./config/passport.js";
 
 dotenv.config();
 
-import servicesRoutes from './routes/servicesRoutes.js';
-import serviceRoutet from './routes/serviceRoutet.js';
-import expensesRoutes from './routes/expensesRoutes.js';
-import advancesRoutes from './routes/advancesRoutes.js';
-import clockingsRoutes from './routes/clockingsRoutes.js';
-import sessionsRoutes from './routes/sessionsRoutes.js';
-import usersRoutes from './routes/usersRoutes.js';
-import reportsRoutes from './routes/reportsRoutes.js';
-import feesRoutes from './routes/feesRoutes.js';
-import authRoutes from './routes/authRoutes.js';
+import servicesRoutes from "./routes/servicesRoutes.js";
+import serviceRoutet from "./routes/serviceRoutet.js";
+import expensesRoutes from "./routes/expensesRoutes.js";
+import advancesRoutes from "./routes/advancesRoutes.js";
+import clockingsRoutes from "./routes/clockingsRoutes.js";
+import sessionsRoutes from "./routes/sessionsRoutes.js";
+import usersRoutes from "./routes/usersRoutes.js";
+import reportsRoutes from "./routes/reportsRoutes.js";
+import feesRoutes from "./routes/feesRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
 
-const PgSessionStore = pgSession(session);
-
-app.use(
-  session({
-    store: new PgSessionStore({
-      conObject: {
-        connectionString: process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false } // ⚡ THIS IS REQUIRED ON RENDER
-      },
-      createTableIfMissing: true, // optional: auto-create session table
-    }),
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // true on Render
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    },
-  })
-);
-
-// Initialize Passport
-app.use(passport.initialize());
-app.use(passport.session());
-
-// --- FIX: Define __dirname in ES module scope ---
+// --- Define __dirname for ES modules ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// --- CORS setup ---
+// ✅ CORS setup
 const allowedOrigins = [
   "https://salonmanagementsystem.vercel.app",
+  "https://www.salonmanagementsystem.vercel.app",
   "http://localhost:5173",
-   "https://www.salonmanagementsystem.vercel.app",
 ];
 
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    callback(new Error("CORS not allowed"));
-  },
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true // allow cookies to be sent
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      console.log("🌍 CORS Origin:", origin);
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        console.log("✅ Allowed:", origin);
+        return callback(null, true);
+      }
+      console.error("🚫 Blocked CORS Origin:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  })
+);
 
 app.use(express.json());
 app.use(cookieParser());
 
-// Serve static files from uploads folder
+// --- Sessions ---
+const PgSessionStore = pgSession(session);
+
+const isProd = process.env.NODE_ENV === "production";
+console.log("🧭 Environment:", process.env.NODE_ENV);
+
+const sessionConfig = {
+  store: new PgSessionStore({
+    conObject: {
+      connectionString: process.env.DATABASE_URL,
+      ssl: isProd ? { rejectUnauthorized: false } : false, // ✅ conditional SSL
+    },
+    createTableIfMissing: true,
+  }),
+  secret: process.env.SESSION_SECRET || "fallback-secret",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "None" : "Lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  },
+};
+
+app.use(session(sessionConfig));
+
+// --- Passport ---
+app.use(passport.initialize());
+app.use(passport.session());
+
+// --- Static files ---
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// --- API routes ---
-app.use('/api/services', servicesRoutes);
-app.use('/api/servicet', serviceRoutet);
-app.use('/api/expenses', expensesRoutes);
-app.use('/api/advances', advancesRoutes);
-app.use('/api/clockings', clockingsRoutes);
-app.use('/api/sessions', sessionsRoutes);
-app.use('/api/users', usersRoutes);
-app.use('/api/reports', reportsRoutes);
-app.use('/api/fees', feesRoutes);
-app.use('/api/auth', authRoutes);
+// --- Routes ---
+app.use("/api/services", servicesRoutes);
+app.use("/api/servicet", serviceRoutet);
+app.use("/api/expenses", expensesRoutes);
+app.use("/api/advances", advancesRoutes);
+app.use("/api/clockings", clockingsRoutes);
+app.use("/api/sessions", sessionsRoutes);
+app.use("/api/users", usersRoutes);
+app.use("/api/reports", reportsRoutes);
+app.use("/api/fees", feesRoutes);
+app.use("/api/auth", authRoutes);
 
-// --- Start server ---
 const PORT = process.env.PORT || 5500;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
