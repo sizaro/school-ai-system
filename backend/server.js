@@ -73,21 +73,25 @@ const sessionConfig = {
   store: new PgSessionStore({
     conObject: {
       connectionString: process.env.DATABASE_URL,
-      ssl: isProd ? { rejectUnauthorized: false } : false, // ✅ conditional SSL
+      ssl: isProd ? { rejectUnauthorized: false } : false,
     },
     createTableIfMissing: true,
   }),
   secret: process.env.SESSION_SECRET || "fallback-secret",
   resave: false,
   saveUninitialized: false,
+  proxy: true,
   cookie: {
     httpOnly: true,
-    secure: isProd ? true : false,
-    sameSite: isProd ? "None" : "Lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    secure: isProd, // ✅ secure only when HTTPS
+    sameSite: isProd ? "None" : "Lax", // ✅ allow cross-site cookies in prod
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    domain: isProd ? ".vercel.app" : undefined, //
   },
 };
 
+
+app.set("trust proxy", 1)
 app.use(session(sessionConfig));
 
 // --- Passport ---

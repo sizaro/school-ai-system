@@ -22,7 +22,7 @@ const ProtectedRoute = ({ children, role }) => {
   // Only redirect if loading is finished and user is truly null
   if (!user) {
     console.warn("🚫 No logged-in user found — redirecting to home");
-    return <Navigate to="/" replace />;
+    return console.log("waiting for user");
   }
 
   // Check role if required
