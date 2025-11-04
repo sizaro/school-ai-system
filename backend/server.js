@@ -86,7 +86,6 @@ const sessionConfig = {
     secure: isProd, // ✅ secure only when HTTPS
     sameSite: isProd ? "None" : "Lax", // ✅ allow cross-site cookies in prod
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    domain: isProd ? ".vercel.app" : undefined, //
   },
 };
 
