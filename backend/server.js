@@ -59,11 +59,12 @@ const __dirname = path.dirname(__filename);
 const allowedOrigins = [
   "https://salonmanagementsystem.vercel.app",
   "http://localhost:5173",
+   "https://www.salonmanagementsystem.vercel.app",
 ];
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow Postman, curl, etc.
+    if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
     callback(new Error("CORS not allowed"));
   },
