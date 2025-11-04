@@ -39,7 +39,7 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // allow requests from server tools
+    if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
     console.log("❌ Blocked by CORS:", origin);
     return callback(new Error("Not allowed by CORS"));
@@ -50,7 +50,7 @@ app.use(cors({
 }));
 
 // ✅ Handle all preflight OPTIONS requests
-app.options("*", cors());
+app.options("/*", cors()); // <-- fixed PathError
 
 // =========================
 // ⚙️ MIDDLEWARES
@@ -78,9 +78,9 @@ const sessionConfig = {
   proxy: true,
   cookie: {
     httpOnly: true,
-    secure: isProd,               // ✅ cookies only over HTTPS
-    sameSite: isProd ? "None" : "Lax", // ✅ allow cross-site cookies
-    maxAge: 7 * 24 * 60 * 60 * 1000,  // 7 days
+    secure: isProd,
+    sameSite: isProd ? "None" : "Lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   },
 };
 
@@ -110,6 +110,13 @@ app.use("/api/fees", feesRoutes);
 app.use("/api/auth", authRoutes);
 
 // =========================
+// 📦 SPA FALLBACK
+// =========================
+app.get("/*", (req, res) => {
+  res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
+});
+
+// =========================
 // 🚀 START SERVER
 // =========================
 const PORT = process.env.PORT || 5500;
@@ -117,7 +124,6 @@ app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
 });
-
 
 
 
