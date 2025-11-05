@@ -36,15 +36,19 @@ export default function EmployeeDashboard() {
         svc.super_black_assistant_id,
         svc.black_mask_assistant_id,
       ].filter(Boolean);
-      return involvedIds.includes(user.id) && ["confirmed", "completed"].includes(svc.status.toLowerCase());
+
+      // Safe status handling: default to "unknown"
+      const status = (svc.status || "unknown").toLowerCase();
+
+      return involvedIds.includes(user.id) && ["confirmed", "completed", "unknown"].includes(status);
     });
 
     setMyServices(assignedServices);
   }, [services, user]);
 
-  // Tab filter
+  // Tab filter with safe handling
   const filteredServices = myServices.filter(
-    (svc) => svc.status.toLowerCase() === activeTab
+    (svc) => ((svc.status || "unknown").toLowerCase() === activeTab)
   );
 
   const getEmployeeRole = (svc, employeeId) => {
@@ -68,7 +72,7 @@ export default function EmployeeDashboard() {
 
       {/* Tabs */}
       <div className="flex gap-2 mb-4">
-        {["confirmed", "completed"].map((status) => (
+        {["confirmed", "completed", "unknown"].map((status) => (
           <Button
             key={status}
             className={`px-4 py-2 rounded ${

@@ -15,42 +15,46 @@ export const DataProvider = ({ children }) => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
-  const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "/api";
+  const API_URL = import.meta.env.VITE_API_URL || "/api";
 
   // ---------- Fetch All ----------
   const fetchAllData = async () => {
+    setLoading(true);
     try {
-      const [clockingsRes, UsersRes, servicesRes] =
-        await Promise.all([
-          axios.get(`${API_URL}/clockings`),
-          axios.get(`${API_URL}/users`),
-          axios.get(`${API_URL}/services`),
-
-        ]);
+      const [clockingsRes, UsersRes, servicesRes] = await Promise.all([
+        axios.get(`${API_URL}/clockings`),
+        axios.get(`${API_URL}/users`),
+        axios.get(`${API_URL}/services`),
+      ]);
       setClockings(clockingsRes.data);
       setUsers(UsersRes.data);
       setServices(servicesRes.data);
-      console.log("all services in the data context:", servicesRes.data)
+      console.log("all services in the data context:", servicesRes.data);
     } catch (err) {
       console.error("Error fetching static data:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   // ---------- Fetch Sessions ----------
   const fetchSessions = async () => {
+    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/sessions`);
       setSessions(res.data);
     } catch (err) {
       console.error("Error fetching sessions:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   // ---------- Reports ----------
   const fetchDailyData = async (date) => {
+    setLoading(true);
     try {
       const formatDate = (d) => new Date(d).toISOString().split("T")[0];
       const res = await axios.get(`${API_URL}/reports/daily`, {
@@ -58,7 +62,7 @@ export const DataProvider = ({ children }) => {
       });
       const data = res.data;
 
-      console.log(`daily data in context`, res.data)
+      console.log(`daily data in context`, res.data);
       setServices(data.services);
       setExpenses(data.expenses);
       setAdvances(data.advances);
@@ -70,10 +74,13 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error("Error fetching daily report:", err);
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchWeeklyData = async (start, end) => {
+    setLoading(true);
     try {
       const formatDate = (date) => date.toISOString().split("T")[0];
       const res = await axios.get(`${API_URL}/reports/weekly`, {
@@ -86,10 +93,13 @@ export const DataProvider = ({ children }) => {
       return data;
     } catch (err) {
       console.error("Error fetching weekly report:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchMonthlyData = async (year, month) => {
+    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/reports/monthly`, {
         params: { year, month },
@@ -102,10 +112,13 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error("Error fetching monthly report:", err);
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchYearlyData = async (year) => {
+    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/reports/yearly`, { params: { year } });
       const data = res.data;
@@ -115,388 +128,470 @@ export const DataProvider = ({ children }) => {
       return data;
     } catch (err) {
       console.error("Error fetching yearly report:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   // ---------- NEW: CRUD for Services ----------
   const fetchServiceById = async (id) => {
+    setLoading(true);
     try {
-      console.log("service id to be fetched",id)
+      console.log("service id to be fetched", id);
       const res = await axios.get(`${API_URL}/services/${id}`);
       return res.data;
     } catch (err) {
       console.error("Error fetching service by ID:", err);
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
   const updateService = async (id, formData) => {
+    setLoading(true);
     try {
       const res = await axios.put(`${API_URL}/services/${id}`, formData);
-      await fetchAllData();// global refresh (still useful)
+      await fetchAllData(); // global refresh
       return res.data;
     } catch (err) {
       console.error("Error updating service:", err);
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
-   const updateServicet = async (id, formData) => {
+  const updateServicet = async (id, formData) => {
+    setLoading(true);
     try {
       const res = await axios.put(`${API_URL}/servicet/${id}`, formData);
-      await fetchAllData();// global refresh (still useful)
+      await fetchAllData(); // global refresh
       return res.data;
     } catch (err) {
       console.error("Error updating service:", err);
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
   const deleteService = async (id) => {
+    setLoading(true);
     try {
       await axios.delete(`${API_URL}/services/${id}`);
       await fetchAllData();
     } catch (err) {
       console.error("Error deleting service:", err);
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
-
   // ---------- Employees CRUD ----------
-const fetchUsers = async () => {
-  try {
-    const res = await axios.get(`${API_URL}/users`);
-    setUsers(res.data);
-    console.log("users in context:", res.data)
-    return res.data;
-  } catch (err) {
-    console.error("Error fetching employees:", err);
-    throw err;
-  }
-};
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}/users`);
+      setUsers(res.data);
+      console.log("users in context:", res.data);
+      return res.data;
+    } catch (err) {
+      console.error("Error fetching employees:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const fetchUserById = async (id) => {
+  const fetchUserById = async (id) => {
+    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/users/${id}`);
       return res.data;
     } catch (err) {
       console.error("Error fetching employee by ID:", err);
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
-const createUser = async (userData) => {
-  try {
-    const res = await axios.post(`${API_URL}/users`, userData);
-    await fetchUsers(); // refresh list
-    return res.data;
-  } catch (err) {
-    console.error(`error creating ${userData.role}`, err);
-    throw err;
-  }
-};
-
-const updateUser = async (id, userData) => {
-  try {
-    const res = await axios.put(`${API_URL}/users/${id}`, userData);
-    await fetchUsers();
-    return res.data;
-  } catch (err) {
-    console.error(`error updating ${userData.role}`, err);
-    throw err;
-  }
-};
-
-const deleteUser = async (id) => {
-  try {
-    await axios.delete(`${API_URL}/users/${id}`);
-    await fetchUsers();
-  } catch (err) {
-    console.error(`error in deleting`, err);
-    throw err;
-  }
-};
-
-
-  const fetchAdvances = async () => {
-      try {
-        const res = await axios.get(`${API_URL}/advances`);
-        setAdvances(res.data);
-        return res.data;
-      } catch (err) {
-        console.error("Error fetching advances:", err);
-        throw err;
-      }
-    };
-
-    const fetchAdvanceById = async (id) => {
-      try {
-        const res = await axios.get(`${API_URL}/advances/${id}`);
-        return res.data;
-      } catch (err) {
-        console.error("Error fetching advance by ID:", err);
-        throw err;
-      }
-    };
-
-    const createAdvance = async (advanceData) => {
-      try {
-        const res = await axios.post(`${API_URL}/advances`, advanceData);
-        await fetchAdvances(); // refresh list after adding
-        return res.data;
-      } catch (err) {
-        console.error("Error creating advance:", err);
-        throw err;
-      }
-    };
-
-    const updateAdvance = async (id, advanceData) => {
-      try {
-        const res = await axios.put(`${API_URL}/advances/${id}`, advanceData);
-        await fetchAdvances(); // refresh list after updating
-        return res.data;
-      } catch (err) {
-        console.error("Error updating advance:", err);
-        throw err;
-      }
-    };
-
-    const deleteAdvance = async (id) => {
-      try {
-        await axios.delete(`${API_URL}/advances/${id}`);
-        await fetchAdvances(); // refresh list after deletion
-      } catch (err) {
-        console.error("Error deleting advance:", err);
-        throw err;
-      }
-    };
-
-  //--Advances layer
-    // --- Expenses layer ---
-
-    const fetchExpenses = async () => {
-      try {
-        const res = await axios.get(`${API_URL}/expenses`);
-        setExpenses(res.data);
-        return res.data;
-      } catch (err) {
-        console.error("Error fetching expenses:", err);
-        throw err;
-      }
-    };
-
-    const fetchExpenseById = async (id) => {
-      try {
-        const res = await axios.get(`${API_URL}/expenses/${id}`);
-        return res.data;
-      } catch (err) {
-        console.error("Error fetching expense by ID:", err);
-        throw err;
-      }
-    };
-
-    const createExpense = async (expenseData) => {
-      try {
-        const res = await axios.post(`${API_URL}/expenses`, expenseData);
-        await fetchExpenses(); // refresh list after adding
-        return res.data;
-      } catch (err) {
-        console.error("Error creating expense:", err);
-        throw err;
-      }
-    };
-
-    const updateExpense = async (id, expenseData) => {
-      try {
-        const res = await axios.put(`${API_URL}/expenses/${id}`, expenseData);
-        await fetchExpenses(); // refresh list after updating
-        return res.data;
-      } catch (err) {
-        console.error("Error updating expense:", err);
-        throw err;
-      }
-    };
-
-    const deleteExpense = async (id) => {
-      try {
-        await axios.delete(`${API_URL}/expenses/${id}`);
-        await fetchExpenses(); // refresh list after deletion
-      } catch (err) {
-        console.error("Error deleting expense:", err);
-        throw err;
-      }
-    };
-
-
-    // ===============================
-// LATE FEE FUNCTIONS
-// ===============================
-
-const fetchLateFees = async () => {
-  try {
-    const res = await axios.get(`${API_URL}/fees/late_fees`);
-    setLateFees(res.data);
-    return res.data;
-  } catch (err) {
-    console.error("Error fetching late fees:", err);
-    throw err;
-  }
-};
-
-const fetchLateFeeById = async (id) => {
-  try {
-    const res = await axios.get(`${API_URL}/fees/late_fees/${id}`);
-    return res.data;
-  } catch (err) {
-    console.error("Error fetching late fee by ID:", err);
-    throw err;
-  }
-};
-
-const createLateFee = async (lateFeeData) => {
-  try {
-    const res = await axios.post(`${API_URL}/fees/late_fees`, lateFeeData);
-    await fetchLateFees(); // refresh list after adding
-    return res.data;
-  } catch (err) {
-    console.error("Error creating late fee:", err);
-    throw err;
-  }
-};
-
-const updateLateFee = async (id, lateFeeData) => {
-  try {
-    const res = await axios.put(`${API_URL}/fees/late_fees/${id}`, lateFeeData);
-    await fetchLateFees(); // refresh list after updating
-    return res.data;
-  } catch (err) {
-    console.error("Error updating late fee:", err);
-    throw err;
-  }
-};
-
-const deleteLateFee = async (id) => {
-  try {
-    await axios.delete(`${API_URL}/fees/late_fees/${id}`);
-    await fetchLateFees(); // refresh list after deletion
-  } catch (err) {
-    console.error("Error deleting late fee:", err);
-    throw err;
-  }
-};
-
-        // ===============================
-// TAG FEE FUNCTIONS
-// ===============================
-
-const fetchTagFees = async () => {
-  try {
-    const res = await axios.get(`${API_URL}/fees/tag`);
-    setTagFees(res.data);
-    return res.data;
-  } catch (err) {
-    console.error("Error fetching tag fees:", err);
-    throw err;
-  }
-};
-
-const fetchTagFeeById = async (id) => {
-  try {
-    const res = await axios.get(`${API_URL}/fees/tag/${id}`);
-    return res.data;
-  } catch (err) {
-    console.error("Error fetching tag fee by ID:", err);
-    throw err;
-  }
-};
-
-const createTagFee = async (tagFeeData) => {
-  try {
-    const res = await axios.post(`${API_URL}/fees/tag_fees`, tagFeeData);
-    await fetchTagFees(); // refresh list after adding
-    return res.data;
-  } catch (err) {
-    console.error("Error creating tag fee:", err);
-    throw err;
-  }
-};
-
-const updateTagFee = async (id, tagFeeData) => {
-  try {
-    const res = await axios.put(`${API_URL}/fees/tag/${id}`, tagFeeData);
-    await fetchTagFees(); // refresh list after updating
-    return res.data;
-  } catch (err) {
-    console.error("Error updating tag fee:", err);
-    throw err;
-  }
-};
-
-const deleteTagFee = async (id) => {
-  try {
-    await axios.delete(`${API_URL}/fees/tag/${id}`);
-    await fetchTagFees(); // refresh list after deletion
-  } catch (err) {
-    console.error("Error deleting tag fee:", err);
-    throw err;
-  }
-};
-
-
-
-    const loginUser = async (credentials) => {
-  try {
-    const res = await axios.post(`${API_URL}/auth/login`, credentials, {
-      withCredentials: true, // allows backend to set HttpOnly cookie
-    });
-    const { user } = res.data;
-    console.log("user in the data context:", user)
-
-    setUser(user);
-
-    if (!user) {
-      throw new Error("Invalid login response — user missing");
+  const createUser = async (userData) => {
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API_URL}/users`, userData);
+      await fetchUsers();
+      return res.data;
+    } catch (err) {
+      console.error(`error creating ${userData.role}`, err);
+      throw err;
+    } finally {
+      setLoading(false);
     }
+  };
 
-    return user;
-  } catch (err) {
-    console.error("Error during loginUser:", err);
-    throw err;
-  }
-};
+  const updateUser = async (id, userData) => {
+    setLoading(true);
+    try {
+      const res = await axios.put(`${API_URL}/users/${id}`, userData);
+      await fetchUsers();
+      return res.data;
+    } catch (err) {
+      console.error(`error updating ${userData.role}`, err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
 
- // --- checkAuth function ---
+  const deleteUser = async (id) => {
+    setLoading(true);
+    try {
+      await axios.delete(`${API_URL}/users/${id}`);
+      await fetchUsers();
+    } catch (err) {
+      console.error(`error in deleting`, err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ---------- Advances ----------
+  const fetchAdvances = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}/advances`);
+      setAdvances(res.data);
+      return res.data;
+    } catch (err) {
+      console.error("Error fetching advances:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAdvanceById = async (id) => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}/advances/${id}`);
+      return res.data;
+    } catch (err) {
+      console.error("Error fetching advance by ID:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createAdvance = async (advanceData) => {
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API_URL}/advances`, advanceData);
+      await fetchAdvances();
+      return res.data;
+    } catch (err) {
+      console.error("Error creating advance:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateAdvance = async (id, advanceData) => {
+    setLoading(true);
+    try {
+      const res = await axios.put(`${API_URL}/advances/${id}`, advanceData);
+      await fetchAdvances();
+      return res.data;
+    } catch (err) {
+      console.error("Error updating advance:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteAdvance = async (id) => {
+    setLoading(true);
+    try {
+      await axios.delete(`${API_URL}/advances/${id}`);
+      await fetchAdvances();
+    } catch (err) {
+      console.error("Error deleting advance:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ---------- Expenses ----------
+  const fetchExpenses = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}/expenses`);
+      setExpenses(res.data);
+      return res.data;
+    } catch (err) {
+      console.error("Error fetching expenses:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchExpenseById = async (id) => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}/expenses/${id}`);
+      return res.data;
+    } catch (err) {
+      console.error("Error fetching expense by ID:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createExpense = async (expenseData) => {
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API_URL}/expenses`, expenseData);
+      await fetchExpenses();
+      return res.data;
+    } catch (err) {
+      console.error("Error creating expense:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateExpense = async (id, expenseData) => {
+    setLoading(true);
+    try {
+      const res = await axios.put(`${API_URL}/expenses/${id}`, expenseData);
+      await fetchExpenses();
+      return res.data;
+    } catch (err) {
+      console.error("Error updating expense:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteExpense = async (id) => {
+    setLoading(true);
+    try {
+      await axios.delete(`${API_URL}/expenses/${id}`);
+      await fetchExpenses();
+    } catch (err) {
+      console.error("Error deleting expense:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ---------- Late Fees ----------
+  const fetchLateFees = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}/fees/late_fees`);
+      setLateFees(res.data);
+      return res.data;
+    } catch (err) {
+      console.error("Error fetching late fees:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchLateFeeById = async (id) => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}/fees/late_fees/${id}`);
+      return res.data;
+    } catch (err) {
+      console.error("Error fetching late fee by ID:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createLateFee = async (lateFeeData) => {
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API_URL}/fees/late_fees`, lateFeeData);
+      await fetchLateFees();
+      return res.data;
+    } catch (err) {
+      console.error("Error creating late fee:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateLateFee = async (id, lateFeeData) => {
+    setLoading(true);
+    try {
+      const res = await axios.put(`${API_URL}/fees/late_fees/${id}`, lateFeeData);
+      await fetchLateFees();
+      return res.data;
+    } catch (err) {
+      console.error("Error updating late fee:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteLateFee = async (id) => {
+    setLoading(true);
+    try {
+      await axios.delete(`${API_URL}/fees/late_fees/${id}`);
+      await fetchLateFees();
+    } catch (err) {
+      console.error("Error deleting late fee:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ---------- Tag Fees ----------
+  const fetchTagFees = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}/fees/tag`);
+      setTagFees(res.data);
+      return res.data;
+    } catch (err) {
+      console.error("Error fetching tag fees:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTagFeeById = async (id) => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}/fees/tag/${id}`);
+      return res.data;
+    } catch (err) {
+      console.error("Error fetching tag fee by ID:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createTagFee = async (tagFeeData) => {
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API_URL}/fees/tag_fees`, tagFeeData);
+      await fetchTagFees();
+      return res.data;
+    } catch (err) {
+      console.error("Error creating tag fee:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateTagFee = async (id, tagFeeData) => {
+    setLoading(true);
+    try {
+      const res = await axios.put(`${API_URL}/fees/tag/${id}`, tagFeeData);
+      await fetchTagFees();
+      return res.data;
+    } catch (err) {
+      console.error("Error updating tag fee:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteTagFee = async (id) => {
+    setLoading(true);
+    try {
+      await axios.delete(`${API_URL}/fees/tag/${id}`);
+      await fetchTagFees();
+    } catch (err) {
+      console.error("Error deleting tag fee:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ---------- Auth ----------
+  const loginUser = async (credentials) => {
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API_URL}/auth/login`, credentials, {
+        withCredentials: true,
+      });
+      const { user } = res.data;
+      console.log("user in the data context:", user);
+
+      setUser(user);
+
+      if (!user) {
+        throw new Error("Invalid login response — user missing");
+      }
+
+      return user;
+    } catch (err) {
+      console.error("Error during loginUser:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const checkAuth = async () => {
+    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/auth/check`, {
-        withCredentials: true, // important to send httpOnly cookie
+        withCredentials: true,
       });
-      console.log("user in the checkAuth Context:", res)
-      setUser(res.data.user); 
-      // store the user in state
+      console.log("user in the checkAuth Context:", res);
+      setUser(res.data.user);
     } catch (err) {
-      setUser(null); // no session or invalid token
+      setUser(null);
       console.error("Auth check failed:", err);
     } finally {
       setLoading(false);
     }
   };
 
-
   const logoutUser = async () => {
-  try {
-    await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
-  } catch (err) {
-    console.error("Error during logout:", err);
-  } finally {
-    setUser(null);
-    navigate("/");
-  }
-};
+    setLoading(true);
+    try {
+      await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
+    } catch (err) {
+      console.error("Error during logout:", err);
+    } finally {
+      setUser(null);
+      navigate("/");
+      setLoading(false);
+    }
+  };
 
   // ---------- Send Form ----------
   const sendFormData = async (formIdentifier, formData) => {
+    setLoading(true);
     try {
       let res;
       switch (formIdentifier) {
@@ -536,10 +631,12 @@ const deleteTagFee = async (id) => {
     } catch (err) {
       console.error(`Error in sendFormData for ${formIdentifier}:`, err);
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
-
+  // ---------- useEffect ----------
   useEffect(() => {
     fetchSessions();
     fetchUsers();
@@ -548,71 +645,66 @@ const deleteTagFee = async (id) => {
     return () => clearInterval(interval);
   }, []);
 
-
-
- useEffect(() => {
-  checkAuth(); 
-  fetchUsers();// will set user if token is valid
-}, []);
-
-
-
+  useEffect(() => {
+    checkAuth();
+    fetchUsers();
+  }, []);
 
   // ---------- Export ----------
   return (
     <DataContext.Provider
-  value={{
-    user,
-    services,
-    users,
-    expenses,
-    advances,
-    clockings,
-    sessions,
-    loading,
-    lateFees,
-    tagFees,
-    fetchAllData,
-    sendFormData,
-    fetchDailyData,
-    fetchWeeklyData,
-    fetchMonthlyData,
-    fetchYearlyData,
-    fetchServiceById,
-    updateService,
-    updateServicet,
-    deleteService,
-    fetchUsers,
-    fetchUserById,
-    createUser,
-    updateUser,
-    deleteUser,
-    fetchAdvances,
-    fetchAdvanceById,
-    createAdvance,
-    updateAdvance,
-    deleteAdvance,
-    fetchExpenses,
-    fetchExpenseById,
-    createExpense,
-    updateExpense,
-    deleteExpense,
-    loginUser,
-    checkAuth,
-    logoutUser,
-    fetchLateFeeById,
-    createLateFee,
-    updateLateFee,
-    deleteLateFee,
-    fetchTagFees,
-    fetchTagFeeById,
-    createTagFee,
-    updateTagFee,
-    deleteTagFee
-  }}
->
-  {children}
-</DataContext.Provider>
+      value={{
+        user,
+        services,
+        users,
+        expenses,
+        advances,
+        clockings,
+        sessions,
+        loading,
+        lateFees,
+        tagFees,
+        fetchAllData,
+        sendFormData,
+        fetchDailyData,
+        fetchWeeklyData,
+        fetchMonthlyData,
+        fetchYearlyData,
+        fetchServiceById,
+        updateService,
+        updateServicet,
+        deleteService,
+        fetchUsers,
+        fetchUserById,
+        createUser,
+        updateUser,
+        deleteUser,
+        fetchAdvances,
+        fetchAdvanceById,
+        createAdvance,
+        updateAdvance,
+        deleteAdvance,
+        fetchExpenses,
+        fetchExpenseById,
+        createExpense,
+        updateExpense,
+        deleteExpense,
+        loginUser,
+        checkAuth,
+        logoutUser,
+        fetchLateFeeById,
+        createLateFee,
+        updateLateFee,
+        deleteLateFee,
+        fetchTagFees,
+        fetchTagFeeById,
+        createTagFee,
+        updateTagFee,
+        deleteTagFee,
+      }}
+    >
+      {children}
+    </DataContext.Provider>
   );
 };
 

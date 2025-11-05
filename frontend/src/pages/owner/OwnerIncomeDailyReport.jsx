@@ -183,10 +183,6 @@ const OwnerIncomeDailyReport = () => {
     fetchUsers()
   }, []);
 
-  useEffect(() => {
-    fetchUsers()
-  }, []);
-
   // ---- Service Count Summary ----
   const serviceCount = services.reduce((acc, service) => {
     const name = service.name || "Unknown";
