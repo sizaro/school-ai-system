@@ -13,48 +13,40 @@ export const DataProvider = ({ children }) => {
   const [lateFees, setLateFees] = useState([]);
   const [tagFees, setTagFees] = useState([]);
   const [sessions, setSessions] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // Only used for fetchUsers
   const [user, setUser] = useState(null);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
   const navigate = useNavigate();
 
   const API_URL = import.meta.env.VITE_API_URL || "/api";
 
   // ---------- Fetch All ----------
   const fetchAllData = async () => {
-    setLoading(true);
     try {
-      const [clockingsRes, UsersRes, servicesRes] = await Promise.all([
+      const [clockingsRes, servicesRes] = await Promise.all([
         axios.get(`${API_URL}/clockings`),
-        axios.get(`${API_URL}/users`),
         axios.get(`${API_URL}/services`),
       ]);
       setClockings(clockingsRes.data);
-      setUsers(UsersRes.data);
       setServices(servicesRes.data);
       console.log("all services in the data context:", servicesRes.data);
     } catch (err) {
       console.error("Error fetching static data:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
   // ---------- Fetch Sessions ----------
   const fetchSessions = async () => {
-    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/sessions`);
       setSessions(res.data);
     } catch (err) {
       console.error("Error fetching sessions:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
   // ---------- Reports ----------
   const fetchDailyData = async (date) => {
-    setLoading(true);
     try {
       const formatDate = (d) => new Date(d).toISOString().split("T")[0];
       const res = await axios.get(`${API_URL}/reports/daily`, {
@@ -62,7 +54,6 @@ export const DataProvider = ({ children }) => {
       });
       const data = res.data;
 
-      console.log(`daily data in context`, res.data);
       setServices(data.services);
       setExpenses(data.expenses);
       setAdvances(data.advances);
@@ -74,13 +65,10 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error("Error fetching daily report:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const fetchWeeklyData = async (start, end) => {
-    setLoading(true);
     try {
       const formatDate = (date) => date.toISOString().split("T")[0];
       const res = await axios.get(`${API_URL}/reports/weekly`, {
@@ -93,13 +81,10 @@ export const DataProvider = ({ children }) => {
       return data;
     } catch (err) {
       console.error("Error fetching weekly report:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
   const fetchMonthlyData = async (year, month) => {
-    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/reports/monthly`, {
         params: { year, month },
@@ -112,13 +97,10 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error("Error fetching monthly report:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const fetchYearlyData = async (year) => {
-    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/reports/yearly`, { params: { year } });
       const data = res.data;
@@ -128,70 +110,54 @@ export const DataProvider = ({ children }) => {
       return data;
     } catch (err) {
       console.error("Error fetching yearly report:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
-  // ---------- NEW: CRUD for Services ----------
+  // ---------- Services CRUD ----------
   const fetchServiceById = async (id) => {
-    setLoading(true);
     try {
-      console.log("service id to be fetched", id);
       const res = await axios.get(`${API_URL}/services/${id}`);
       return res.data;
     } catch (err) {
       console.error("Error fetching service by ID:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const updateService = async (id, formData) => {
-    setLoading(true);
     try {
       const res = await axios.put(`${API_URL}/services/${id}`, formData);
-      await fetchAllData(); // global refresh
+      await fetchAllData();
       return res.data;
     } catch (err) {
       console.error("Error updating service:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const updateServicet = async (id, formData) => {
-    setLoading(true);
     try {
       const res = await axios.put(`${API_URL}/servicet/${id}`, formData);
-      await fetchAllData(); // global refresh
+      await fetchAllData();
       return res.data;
     } catch (err) {
       console.error("Error updating service:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const deleteService = async (id) => {
-    setLoading(true);
     try {
       await axios.delete(`${API_URL}/services/${id}`);
       await fetchAllData();
     } catch (err) {
       console.error("Error deleting service:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   // ---------- Employees CRUD ----------
   const fetchUsers = async () => {
-    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/users`);
       setUsers(res.data);
@@ -200,40 +166,30 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error("Error fetching employees:", err);
       throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  };}
 
   const fetchUserById = async (id) => {
-    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/users/${id}`);
       return res.data;
     } catch (err) {
       console.error("Error fetching employee by ID:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const createUser = async (userData) => {
-    setLoading(true);
     try {
       const res = await axios.post(`${API_URL}/users`, userData);
-      await fetchUsers();
+      await fetchUsers(); // ✅ fetchUsers handles loading
       return res.data;
     } catch (err) {
       console.error(`error creating ${userData.role}`, err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const updateUser = async (id, userData) => {
-    setLoading(true);
     try {
       const res = await axios.put(`${API_URL}/users/${id}`, userData);
       await fetchUsers();
@@ -241,27 +197,21 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error(`error updating ${userData.role}`, err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const deleteUser = async (id) => {
-    setLoading(true);
     try {
       await axios.delete(`${API_URL}/users/${id}`);
       await fetchUsers();
     } catch (err) {
-      console.error(`error in deleting`, err);
+      console.error(`error deleting user`, err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   // ---------- Advances ----------
   const fetchAdvances = async () => {
-    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/advances`);
       setAdvances(res.data);
@@ -269,26 +219,20 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error("Error fetching advances:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const fetchAdvanceById = async (id) => {
-    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/advances/${id}`);
       return res.data;
     } catch (err) {
       console.error("Error fetching advance by ID:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const createAdvance = async (advanceData) => {
-    setLoading(true);
     try {
       const res = await axios.post(`${API_URL}/advances`, advanceData);
       await fetchAdvances();
@@ -296,13 +240,10 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error("Error creating advance:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const updateAdvance = async (id, advanceData) => {
-    setLoading(true);
     try {
       const res = await axios.put(`${API_URL}/advances/${id}`, advanceData);
       await fetchAdvances();
@@ -310,27 +251,21 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error("Error updating advance:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const deleteAdvance = async (id) => {
-    setLoading(true);
     try {
       await axios.delete(`${API_URL}/advances/${id}`);
       await fetchAdvances();
     } catch (err) {
       console.error("Error deleting advance:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   // ---------- Expenses ----------
   const fetchExpenses = async () => {
-    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/expenses`);
       setExpenses(res.data);
@@ -338,26 +273,20 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error("Error fetching expenses:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const fetchExpenseById = async (id) => {
-    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/expenses/${id}`);
       return res.data;
     } catch (err) {
       console.error("Error fetching expense by ID:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const createExpense = async (expenseData) => {
-    setLoading(true);
     try {
       const res = await axios.post(`${API_URL}/expenses`, expenseData);
       await fetchExpenses();
@@ -365,13 +294,10 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error("Error creating expense:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const updateExpense = async (id, expenseData) => {
-    setLoading(true);
     try {
       const res = await axios.put(`${API_URL}/expenses/${id}`, expenseData);
       await fetchExpenses();
@@ -379,27 +305,21 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error("Error updating expense:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const deleteExpense = async (id) => {
-    setLoading(true);
     try {
       await axios.delete(`${API_URL}/expenses/${id}`);
       await fetchExpenses();
     } catch (err) {
       console.error("Error deleting expense:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   // ---------- Late Fees ----------
   const fetchLateFees = async () => {
-    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/fees/late_fees`);
       setLateFees(res.data);
@@ -407,26 +327,20 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error("Error fetching late fees:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const fetchLateFeeById = async (id) => {
-    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/fees/late_fees/${id}`);
       return res.data;
     } catch (err) {
       console.error("Error fetching late fee by ID:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const createLateFee = async (lateFeeData) => {
-    setLoading(true);
     try {
       const res = await axios.post(`${API_URL}/fees/late_fees`, lateFeeData);
       await fetchLateFees();
@@ -434,13 +348,10 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error("Error creating late fee:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const updateLateFee = async (id, lateFeeData) => {
-    setLoading(true);
     try {
       const res = await axios.put(`${API_URL}/fees/late_fees/${id}`, lateFeeData);
       await fetchLateFees();
@@ -448,27 +359,21 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error("Error updating late fee:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const deleteLateFee = async (id) => {
-    setLoading(true);
     try {
       await axios.delete(`${API_URL}/fees/late_fees/${id}`);
       await fetchLateFees();
     } catch (err) {
       console.error("Error deleting late fee:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   // ---------- Tag Fees ----------
   const fetchTagFees = async () => {
-    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/fees/tag`);
       setTagFees(res.data);
@@ -476,26 +381,20 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error("Error fetching tag fees:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const fetchTagFeeById = async (id) => {
-    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/fees/tag/${id}`);
       return res.data;
     } catch (err) {
       console.error("Error fetching tag fee by ID:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const createTagFee = async (tagFeeData) => {
-    setLoading(true);
     try {
       const res = await axios.post(`${API_URL}/fees/tag_fees`, tagFeeData);
       await fetchTagFees();
@@ -503,13 +402,10 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error("Error creating tag fee:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const updateTagFee = async (id, tagFeeData) => {
-    setLoading(true);
     try {
       const res = await axios.put(`${API_URL}/fees/tag/${id}`, tagFeeData);
       await fetchTagFees();
@@ -517,34 +413,26 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error("Error updating tag fee:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const deleteTagFee = async (id) => {
-    setLoading(true);
     try {
       await axios.delete(`${API_URL}/fees/tag/${id}`);
       await fetchTagFees();
     } catch (err) {
       console.error("Error deleting tag fee:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   // ---------- Auth ----------
   const loginUser = async (credentials) => {
-    setLoading(true);
     try {
       const res = await axios.post(`${API_URL}/auth/login`, credentials, {
         withCredentials: true,
       });
       const { user } = res.data;
-      console.log("user in the data context:", user);
-
       setUser(user);
 
       if (!user) {
@@ -555,29 +443,22 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error("Error during loginUser:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const checkAuth = async () => {
-    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/auth/check`, {
         withCredentials: true,
       });
-      console.log("user in the checkAuth Context:", res);
       setUser(res.data.user);
     } catch (err) {
       setUser(null);
       console.error("Auth check failed:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
   const logoutUser = async () => {
-    setLoading(true);
     try {
       await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
     } catch (err) {
@@ -585,13 +466,11 @@ export const DataProvider = ({ children }) => {
     } finally {
       setUser(null);
       navigate("/");
-      setLoading(false);
     }
   };
 
   // ---------- Send Form ----------
   const sendFormData = async (formIdentifier, formData) => {
-    setLoading(true);
     try {
       let res;
       switch (formIdentifier) {
@@ -631,25 +510,67 @@ export const DataProvider = ({ children }) => {
     } catch (err) {
       console.error(`Error in sendFormData for ${formIdentifier}:`, err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   // ---------- useEffect ----------
   useEffect(() => {
-    fetchSessions();
-    fetchUsers();
-    fetchAllData();
-    const interval = setInterval(fetchSessions, 60 * 1000);
+    const initializeApp = async () => {
+      try {
+        fetchSessions();        // ✅ fetch sessions in background
+      } catch (err) {
+        console.error("Error initializing app:", err);
+      }
+    };
+
+    initializeApp();
+
+    const interval = setInterval(fetchSessions, 60 * 1000); // refresh sessions every minute
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
+  useEffect(()=>{
     checkAuth();
-    fetchUsers();
-  }, []);
+  }, [])
 
+
+useEffect(() => {
+  let didCancel = false;
+  const loadData = async () => {
+    try {
+      // Run all fetches in parallel for faster load
+      await Promise.all([
+        fetchUsers(),
+        fetchservices(),
+        fetchAdvances(),
+        fetchTagFees(),
+        fetchLateFees(),
+        fetchExpenses(),
+      ]);
+    } catch (err) {
+      console.error("❌ Error while loading data:", err);
+    } finally {
+      // ✅ even if something fails, don't stay stuck loading
+      if (!didCancel) {
+        setIsDataLoaded(true);
+      }
+    }
+  };
+
+  loadData();
+
+  // ⏰ Safety timeout: after 5 seconds, show dashboard even if data is incomplete
+  const timeout = setTimeout(() => {
+    if (!didCancel) {
+      setIsDataLoaded(true);
+    }
+  }, 50000);
+
+  return () => {
+    didCancel = true;
+    clearTimeout(timeout);
+  };
+}, []);
   // ---------- Export ----------
   return (
     <DataContext.Provider
@@ -664,6 +585,7 @@ export const DataProvider = ({ children }) => {
         loading,
         lateFees,
         tagFees,
+        isDataLoaded,
         fetchAllData,
         sendFormData,
         fetchDailyData,

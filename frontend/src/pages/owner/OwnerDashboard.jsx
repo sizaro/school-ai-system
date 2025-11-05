@@ -36,21 +36,20 @@ export default function OwnerDashboard() {
     createTagFee,
     updateTagFee,
     deleteTagFee,
-    loading,
+    isDataLoaded,
   } = useData();
 
-  // Wait until users is loaded
-  if (!users || users.length === 0 || loading) {
-    return <div className="text-center py-20">Loading...</div>;
-  }
 
-  const Employees = users.filter(
+  const Employees = (users || []).filter(
     (user) =>
       `${user.first_name} ${user.last_name}`.toLowerCase() !== "ntege saleh" &&
       user.role !== "customer"
   );
 
-  const Customers = users.filter((user) => user.role === "customer");
+
+
+
+  const Customers = (users || []).filter((user) => user.role === "customer");
 
   const formatTime12h = (time24) => {
     if (!time24) return "N/A";
@@ -120,9 +119,9 @@ export default function OwnerDashboard() {
     else setSalonStatus("closed");
   }, [sessions]);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+useEffect(()=>{
+  fetchUsers()
+},[])
 
   const handleStatusUpdate = async (serviceId, newStatus, cancel_reason = null) => {
     try {
@@ -146,7 +145,6 @@ export default function OwnerDashboard() {
 
   return (
     <>
-      {loading && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">Loading...</div>}
 
       <div className="space-y-10">
         <div className="space-y-10">
