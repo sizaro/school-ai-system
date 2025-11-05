@@ -47,8 +47,6 @@ export default function OwnerDashboard() {
   );
 
 
-
-
   const Customers = (users || []).filter((user) => user.role === "customer");
 
   const formatTime12h = (time24) => {

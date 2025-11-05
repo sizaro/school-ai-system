@@ -532,45 +532,6 @@ export const DataProvider = ({ children }) => {
   useEffect(()=>{
     checkAuth();
   }, [])
-
-
-useEffect(() => {
-  let didCancel = false;
-  const loadData = async () => {
-    try {
-      // Run all fetches in parallel for faster load
-      await Promise.all([
-        fetchUsers(),
-        fetchservices(),
-        fetchAdvances(),
-        fetchTagFees(),
-        fetchLateFees(),
-        fetchExpenses(),
-      ]);
-    } catch (err) {
-      console.error("❌ Error while loading data:", err);
-    } finally {
-      // ✅ even if something fails, don't stay stuck loading
-      if (!didCancel) {
-        setIsDataLoaded(true);
-      }
-    }
-  };
-
-  loadData();
-
-  // ⏰ Safety timeout: after 5 seconds, show dashboard even if data is incomplete
-  const timeout = setTimeout(() => {
-    if (!didCancel) {
-      setIsDataLoaded(true);
-    }
-  }, 50000);
-
-  return () => {
-    didCancel = true;
-    clearTimeout(timeout);
-  };
-}, []);
   // ---------- Export ----------
   return (
     <DataContext.Provider
