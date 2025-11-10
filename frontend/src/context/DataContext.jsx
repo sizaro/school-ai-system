@@ -487,7 +487,7 @@ export const DataProvider = ({ children }) => {
           await fetchAllData();
           break;
         case "createClocking":
-          res = await axios.post(`${API_URL}/clockings`, formData);
+          res = await axios.post(`${API_URL}/clockings`, formData,);
           await fetchAllData();
           break;
         case "updateClocking":
@@ -498,8 +498,8 @@ export const DataProvider = ({ children }) => {
         case "closeSalon":
           res =
             formIdentifier === "openSalon"
-              ? await axios.post(`${API_URL}/sessions`, formData)
-              : await axios.put(`${API_URL}/sessions`, formData);
+              ? await axios.post(`${API_URL}/sessions`, formData,  { withCredentials: true })
+              : await axios.put(`${API_URL}/sessions`, formData,  { withCredentials: true });
           await fetchSessions();
           break;
         default:

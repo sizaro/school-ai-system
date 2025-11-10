@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 
-const serviceMap = {
+const menMap = {
   '7000-service': { serviceAmount: 7000, salonAmount: 4000, barberAmount: 2000, barberAssistantAmount: 1000 },
   '6000-service': { serviceAmount: 6000, salonAmount: 3000, barberAmount: 2000, barberAssistantAmount: 1000 },
   '5000-service': { serviceAmount: 5000, salonAmount: 3000, barberAmount: 2000 },
@@ -21,8 +21,100 @@ const serviceMap = {
   'superblack-only-8000': { serviceAmount: 8000, salonAmount: 6000, superBlackAssistantAmount: 2000 }
 };
 
-export default function ServiceForm({ onSubmit, onClose, services, serviceData, Employees, isCustomer = false, createdBy, serviceStatus, customerId=null }) {
+const womenMap = {
+  'Cornrows (Natural Kiswahili) 10000': { serviceAmount: 10000, salonAmount: 5000, womenEmployeeAmount: 5000 },
+  'Cornrows with Braids (Kiswahili with Braids) 20000': { serviceAmount: 20000, salonAmount: 10000, womenEmployeeAmount: 10000 },
+  'Kinky Hairstyles 30000': { serviceAmount: 30000, salonAmount: 15000, womenEmployeeAmount: 15000 },
+  'Twist Small 45000': { serviceAmount: 45000, salonAmount: 22500, womenEmployeeAmount: 22500 },
+  'Twist Big 35000': { serviceAmount: 35000, salonAmount: 17500, womenEmployeeAmount: 17500 },
+  'Spring Twist 20000': { serviceAmount: 20000, salonAmount: 10000, womenEmployeeAmount: 10000 },
+  'Kinky Twist 30000': { serviceAmount: 30000, salonAmount: 15000, womenEmployeeAmount: 15000 },
+  'Braids (Kanasatu) 30000': { serviceAmount: 30000, salonAmount: 15000, womenEmployeeAmount: 15000 },
+  'Crochet Braids 30000': { serviceAmount: 30000, salonAmount: 15000, womenEmployeeAmount: 15000 },
+  'Knotless Braids 35000': { serviceAmount: 35000, salonAmount: 17500, womenEmployeeAmount: 17500 },
+  'Coco Twist 35000': { serviceAmount: 35000, salonAmount: 17500, womenEmployeeAmount: 17500 },
+  'Natural Dreads 60000': { serviceAmount: 60000, salonAmount: 30000, womenEmployeeAmount: 30000 },
+  'Artificial Dreads 50000': { serviceAmount: 50000, salonAmount: 25000, womenEmployeeAmount: 25000 },
+  'Pro Dry Movit 7000': { serviceAmount: 7000, salonAmount: 5000, womenEmployeeAmount: 2000 },
+  'Pro Dry Radiant 10000': { serviceAmount: 10000, salonAmount: 7000, womenEmployeeAmount: 3000 },
+  'Pro Dry Retouch 25000': { serviceAmount: 25000, salonAmount: 15000, womenEmployeeAmount: 10000 },
+  'Retouch 35k 35000': { serviceAmount: 35000, salonAmount: 20000, womenEmployeeAmount: 15000 },
+  'Retouch 45k 45000': { serviceAmount: 45000, salonAmount: 30000, womenEmployeeAmount: 15000 },
+  'Simple Makeup 5000': { serviceAmount: 5000, salonAmount: 3000, womenEmployeeAmount: 2000 },
+  'Simple Makeup 10000': { serviceAmount: 10000, salonAmount: 7000, womenEmployeeAmount: 3000 },
+  'Repair 20000': { serviceAmount: 20000, salonAmount: 10000, womenEmployeeAmount: 10000 },
+  'Dreadlock Repair 25000': { serviceAmount: 25000, salonAmount: 12500, womenEmployeeAmount: 12500 },
+  'Pencil Hairstyle 35000': { serviceAmount: 35000, salonAmount: 17500, womenEmployeeAmount: 17500 },
+};
+
+
+const nailsMap = {
+  // Nail Cutting
+  'Nail Cutting Hands 3000': { serviceAmount: 3000, salonAmount: 1500, nailEmployeeAmount: 1500 },
+  'Nail Cutting Feet 3000': { serviceAmount: 3000, salonAmount: 1500, nailEmployeeAmount: 1500 },
+  'Nail Cutting Both 6000': { serviceAmount: 6000, salonAmount: 3000, nailEmployeeAmount: 3000 },
+
+  // Henne
+  'Henne Hands Low 5000': { serviceAmount: 5000, salonAmount: 2500, nailEmployeeAmount: 2500 },
+  'Henne Feet Low 5000': { serviceAmount: 5000, salonAmount: 2500, nailEmployeeAmount: 2500 },
+  'Henne Hands High 10000': { serviceAmount: 10000, salonAmount: 5000, nailEmployeeAmount: 5000 },
+  'Henne Feet High 10000': { serviceAmount: 10000, salonAmount: 5000, nailEmployeeAmount: 5000 },
+  'Henne Both High 20000': { serviceAmount: 20000, salonAmount: 10000, nailEmployeeAmount: 10000 },
+
+  // Normal Polish
+  'Normal Polish Hands 5000': { serviceAmount: 5000, salonAmount: 2500, nailEmployeeAmount: 2500 },
+  'Normal Polish Feet 5000': { serviceAmount: 5000, salonAmount: 2500, nailEmployeeAmount: 2500 },
+  'Normal Polish Both 10000': { serviceAmount: 10000, salonAmount: 5000, nailEmployeeAmount: 5000 },
+
+  // Foot Scrubbing
+  'Foot Scrubbing Low 10000': { serviceAmount: 10000, salonAmount: 5000, nailEmployeeAmount: 5000 },
+  'Foot Scrubbing High 15000': { serviceAmount: 15000, salonAmount: 7500, nailEmployeeAmount: 7500 },
+
+  // Gel Polish
+  'Gel Polish Hands Low 10000': { serviceAmount: 10000, salonAmount: 5000, nailEmployeeAmount: 5000 },
+  'Gel Polish Feet Low 10000': { serviceAmount: 10000, salonAmount: 5000, nailEmployeeAmount: 5000 },
+  'Gel Polish Hands High 15000': { serviceAmount: 15000, salonAmount: 7500, nailEmployeeAmount: 7500 },
+  'Gel Polish Feet High 15000': { serviceAmount: 15000, salonAmount: 7500, nailEmployeeAmount: 7500 },
+  'Gel Polish Both 20000': { serviceAmount: 20000, salonAmount: 10000, nailEmployeeAmount: 10000 },
+  'Gel Polish Both High 30000': { serviceAmount: 30000, salonAmount: 15000, nailEmployeeAmount: 15000 },
+
+  // Artificial + Gel
+  'Artificial + Gel Hands 20000': { serviceAmount: 20000, salonAmount: 10000, nailEmployeeAmount: 10000 },
+  'Artificial + Gel Feet 20000': { serviceAmount: 20000, salonAmount: 10000, nailEmployeeAmount: 10000 },
+  'Artificial + Gel Both 40000': { serviceAmount: 40000, salonAmount: 20000, nailEmployeeAmount: 20000 },
+
+  // Artificial + Normal
+  'Artificial + Normal Hands Low 10000': { serviceAmount: 10000, salonAmount: 5000, nailEmployeeAmount: 5000 },
+  'Artificial + Normal Feet Low 10000': { serviceAmount: 10000, salonAmount: 5000, nailEmployeeAmount: 5000 },
+  'Artificial + Normal Hands High 15000': { serviceAmount: 15000, salonAmount: 7500, nailEmployeeAmount: 7500 },
+  'Artificial + Normal Feet High 15000': { serviceAmount: 15000, salonAmount: 7500, nailEmployeeAmount: 7500 },
+  'Artificial + Normal Both Low 20000': { serviceAmount: 20000, salonAmount: 10000, nailEmployeeAmount: 10000 },
+  'Artificial + Normal Both High 30000': { serviceAmount: 30000, salonAmount: 15000, nailEmployeeAmount: 15000 },
+
+  // Builder
+  'Builder Hands 25000': { serviceAmount: 25000, salonAmount: 12500, nailEmployeeAmount: 12500 },
+  'Builder Feet 25000': { serviceAmount: 25000, salonAmount: 12500, nailEmployeeAmount: 12500 },
+  'Builder Both 50000': { serviceAmount: 50000, salonAmount: 25000, nailEmployeeAmount: 25000 },
+
+  // Airbrush Design
+  'Airbrush Design Hands 5000': { serviceAmount: 5000, salonAmount: 2500, nailEmployeeAmount: 2500 },
+  'Airbrush Design Feet 5000': { serviceAmount: 5000, salonAmount: 2500, nailEmployeeAmount: 2500 },
+  'Airbrush Design Both 10000': { serviceAmount: 10000, salonAmount: 5000, nailEmployeeAmount: 5000 },
+
+  // Polygel
+  'Polygel Hands 30000': { serviceAmount: 30000, salonAmount: 15000, nailEmployeeAmount: 15000 },
+  'Polygel Feet 30000': { serviceAmount: 30000, salonAmount: 15000, nailEmployeeAmount: 15000 },
+  'Polygel Both 60000': { serviceAmount: 60000, salonAmount: 30000, nailEmployeeAmount: 30000 },
+
+  // Power Nail
+  'Power Nail Hands 30000': { serviceAmount: 30000, salonAmount: 15000, nailEmployeeAmount: 15000 },
+  'Power Nail Feet 30000': { serviceAmount: 30000, salonAmount: 15000, nailEmployeeAmount: 15000 },
+  'Power Nail Both 60000': { serviceAmount: 60000, salonAmount: 30000, nailEmployeeAmount: 30000 },
+};
+
+export default function ServiceForm({ onSubmit, onClose, serviceData, Employees, isCustomer = false, createdBy, serviceStatus, customerId=null, Services}) {
   const [formData, setFormData] = useState({
+    section: "",
     service: "",
     barber: "",
     barberAssistant: "",
@@ -36,6 +128,10 @@ export default function ServiceForm({ onSubmit, onClose, services, serviceData, 
     status: serviceStatus,
     appointment_time:"",
     appointment_date: "",
+    womenEmployeeId: '',
+    womenEmployeeAmount: '',
+    nailEmployeeId: '',
+    nailEmployeeAmount: '',
     customer_id: customerId,
   });
 
@@ -46,29 +142,68 @@ export default function ServiceForm({ onSubmit, onClose, services, serviceData, 
   const [serviceAmount, setServiceAmount] = useState(0); // Added for dynamic service amount display
   const [employees, setFilteredEmployees] = useState([]);
 
+  
+const [section, setSection] = useState("");
+const [services, setServices] = useState([]);
+const handleSectionChange = (section) => {
+  if (section === "men") {
+    const menServices = Object.keys(menMap);
+    setServices(menServices);
+    setSection(section);
+    setFormData((prev) => ({ ...prev, section })); // ✅ update formData.section
+  } 
+  else if (section === "women") {
+    const womenServices = Object.keys(womenMap);
+    setServices(womenServices);
+    setSection(section);
+    setFormData((prev) => ({ ...prev, section })); // ✅ update formData.section
+  } 
+  else if (section === "nails") {
+    const nailServices = Object.keys(nailsMap);
+    setServices(nailServices);
+    setSection(section);
+    setFormData((prev) => ({ ...prev, section:section}))
+  } 
+  else {
+    setServices([]);
+    setSection("");
+    setFormData((prev) => ({ ...prev, section: "" })); // ✅ reset formData.section
+  }
+};
 
-  useEffect(() => {
-    if (serviceData) {
-      setFormData({
-        id: serviceData.id,
-        service: serviceData.name || "",
-        barber: serviceData.barber || null,
-        barberAssistant: serviceData.barber_assistant || null,
-        scrubberAssistant: serviceData.scrubber_assistant || null,
-        blackMaskAssistant: serviceData.black_mask_assistant || null,
-        blackShampooAssistant: serviceData.black_shampoo_assistant || null,
-        superBlackAssistant: serviceData.super_black_assistant || null,
-        service_timestamp: serviceData.service_timestamp,
-      });
-    }
-  }, [serviceData]);
+
+
+useEffect(() => {
+  if (serviceData) {
+    setFormData({
+      id: serviceData.id || "",
+      section: serviceData.section || "",
+      service: serviceData.name || "",
+      barber: serviceData.barber || null,
+      barberAssistant: serviceData.barber_assistant || null,
+      scrubberAssistant: serviceData.scrubber_assistant || null,
+      blackMaskAssistant: serviceData.black_mask_assistant || null,
+      blackShampooAssistant: serviceData.black_shampoo_assistant || null,
+      superBlackAssistant: serviceData.super_black_assistant || null,
+      wome_emp:serviceData.wome_emp,
+      women_emp_amt: serviceData.women_emp_amt || "",
+      naile_emp:serviceData.nail_emp,
+      nail_emp_amt: serviceData.nail_emp_amt || "",
+      service_timestamp: serviceData.service_timestamp || "",
+    });
+  }
+}, [serviceData]);
 
   // Update service amount dynamically
-  useEffect(() => {
-    const selected = serviceMap[formData.service];
+ useEffect(() => {
+    const currentMap =
+      section === "men" ? menMap :
+      section === "women" ? womenMap :
+      section === "nails" ? nailsMap :
+      {};
+    const selected = currentMap[formData.service];
     setServiceAmount(selected ? selected.serviceAmount : 0);
-  }, [formData.service]);
-
+  }, [formData.service, section]);
   useEffect(() => {
   if (!formData.appointment_date || !formData.appointment_time) {
     setFilteredEmployees(Employees);
@@ -76,7 +211,7 @@ export default function ServiceForm({ onSubmit, onClose, services, serviceData, 
   }
 
   // Filter out employees who already have CONFIRMED services at the selected date & time
-  const unavailableEmployeeIds = services
+  const unavailableEmployeeIds = Services
     ?.filter(
       (service) =>
         service.status === "confirmed" && // ✅ Only confirmed services matter
@@ -91,7 +226,7 @@ export default function ServiceForm({ onSubmit, onClose, services, serviceData, 
       s.black_shampoo_assistant_id,
       s.super_black_assistant_id,
     ])
-    .filter(Boolean); // remove null or undefined IDs
+    .filter(Boolean);
 
   const availableEmployees = Employees.filter(
     (emp) => !unavailableEmployeeIds.includes(emp.id)
@@ -111,6 +246,7 @@ export default function ServiceForm({ onSubmit, onClose, services, serviceData, 
     e.preventDefault();
     const {
       id,
+      section,
       service,
       barber,
       barberAssistant,
@@ -139,44 +275,66 @@ if (formattedTime) {
   formattedTime = `${hours.toString().padStart(2, "0")}:${minutes}`;
 }
 
-    const calculation = serviceMap[service];
-    if (!calculation) return alert('Invalid service selected');
-
-  const toNullableNumber = (val) => {
-  if (val === "" || val === " " || val === null || val === undefined) {
-    return null;
-  }
-  return Number(val); // convert valid value to number
+   // All service maps
+const allMaps = {
+  men: menMap,
+  women: womenMap,
+  nails: nailsMap,
 };
 
+// Convert empty values to null and ensure numbers
+const toNullableNumber = (val) => {
+  if (val === "" || val === " " || val === null || val === undefined) return null;
+  return Number(val);
+};
 
-  const payload = {
+// Grab the map for the current section
+const calculationMap = allMaps[formData.section];
+if (!calculationMap) return alert("Invalid section selected");
+
+// Grab the service calculation object
+const calculation = calculationMap[formData.service];
+if (!calculation) return alert("Invalid service selected");
+
+// Build payload dynamically based on section
+const payload = {
   id,
-  name: service,
+  section: formData.section,
+  name: formData.service,
   service_amount: calculation.serviceAmount || 0,
   salon_amount: calculation.salonAmount || 0,
-  barber_id: toNullableNumber(barber),
-  barber_amount: calculation.barberAmount || 0,
-  barber_assistant_id: toNullableNumber(barberAssistant),
-  barber_assistant_amount: calculation.barberAssistantAmount || 0,
-  scrubber_assistant_id: toNullableNumber(scrubberAssistant),
-  scrubber_assistant_amount: calculation.scrubAssistantAmount || 0,
-  black_shampoo_assistant_id: toNullableNumber(blackShampooAssistant),
-  black_shampoo_assistant_amount: calculation.blackShampooAssistantAmount || 0,
-  black_shampoo_amount: calculation.blackShampooAmount || 0,
-  super_black_assistant_id: toNullableNumber(superBlackAssistant),
-  super_black_assistant_amount: calculation.superBlackAssistantAmount || 0,
-  super_black_amount: calculation.superBlackAmount || 0,
-  black_mask_assistant_id: toNullableNumber(blackMaskAssistant),
-  black_mask_assistant_amount: calculation.blackMaskAssistantAmount || 0,
-  black_mask_amount: calculation.blackMaskAmount || 0,
-  customer_note: customerNote,
+  customer_note: formData.customerNote,
   created_by,
   status,
-  appointment_date,
-  appointment_time: formattedTime,
-  customer_id,
-  service_timestamp,
+  appointment_date: formData.appointment_date,
+  appointment_time: formData.appointment_time,
+  customer_id: formData.customer_id,
+  service_timestamp: formData.service_timestamp,
+  
+  // Men-specific fields
+  barber_id: formData.section === "men" ? toNullableNumber(formData.barber) : null,
+  barber_amount: formData.section === "men" ? calculation.barberAmount || 0 : 0,
+  barber_assistant_id: formData.section === "men" ? toNullableNumber(formData.barberAssistant) : null,
+  barber_assistant_amount: formData.section === "men" ? calculation.barberAssistantAmount || 0 : 0,
+  scrubber_assistant_id: formData.section === "men" ? toNullableNumber(formData.scrubberAssistant) : null,
+  scrubber_assistant_amount: formData.section === "men" ? calculation.scrubAssistantAmount || 0 : 0,
+  black_shampoo_assistant_id: formData.section === "men" ? toNullableNumber(formData.blackShampooAssistant) : null,
+  black_shampoo_assistant_amount: formData.section === "men" ? calculation.blackShampooAssistantAmount || 0 : 0,
+  black_shampoo_amount: formData.section === "men" ? calculation.blackShampooAmount || 0 : 0,
+  super_black_assistant_id: formData.section === "men" ? toNullableNumber(formData.superBlackAssistant) : null,
+  super_black_assistant_amount: formData.section === "men" ? calculation.superBlackAssistantAmount || 0 : 0,
+  super_black_amount: formData.section === "men" ? calculation.superBlackAmount || 0 : 0,
+  black_mask_assistant_id: formData.section === "men" ? toNullableNumber(formData.blackMaskAssistant) : null,
+  black_mask_assistant_amount: formData.section === "men" ? calculation.blackMaskAssistantAmount || 0 : 0,
+  black_mask_amount: formData.section === "men" ? calculation.blackMaskAmount || 0 : 0,
+
+  // Women-specific fields
+  women_employee_id: formData.section === "women" ? toNullableNumber(formData.womenEmployeeId) : null,
+  women_employee_amount: formData.section === "women" ? calculation.womenEmployeeAmount || 0 : 0,
+
+  // Nails-specific fields
+  nail_employee_id: formData.section === "nails" ? toNullableNumber(formData.nailEmployeeId) : null,
+  nail_employee_amount: formData.section === "nails" ? calculation.nailEmployeeAmount || 0 : 0,
 };
 
 
@@ -187,35 +345,38 @@ if (formattedTime) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto h-[80vh]">
-      {/* Service selection */}
-      <div>
-        <label className="block mb-1 font-medium">Choose service</label>
-        <select
-          name="service"
-          value={formData.service}
-          onChange={handleChange}
-          className="w-full border rounded px-2 py-1"
-        >
-          <option value=""></option>
-          <option value="7000-service">7000 service</option>
-          <option value="6000-service">6000 service</option>
-          <option value="5000-service">5000 service</option>
-          <option value="child-service">Child Service</option>
-          <option value="beard-service">Beard Service</option>
-          <option value="haircut-blackmask-12000">Haircut + Blackmask (12000)</option>
-          <option value="haircut-blackshampoo-12000">Haircut + Blackshampoo (12000)</option>
-          <option value="trimming-scrub-5000">Trimming + Scrub (5000)</option>
-          <option value="haircut-honey-10000">Haircut + Honey (10000)</option>
-          <option value="haircut-women">Haircut Women</option>
-          <option value="haircut-blackshampoo-10000">Haircut + Blackshampoo (10000)</option>
-          <option value="haircut-superblack-15000">Haircut + SuperBlack (15000)</option>
-          <option value="scrub-only-3000">Scrub only (3000)</option>
-          <option value="scrub-only-5000">Scrub only (5000)</option>
-          <option value="blackshampoo-only-3000">Blackshampoo only (3000)</option>
-          <option value="blackshampoo-only-5000">Blackshampoo only (5000)</option>
-          <option value="superblack-only-8000">superblack only (8000)</option>
-        </select>
-      </div>
+     
+      
+<div>
+  <label>Choose Section</label>
+    <select value={section} onChange={(e) => handleSectionChange(e.target.value)} className="w-full border rounded px-2 py-1">
+      <option value="">Select Section</option>
+      <option value="men">Men</option>
+      <option value="women">Women</option>
+      <option value="nails">Nails</option>
+    </select>
+ </div>
+
+
+ <div>
+  <label>Choose Service</label>
+  <select
+    value={formData.service || ""} 
+    onChange={(e) => handleChange(e)}
+    name="service"
+    className="w-full border rounded px-2 py-1"
+  >
+    <option value="">Select Service </option>
+    {services.map((serviceName) => (
+      <option key={serviceName} value={serviceName}>
+        {serviceName}
+      </option>
+    ))}
+  </select>
+</div>
+
+
+
 
       {isCustomer && (
   <>
@@ -258,6 +419,14 @@ if (formattedTime) {
   </>
 )}
 
+
+
+
+{/* MEN SECTION */}
+{section === 'men' && (
+  <div className="">
+
+     {/* Service selection */}
     {/* 7000-service */}
     {formData.service === "7000-service" && (
       <>
@@ -838,7 +1007,62 @@ if (formattedTime) {
       </div>
       )}
 
-      {isCustomer && (
+  </div>
+)}
+
+{/* WOMEN SECTION */}
+{section === 'women' && (
+  <div className="women-section">
+    {/* Render choose worker only if a service has been chosen */}
+    {formData.service && (
+      <div>
+        <label className="block mb-1">Choose Worker</label>
+        <select
+          name="womenEmployeeId"
+          value={formData.womenEmployeeId|| ""}
+          onChange={handleChange}
+          className="w-full border rounded px-2 py-1"
+        >
+          <option value="">Select Worker</option>
+          {employees.map((emp) => (
+            <option key={emp.id} value={emp.id}>
+              {emp.first_name} {emp.last_name}
+            </option>
+          ))}
+        </select>
+      </div>
+    )}
+  </div>
+
+ 
+)}
+
+{/* NAILS SECTION */}
+{section === 'nails' && (
+  <div className="nails-section">
+    {/* Show select only if service is chosen */}
+    {formData.service && (
+      <div>
+        <label className="block mb-1">Choose Nail Technician</label>
+        <select
+          name="nailEmployeeId"
+          value={formData.nailEmployeeId|| ""}
+          onChange={handleChange}
+          className="w-full border rounded px-2 py-1"
+        >
+          <option value="">Select Worker</option>
+          {employees.map((emp) => (
+            <option key={emp.id} value={emp.id}>
+              {emp.first_name} {emp.last_name}
+            </option>
+          ))}
+        </select>
+      </div>
+    )}
+  </div>
+)}
+      
+    {isCustomer && (
         <>
           <p className="text-sm text-gray-700 bg-yellow-100 p-2 rounded">
             Note: Your appointment will only remain valid for <b>10 minutes</b> after the scheduled time.
@@ -873,3 +1097,4 @@ if (formattedTime) {
     </form>
   );
 }
+

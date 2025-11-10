@@ -20,7 +20,7 @@ export default function customerDashboard() {
   // Filter employees (exclude Saleh & customers)
   const employees = useMemo(
     () =>
-      users.filter(
+      (users || []).filter(
         (user) =>
           `${user.first_name} ${user.last_name}`.toLowerCase() !== "saleh ntege" &&
           user.role !== "customer"

@@ -66,6 +66,44 @@ const OwnerIncomeDailyReport = () => {
     }
   };
 
+// ---- SECTION CALCULATIONS ----
+const sectionData = {
+  men: services.filter((s) => s.section === "men"),
+  women: services.filter((s) => s.section === "women"),
+  nails: services.filter((s) => s.section === "nails"),
+};
+
+const calculateSectionTotals = (sectionServices) => {
+  const gross = sectionServices.reduce(
+    (sum, s) => sum + (parseInt(s.service_amount, 10) || 0),
+    0
+  );
+
+  const employeeSalary = sectionServices.reduce((sum, s) => {
+    return (
+      sum +
+      (parseInt(s.barber_amount, 10) || 0) +
+      (parseInt(s.barber_assistant_amount, 10) || 0) +
+      (parseInt(s.scrubber_assistant_amount, 10) || 0) +
+      (parseInt(s.black_shampoo_assistant_amount, 10) || 0) +
+      (parseInt(s.super_black_assistant_amount, 10) || 0) +
+      (parseInt(s.black_mask_assistant_amount, 10) || 0) +
+      (parseInt(s.women_emp_amt, 10) || 0) +
+      (parseInt(s.nail_emp_amt, 10) || 0)
+    );
+  }, 0);
+
+  const cashAvailable = gross - employeeSalary;
+
+  return { gross, employeeSalary, cashAvailable };
+};
+
+// Calculate totals for each section
+const menTotals = calculateSectionTotals(sectionData.men);
+const womenTotals = calculateSectionTotals(sectionData.women);
+const nailsTotals = calculateSectionTotals(sectionData.nails);
+
+
   // ---- Totals Calculation ----
   const calculateTotals = (services, expenses, advances, tagFees, lateFees) => {
     const grossIncome = services.reduce(
@@ -81,7 +119,9 @@ const OwnerIncomeDailyReport = () => {
         (parseInt(s.scrubber_assistant_amount, 10) || 0) +
         (parseInt(s.black_shampoo_assistant_amount, 10) || 0) +
         (parseInt(s.super_black_assistant_amount, 10) || 0) +
-        (parseInt(s.black_mask_assistant_amount, 10) || 0)
+        (parseInt(s.black_mask_assistant_amount, 10) || 0)+
+        (parseInt(s.women_emp_amt, 10) || 0) +
+        (parseInt(s.nail_emp_amt, 10) || 0)
       );
     }, 0);
 
@@ -280,6 +320,50 @@ const OwnerIncomeDailyReport = () => {
               )}
             </div>
           </section>
+
+
+{/* ---- SECTION SUMMARIES ---- */}
+{[
+  { label: "Men’s", totals: menTotals },
+  { label: "Women’s", totals: womenTotals },
+  { label: "Nails", totals: nailsTotals },
+].map(({ label, totals }) => (
+  <section
+    key={label}
+    className="bg-white shadow-md rounded-lg p-4 mb-6"
+  >
+    <h2 className="text-xl font-semibold text-blue-700 mb-4">
+      {label} Section Summary
+    </h2>
+
+    <div className="flex flex-wrap gap-4">
+      {/* Gross Income */}
+      <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
+        <span className="font-medium text-gray-700">Gross Income</span>
+        <span className="text-blue-700 text-xl font-bold">
+          {(totals.gross || 0).toLocaleString()} UGX
+        </span>
+      </div>
+
+      {/* Employees Salary */}
+      <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
+        <span className="font-medium text-gray-700">Employees Salary</span>
+        <span className="text-blue-700 text-xl font-bold">
+          {(totals.employeeSalary || 0).toLocaleString()} UGX
+        </span>
+      </div>
+
+      {/* Cash Available */}
+      <div className="flex flex-col justify-center items-center bg-blue-100 border border-blue-300 rounded-lg shadow-md p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
+        <span className="font-semibold text-gray-800">Cash Available</span>
+        <span className="text-green-700 text-xl font-bold">
+          {(totals.cashAvailable || 0).toLocaleString()} UGX
+        </span>
+      </div>
+    </div>
+  </section>
+))}
+
 
           {/* SUMMARY Section in Divs */}
           <section className="bg-white shadow-md rounded-lg p-4 mb-6">

@@ -7,10 +7,8 @@ import { motion } from "framer-motion";
 export default function About() {
   const { users } = useData();
 
-  // Set backend image base URL
-  const imageBaseUrl = import.meta.env.VITE_API_URL
-    ? import.meta.env.VITE_API_URL.replace("/api", "")
-    : "https://salonmanagementsystem.onrender.com"; // production backend URL
+  // Absolute backend base URL (Render backend)
+  const backendBaseUrl = "https://salonmanagementsystem.onrender.com";
 
   // Identify owner, manager, and employees
   const owner = users.find((u) => u.role === "owner") || {};
@@ -22,20 +20,17 @@ export default function About() {
   // Helper to get full name
   const fullName = (user) => `${user.last_name || ""}`;
 
-  // Helper to get image or fallback
-  const getImage = (user, fallback) => {
-    if (!user?.image_url || user.image_url === "-") return fallback;
-    const sanitizedUrl = user.image_url.startsWith("/")
-      ? user.image_url
-      : `/${user.image_url}`;
-    return `${imageBaseUrl}${sanitizedUrl}`;
-  };
+  // Helper to get image URL with fallback
+ const getImage = (user, fallback) => {
+  if (!user?.image_url || user.image_url === "-") return fallback;
+  return `${backendBaseUrl}/uploads/images/${user.image_url}`;
+};
 
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col">
       <Navbar />
 
-      {/* Hero Section: Salon Owner */}
+      {/* Hero Section */}
       <header className="bg-gradient-to-r from-blue-700 to-blue-500 text-white py-20 text-center">
         <h1 className="md:text-5xl text-2xl font-bold mb-4">
           About Salehish Beauty Parlour & Spa
@@ -54,10 +49,9 @@ export default function About() {
             <img
               src={getImage(owner, "/images/default_owner.webp")}
               alt={fullName(owner)}
-              className=""
+              className="rounded-xl shadow-lg"
             />
           </div>
-
           <div>
             <h2 className="text-3xl font-bold text-gray-800 mb-2">
               {fullName(owner)}

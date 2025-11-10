@@ -3,7 +3,7 @@ import {
   fetchAllServices,
   fetchServiceById,
   UpdateServiceById,
-  DeleteServiceById, 
+  DeleteServiceById,
   UpdateServiceByIdt
 } from "../models/servicesModel.js";
 
@@ -14,6 +14,7 @@ export const createService = async (req, res) => {
   try {
     const {
       id,
+      section,
       name,
       service_amount,
       salon_amount,
@@ -32,6 +33,10 @@ export const createService = async (req, res) => {
       black_mask_assistant_id,
       black_mask_assistant_amount,
       black_mask_amount,
+      women_employee_id,
+      women_employee_amount,
+      nail_employee_id,
+      nail_employee_amount,
       customer_note,
       created_by,
       status,
@@ -41,10 +46,11 @@ export const createService = async (req, res) => {
       service_timestamp
     } = req.body;
 
-    console.log("🟢 Received service creation request:");
+    console.log("🟢 Received service creation request:", req.body);
 
     const newService = await saveService({
       id,
+      section,
       name,
       service_amount,
       salon_amount,
@@ -63,6 +69,10 @@ export const createService = async (req, res) => {
       black_mask_assistant_id,
       black_mask_assistant_amount,
       black_mask_amount,
+      women_employee_id,
+      women_employee_amount,
+      nail_employee_id,
+      nail_employee_amount,
       customer_note,
       created_by,
       status,
@@ -74,7 +84,7 @@ export const createService = async (req, res) => {
 
     res.status(201).json({
       message: "✅ Service/Appointment created successfully",
-      data: newService
+      data: newService,
     });
   } catch (err) {
     console.error("❌ Error creating service:", err);
@@ -117,6 +127,7 @@ export const updateService = async (req, res) => {
   try {
     const {
       id,
+      section,
       name,
       service_amount,
       salon_amount,
@@ -135,22 +146,26 @@ export const updateService = async (req, res) => {
       black_mask_assistant_id,
       black_mask_assistant_amount,
       black_mask_amount,
+      women_employee_id,
+      women_employee_amount,
+      nail_employee_id,
+      nail_employee_amount,
       customer_note,
       created_by,
       status,
       appointment_date,
       appointment_time,
       customer_id,
-      service_timestamp
+      service_timestamp,
     } = req.body;
 
     if (!id) return res.status(400).json({ error: "Missing service ID" });
 
-    // Handle new file upload
     const image_url = req.file ? `/uploads/${req.file.filename}` : req.body.image_url || null;
 
     const updatedService = await UpdateServiceById({
       id,
+      section,
       name,
       service_amount,
       salon_amount,
@@ -169,6 +184,10 @@ export const updateService = async (req, res) => {
       black_mask_assistant_id,
       black_mask_assistant_amount,
       black_mask_amount,
+      women_employee_id,
+      women_employee_amount,
+      nail_employee_id,
+      nail_employee_amount,
       customer_note,
       created_by,
       status,
@@ -184,7 +203,7 @@ export const updateService = async (req, res) => {
 
     res.status(200).json({
       message: "✅ Service updated successfully",
-      data: updatedService
+      data: updatedService,
     });
   } catch (err) {
     console.error("Error updating service:", err);
@@ -192,16 +211,14 @@ export const updateService = async (req, res) => {
   }
 };
 
-
-
-
 /**
- * Update service by ID
+ * Update service by ID (alternate)
  */
 export const updateServicet = async (req, res) => {
   try {
     const {
       id,
+      section,
       name,
       service_amount,
       salon_amount,
@@ -220,22 +237,26 @@ export const updateServicet = async (req, res) => {
       black_mask_assistant_id,
       black_mask_assistant_amount,
       black_mask_amount,
+      women_employee_id,
+      women_employee_amount,
+      nail_employee_id,
+      nail_employee_amount,
       customer_note,
       created_by,
       status,
       appointment_date,
       appointment_time,
       customer_id,
-      service_timestamp
+      service_timestamp,
     } = req.body;
 
     if (!id) return res.status(400).json({ error: "Missing service ID" });
 
-    // Handle new file upload
     const image_url = req.file ? `/uploads/${req.file.filename}` : req.body.image_url || null;
 
     const updatedService = await UpdateServiceByIdt({
       id,
+      section,
       name,
       service_amount,
       salon_amount,
@@ -254,6 +275,10 @@ export const updateServicet = async (req, res) => {
       black_mask_assistant_id,
       black_mask_assistant_amount,
       black_mask_amount,
+      women_employee_id,
+      women_employee_amount,
+      nail_employee_id,
+      nail_employee_amount,
       customer_note,
       created_by,
       status,
@@ -269,14 +294,13 @@ export const updateServicet = async (req, res) => {
 
     res.status(200).json({
       message: "✅ Service updated successfully",
-      data: updatedService
+      data: updatedService,
     });
   } catch (err) {
     console.error("Error updating service:", err);
     res.status(500).json({ error: "Failed to update service" });
   }
 };
-
 
 /**
  * Delete service by ID
@@ -299,5 +323,5 @@ export default {
   getServiceById,
   updateService,
   deleteService,
-  updateServicet
+  updateServicet,
 };

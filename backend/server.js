@@ -99,7 +99,8 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // --- Static files ---
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads/images", express.static(path.join(__dirname, "uploads/images")));
+
 
 // --- Routes ---
 app.use("/api/services", servicesRoutes);

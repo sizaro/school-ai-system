@@ -56,6 +56,10 @@ export default function OwnerStaffDailyReport() {
           sum += parseInt(s.super_black_assistant_amount) || 0;
         if (s.black_mask_assistant_id === user.id)
           sum += parseInt(s.black_mask_assistant_amount) || 0;
+        if (s.women_emp_id === user.id)
+          sum += parseInt(s.women_emp_amt) || 0;
+        if (s.nail_emp_id === user.id)
+          sum += parseInt(s.nail_emp_amt) || 0;
         return sum;
       }, 0);
 

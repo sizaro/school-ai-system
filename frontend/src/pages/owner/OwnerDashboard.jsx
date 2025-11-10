@@ -163,7 +163,7 @@ useEffect(()=>{
 
         {/* Modals */}
         <Modal isOpen={modalType !== null} onClose={closeModal}>
-          {modalType === "service" && <ServiceForm onSubmit={createService} onClose={closeModal} Employees={Employees} createdBy="owner" serviceStatus={null} />}
+          {modalType === "service" && <ServiceForm onSubmit={createService} onClose={closeModal} Services={services} Employees={Employees} createdBy="owner" serviceStatus={null} />}
           {modalType === "expense" && <ExpenseForm onSubmit={createExpense} onClose={closeModal} />}
           {modalType === "advance" && <AdvanceForm onSubmit={createAdvance} onClose={closeModal} />}
           {modalType === "clocking" && <ClockForm onSubmit={handleClocking} onClose={closeModal} employees={Employees} />}
