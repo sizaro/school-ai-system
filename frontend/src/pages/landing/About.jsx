@@ -21,10 +21,11 @@ export default function About() {
   const fullName = (user) => `${user.last_name || ""}`;
 
   // Helper to get image URL with fallback
- const getImage = (user, fallback) => {
+const getImage = (user, fallback) => {
   if (!user?.image_url || user.image_url === "-") return fallback;
-  return `${backendBaseUrl}/uploads/images/${user.image_url}`;
+  return `/uploads/images/${user.image_url}`;
 };
+
 
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col">

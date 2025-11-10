@@ -4,7 +4,10 @@
       "source": "/api/:path*",
       "destination": "https://salonmanagementsystem.onrender.com/api/:path*"
     },
-
+    {
+      "source": "/uploads/images/:path*",
+      "destination": "https://salonmanagementsystem.onrender.com/uploads/images/:path*"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
