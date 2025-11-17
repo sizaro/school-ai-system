@@ -1,384 +1,301 @@
-import db from '../models/database.js';
+import db from "./database.js";
 
-/**
- * Save a new service (or appointment)
- */
-export const saveService = async (service) => {
-  const {
-    name,
-    section,
-    service_amount,
-    salon_amount,
-    barber_id,
-    barber_amount,
-    barber_assistant_id,
-    barber_assistant_amount,
-    scrubber_assistant_id,
-    scrubber_assistant_amount,
-    black_shampoo_assistant_id,
-    black_shampoo_assistant_amount,
-    black_shampoo_amount,
-    super_black_assistant_id,
-    super_black_assistant_amount,
-    super_black_amount,
-    black_mask_assistant_id,
-    black_mask_assistant_amount,
-    black_mask_amount,
-    women_employee_id,
-    women_employee_amount,
-    nail_employee_id,
-    nail_employee_amount,
-    customer_note,
-    created_by,
-    status,
-    appointment_date,
-    appointment_time,
-    customer_id
-  } = service;
+// =========================================================
+// SERVICE DEFINITIONS CRUD
+// =========================================================
 
-  const safeAppointmentDate = appointment_date === "" ? null : appointment_date;
-  const safeAppointmentTime = appointment_time === "" ? null : appointment_time;
-
-  const query = `
-    INSERT INTO services (
-      name,
-      section,
-      service_amount,
-      salon_amount,
-      barber_id,
-      barber_amount,
-      barber_assistant_id,
-      barber_assistant_amount,
-      scrubber_assistant_id,
-      scrubber_assistant_amount,
-      black_shampoo_assistant_id,
-      black_shampoo_assistant_amount,
-      black_shampoo_amount,
-      super_black_assistant_id,
-      super_black_assistant_amount,
-      super_black_amount,
-      black_mask_assistant_id,
-      black_mask_assistant_amount,
-      black_mask_amount,
-      women_emp_id,
-      women_emp_amt,
-      nail_emp_id,
-      nail_emp_amt,
-      customer_note,
-      created_by,
-      status,
-      appointment_date,
-      appointment_time,
-      customer_id,
-      service_timestamp
-    )
-    VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9,
-      $10, $11, $12, $13, $14, $15, $16, $17,
-      $18, $19, $20, $21, $22, $23, $24,
-      $25, $26, $27, $28, $29, NOW()
-    )
-    RETURNING *;
-  `;
-
-  const values = [
-    name,
-    section,
-    service_amount,
-    salon_amount,
-    barber_id,
-    barber_amount,
-    barber_assistant_id,
-    barber_assistant_amount,
-    scrubber_assistant_id,
-    scrubber_assistant_amount,
-    black_shampoo_assistant_id,
-    black_shampoo_assistant_amount,
-    black_shampoo_amount,
-    super_black_assistant_id,
-    super_black_assistant_amount,
-    super_black_amount,
-    black_mask_assistant_id,
-    black_mask_assistant_amount,
-    black_mask_amount,
-    women_employee_id,
-    women_employee_amount,
-    nail_employee_id,
-    nail_employee_amount,
-    customer_note,
-    created_by,
-    status,
-    safeAppointmentDate,
-    safeAppointmentTime,
-    customer_id
-  ];
-
-  const result = await db.query(query, values);
-  return result.rows[0];
+// FETCH ALL SERVICE DEFINITIONS
+export const fetchServiceDefinitionsModel = async () => {
+  const { rows } = await db.query(`SELECT * FROM service_definitions ORDER BY id ASC`);
+  return rows;
 };
 
-
-/**
- * Fetch all services for the current day (Kampala timezone)
- */
-export const fetchAllServices = async () => {
+// FETCH SINGLE SERVICE DEFINITION
+export const fetchServiceDefinitionByIdModel = async (id) => {
   const query = `
-    SELECT 
-      s.*,
-      (s.service_timestamp AT TIME ZONE 'Africa/Kampala') AS service_time,
-      CONCAT(b.first_name, ' ', b.last_name) AS barber,
-      CONCAT(a.first_name, ' ', a.last_name) AS barber_assistant,
-      CONCAT(sc.first_name, ' ', sc.last_name) AS scrubber_assistant,
-      CONCAT(bs.first_name, ' ', bs.last_name) AS black_shampoo_assistant,
-      CONCAT(sb.first_name, ' ', sb.last_name) AS super_black_assistant,
-      CONCAT(bm.first_name, ' ', bm.last_name) AS black_mask_assistant,
-      CONCAT(w.first_name, ' ', w.last_name) AS women_emp,
-      CONCAT(n.first_name, ' ', n.last_name) AS nail_emp
-    FROM services s
-    LEFT JOIN users b  ON s.barber_id = b.id
-    LEFT JOIN users a  ON s.barber_assistant_id = a.id
-    LEFT JOIN users sc ON s.scrubber_assistant_id = sc.id
-    LEFT JOIN users bs ON s.black_shampoo_assistant_id = bs.id
-    LEFT JOIN users sb ON s.super_black_assistant_id = sb.id
-    LEFT JOIN users bm ON s.black_mask_assistant_id = bm.id
-    LEFT JOIN users w  ON s.women_emp_id = w.id
-    LEFT JOIN users n  ON s.nail_emp_id = n.id
-    ORDER BY s.id DESC;
-  `;
-  const result = await db.query(query);
-  return result.rows;
-};
-
-
-/**
- * Fetch one service by ID
- */
-export const fetchServiceById = async (id) => {
-  const query = `
-    SELECT 
-      s.*,
-      (s.service_timestamp AT TIME ZONE 'Africa/Kampala') AS service_time,
-      CONCAT(b.first_name, ' ', b.last_name) AS barber,
-      CONCAT(a.first_name, ' ', a.last_name) AS barber_assistant,
-      CONCAT(sc.first_name, ' ', sc.last_name) AS scrubber_assistant,
-      CONCAT(bs.first_name, ' ', bs.last_name) AS black_shampoo_assistant,
-      CONCAT(sb.first_name, ' ', sb.last_name) AS super_black_assistant,
-      CONCAT(bm.first_name, ' ', bm.last_name) AS black_mask_assistant,
-      CONCAT(w.first_name, ' ', w.last_name) AS women_emp,
-      CONCAT(n.first_name, ' ', n.last_name) AS nail_emp
-    FROM services s
-    LEFT JOIN users b  ON s.barber_id = b.id
-    LEFT JOIN users a  ON s.barber_assistant_id = a.id
-    LEFT JOIN users sc ON s.scrubber_assistant_id = sc.id
-    LEFT JOIN users bs ON s.black_shampoo_assistant_id = bs.id
-    LEFT JOIN users sb ON s.super_black_assistant_id = sb.id
-    LEFT JOIN users bm ON s.black_mask_assistant_id = bm.id
-    LEFT JOIN users w  ON s.women_emp_id = w.id
-    LEFT JOIN users n  ON s.nail_emp_id = n.id
-    WHERE s.id = $1;
+    SELECT sd.*,
+           json_agg(DISTINCT jsonb_build_object(
+              'role_id', sr.id,
+              'role_name', sr.role_name,
+              'earned_amount', sr.earned_amount
+           )) FILTER (WHERE sr.id IS NOT NULL) AS roles,
+           json_agg(DISTINCT jsonb_build_object(
+              'material_id', sm.id,
+              'material_name', sm.material_name,
+              'material_cost', sm.material_cost
+           )) FILTER (WHERE sm.id IS NOT NULL) AS materials
+    FROM service_definitions sd
+    LEFT JOIN service_roles sr ON sr.service_definition_id = sd.id
+    LEFT JOIN service_materials sm ON sm.service_definition_id = sd.id
+    WHERE sd.id=$1
+    GROUP BY sd.id;
   `;
   const result = await db.query(query, [id]);
   return result.rows[0] || null;
 };
 
+// CREATE SERVICE DEFINITION (with roles & materials)
+export const createServiceDefinitionModel = async (data) => {
+  const { service_name, service_amount, salon_amount, section_id, description, service_image, roles = [], materials = [] } = data;
+  try {
+    await db.query("BEGIN");
 
-/**
- * Update a service by ID
- */
-export const UpdateServiceById = async (service) => {
-  const {
-    id,
-    name,
-    section,
-    service_amount,
-    salon_amount,
-    barber_id,
-    barber_amount,
-    barber_assistant_id,
-    barber_assistant_amount,
-    scrubber_assistant_id,
-    scrubber_assistant_amount,
-    black_shampoo_assistant_id,
-    black_shampoo_assistant_amount,
-    black_shampoo_amount,
-    super_black_assistant_id,
-    super_black_assistant_amount,
-    super_black_amount,
-    black_mask_assistant_id,
-    black_mask_assistant_amount,
-    black_mask_amount,
-    women_employee_id,
-    women_employee_amount,
-    nail_employee_id,
-    nail_employee_amount,
-    customer_note,
-    created_by,
-    status,
-    appointment_date,
-    appointment_time,
-    customer_id,
-    service_timestamp
-  } = service;
+    const insertDef = `
+      INSERT INTO service_definitions
+      (service_name, service_amount, salon_amount, section_id, service_description, service_image)
+      VALUES ($1,$2,$3,$4,$5,$6) RETURNING *;
+    `;
+    const { rows } = await db.query(insertDef, [service_name, service_amount || 0, salon_amount || 0, section_id, description || null, service_image || null]);
+    const serviceDef = rows[0];
 
+    for (const r of roles) {
+      await db.query(
+        `INSERT INTO service_roles (service_definition_id, role_name, earned_amount) VALUES ($1,$2,$3)`,
+        [serviceDef.id, r.role_name, r.role_amount || 0]
+      );
+    }
+
+    for (const m of materials) {
+      await db.query(
+        `INSERT INTO service_materials (service_definition_id, material_name, material_cost) VALUES ($1,$2,$3)`,
+        [serviceDef.id, m.material_name, m.material_cost || 0]
+      );
+    }
+
+    await db.query("COMMIT");
+    return serviceDef;
+  } catch (err) {
+    await db.query("ROLLBACK");
+    console.error("Error creating service definition:", err);
+    throw err;
+  }
+};
+
+// UPDATE SERVICE DEFINITION (with roles & materials)
+export const updateServiceDefinitionModel = async (id, data) => {
+  const { service_name, service_amount, salon_amount, section_id, description, service_image, roles = [], materials = [] } = data;
+  try {
+    await db.query("BEGIN");
+
+    const updateDef = `
+      UPDATE service_definitions
+      SET service_name=$1, service_amount=$2, salon_amount=$3, section_id=$4,
+          service_description=$5, service_image=$6
+      WHERE id=$7 RETURNING *;
+    `;
+    const { rows } = await db.query(updateDef, [service_name, service_amount || 0, salon_amount || 0, section_id, description || null, service_image || null, id]);
+    const updatedDef = rows[0];
+    if (!updatedDef) throw new Error("Service definition not found");
+
+    await db.query(`DELETE FROM service_roles WHERE service_definition_id=$1`, [id]);
+    for (const r of roles) {
+      await db.query(
+        `INSERT INTO service_roles (service_definition_id, role_name, earned_amount) VALUES ($1,$2,$3)`,
+        [id, r.role_name, r.role_amount || 0]
+      );
+    }
+
+    await db.query(`DELETE FROM service_materials WHERE service_definition_id=$1`, [id]);
+    for (const m of materials) {
+      await db.query(
+        `INSERT INTO service_materials (service_definition_id, material_name, material_cost) VALUES ($1,$2,$3)`,
+        [id, m.material_name, m.material_cost || 0]
+      );
+    }
+
+    await db.query("COMMIT");
+    return updatedDef;
+  } catch (err) {
+    await db.query("ROLLBACK");
+    console.error("Error updating service definition:", err);
+    throw err;
+  }
+};
+
+// DELETE SERVICE DEFINITION
+export const deleteServiceDefinitionModel = async (id) => {
+  try {
+    await db.query("BEGIN");
+
+    await db.query(`DELETE FROM service_roles WHERE service_definition_id=$1`, [id]);
+    await db.query(`DELETE FROM service_materials WHERE service_definition_id=$1`, [id]);
+    const { rowCount } = await db.query(`DELETE FROM service_definitions WHERE id=$1`, [id]);
+
+    await db.query("COMMIT");
+    return rowCount > 0;
+  } catch (err) {
+    await db.query("ROLLBACK");
+    console.error("Error deleting service definition:", err);
+    throw err;
+  }
+};
+
+// FETCH SERVICE ROLES
+export const fetchServiceRolesModel = async () => {
+  const { rows } = await db.query(`SELECT * FROM service_roles ORDER BY service_definition_id ASC`);
+  return rows;
+};
+
+// =========================================================
+// SERVICE TRANSACTIONS
+// =========================================================
+
+// SAVE SERVICE TRANSACTION (with performers)
+export const saveServiceTransaction = async (data) => {
+  const { section_id, service_definition_id, created_by, appointment_date, appointment_time, customer_id, customer_note, performers = [] } = data;
+  try {
+    await db.query("BEGIN");
+
+    const insertTrans = `
+      INSERT INTO service_transactions
+      (section_id, service_definition_id, created_by, appointment_date, appointment_time, customer_id, customer_note, service_timestamp)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,NOW()) RETURNING *;
+    `;
+    const { rows } = await db.query(insertTrans, [section_id, service_definition_id, created_by, appointment_date || null, appointment_time || null, customer_id || null, customer_note || null]);
+    const transaction = rows[0];
+
+    for (const p of performers) {
+      await db.query(
+        `INSERT INTO service_performers (service_transaction_id, service_role_id, employee_id) VALUES ($1,$2,$3)`,
+        [transaction.id, p.role_id, p.employee_id || null]
+      );
+    }
+
+    await db.query("COMMIT");
+    return transaction;
+  } catch (err) {
+    await db.query("ROLLBACK");
+    console.error("Error saving service transaction:", err);
+    throw err;
+  }
+};
+
+// FETCH ALL SERVICE TRANSACTIONS
+export const fetchAllServiceTransactions = async () => {
   const query = `
-    UPDATE services
-    SET
-      name = $1,
-      section = $2,
-      service_amount = $3,
-      salon_amount = $4,
-      barber_id = $5,
-      barber_amount = $6,
-      barber_assistant_id = $7,
-      barber_assistant_amount = $8,
-      scrubber_assistant_id = $9,
-      scrubber_assistant_amount = $10,
-      black_shampoo_assistant_id = $11,
-      black_shampoo_assistant_amount = $12,
-      black_shampoo_amount = $13,
-      super_black_assistant_id = $14,
-      super_black_assistant_amount = $15,
-      super_black_amount = $16,
-      black_mask_assistant_id = $17,
-      black_mask_assistant_amount = $18,
-      black_mask_amount = $19,
-      women_emp_id = $20,
-      women_emp_amt = $21,
-      nail_emp_id = $22,
-      nail_emp_amt = $23,
-      customer_note = $24,
-      created_by = $25,
-      status = $26,
-      appointment_date = $27,
-      appointment_time = $28,
-      customer_id = $29,
-      service_timestamp = $30
-    WHERE id = $31
-    RETURNING *;
+    SELECT st.id AS transaction_id,
+           st.service_timestamp AT TIME ZONE 'Africa/Kampala' AS service_time,
+           st.section_id, st.service_definition_id, st.created_by, st.customer_id, st.customer_note,
+           sec.section_name, sd.service_name, sd.service_amount AS full_amount,
+           json_agg(
+             json_build_object(
+               'role_name', sr.role_name,
+               'role_amount', sr.earned_amount,
+               'employee_id', u.id,
+               'employee_name', u.first_name || ' ' || u.last_name
+             )
+           ) AS performers
+    FROM service_transactions st
+    JOIN service_performers sp ON sp.service_transaction_id = st.id
+    JOIN service_roles sr ON sr.id = sp.service_role_id
+    JOIN service_definitions sd ON sd.id = sr.service_definition_id
+    JOIN service_sections sec ON sec.id = sd.section_id
+    LEFT JOIN users u ON u.id = sp.employee_id
+    GROUP BY st.id, sec.section_name, sd.service_name, sd.service_amount
+    ORDER BY st.service_timestamp DESC;
   `;
-
-  const values = [
-    name, section, service_amount, salon_amount, barber_id, barber_amount,
-    barber_assistant_id, barber_assistant_amount, scrubber_assistant_id,
-    scrubber_assistant_amount, black_shampoo_assistant_id,
-    black_shampoo_assistant_amount, black_shampoo_amount,
-    super_black_assistant_id, super_black_assistant_amount, super_black_amount,
-    black_mask_assistant_id, black_mask_assistant_amount, black_mask_amount,
-    women_employee_id, women_employee_amount, nail_employee_id, nail_employee_amount,
-    customer_note, created_by, status, appointment_date, appointment_time,
-    customer_id, service_timestamp, id
-  ];
-
-  const result = await db.query(query, values);
-  return result.rows[0] || null;
+  const { rows } = await db.query(query);
+  return rows;
 };
 
-
-/**
- * Update service timestamp only (quick update)
- */
-export const UpdateServiceByIdt = async (service) => {
-  const {
-    id,
-    name,
-    section,
-    service_amount,
-    salon_amount,
-    barber_id,
-    barber_amount,
-    barber_assistant_id,
-    barber_assistant_amount,
-    scrubber_assistant_id,
-    scrubber_assistant_amount,
-    black_shampoo_assistant_id,
-    black_shampoo_assistant_amount,
-    black_shampoo_amount,
-    super_black_assistant_id,
-    super_black_assistant_amount,
-    super_black_amount,
-    black_mask_assistant_id,
-    black_mask_assistant_amount,
-    black_mask_amount,
-    women_employee_id,
-    women_employee_amount,
-    nail_employee_id,
-    nail_employee_amount,
-    customer_note,
-    created_by,
-    status,
-    appointment_date,
-    appointment_time,
-    customer_id
-  } = service;
-
+// FETCH SINGLE SERVICE TRANSACTION
+export const fetchServiceTransactionById = async (id) => {
   const query = `
-    UPDATE services
-    SET
-      name = $1,
-      section = $2,
-      service_amount = $3,
-      salon_amount = $4,
-      barber_id = $5,
-      barber_amount = $6,
-      barber_assistant_id = $7,
-      barber_assistant_amount = $8,
-      scrubber_assistant_id = $9,
-      scrubber_assistant_amount = $10,
-      black_shampoo_assistant_id = $11,
-      black_shampoo_assistant_amount = $12,
-      black_shampoo_amount = $13,
-      super_black_assistant_id = $14,
-      super_black_assistant_amount = $15,
-      super_black_amount = $16,
-      black_mask_assistant_id = $17,
-      black_mask_assistant_amount = $18,
-      black_mask_amount = $19,
-      women_emp_id = $20,
-      women_emp_amt = $21,
-      nail_emp_id = $22,
-      nail_emp_amt = $23,
-      customer_note = $24,
-      created_by = $25,
-      status = $26,
-      appointment_date = $27,
-      appointment_time = $28,
-      customer_id = $29,
-      service_timestamp = NOW()
-    WHERE id = $30
-    RETURNING *;
+    SELECT st.id AS transaction_id,
+           st.service_timestamp AT TIME ZONE 'Africa/Kampala' AS service_time,
+           st.section_id, st.service_definition_id, st.created_by, st.customer_id, st.customer_note,
+           st.appointment_date, st.appointment_time,
+           json_agg(
+             json_build_object(
+               'role_id', sr.id,
+               'role_name', sr.role_name,
+               'employee_id', sp.employee_id,
+               'earned_amount', sp.earned_amount
+             )
+           ) AS performers
+    FROM service_transactions st
+    LEFT JOIN service_performers sp ON sp.service_transaction_id = st.id
+    LEFT JOIN service_roles sr ON sr.id = sp.service_role_id
+    WHERE st.id = $1
+    GROUP BY st.id;
   `;
-
-  const values = [
-    name, section, service_amount, salon_amount, barber_id, barber_amount,
-    barber_assistant_id, barber_assistant_amount, scrubber_assistant_id,
-    scrubber_assistant_amount, black_shampoo_assistant_id,
-    black_shampoo_assistant_amount, black_shampoo_amount,
-    super_black_assistant_id, super_black_assistant_amount, super_black_amount,
-    black_mask_assistant_id, black_mask_assistant_amount, black_mask_amount,
-    women_employee_id, women_employee_amount, nail_employee_id, nail_employee_amount,
-    customer_note, created_by, status, appointment_date, appointment_time,
-    customer_id, id
-  ];
-
-  const result = await db.query(query, values);
-  return result.rows[0] || null;
+  const { rows } = await db.query(query, [id]);
+  return rows[0] || null;
 };
 
+// UPDATE SERVICE TRANSACTION (with performers)
+export const updateServiceTransactionModel = async (id, updates) => {
+  const { section_id, service_definition_id, appointment_date, appointment_time, customer_id, customer_note, serviceRoles = [] } = updates;
+  try {
+    await db.query("BEGIN");
 
-/**
- * Delete a service by ID
- */
-export const DeleteServiceById = async (id) => {
-  const query = `DELETE FROM services WHERE id = $1 RETURNING id;`;
-  const result = await db.query(query, [id]);
-  return result.rowCount > 0;
+    const updateTrans = `
+      UPDATE service_transactions
+      SET section_id=$1, service_definition_id=$2, appointment_date=$3,
+          appointment_time=$4, customer_id=$5, customer_note=$6
+      WHERE id=$7 RETURNING *;
+    `;
+    const { rows } = await db.query(updateTrans, [section_id, service_definition_id, appointment_date || null, appointment_time || null, customer_id || null, customer_note || null, id]);
+    const updated = rows[0];
+    if (!updated) throw new Error("Service transaction not found");
+
+    await db.query(`DELETE FROM service_performers WHERE service_transaction_id=$1`, [id]);
+    for (const p of serviceRoles) {
+      await db.query(
+        `INSERT INTO service_performers (service_transaction_id, service_role_id, employee_id, earned_amount) VALUES ($1,$2,$3,$4)`,
+        [id, p.role_id, p.employee_id || null, p.earned_amount || 0]
+      );
+    }
+
+    await db.query("COMMIT");
+    return updated;
+  } catch (err) {
+    await db.query("ROLLBACK");
+    console.error("Error updating service transaction:", err);
+    throw err;
+  }
 };
 
+// UPDATE SERVICE TRANSACTION TIME ONLY
+export const updateServiceTransactionModelt = async (id, newTime) => {
+  const query = `
+    UPDATE service_transactions
+    SET service_timestamp=$1
+    WHERE id=$2 RETURNING *;
+  `;
+  const { rows } = await db.query(query, [newTime, id]);
+  return rows[0] || null;
+};
+
+// DELETE SERVICE TRANSACTION (with performers)
+export const DeleteServiceTransaction = async (id) => {
+  try {
+    await db.query("BEGIN");
+    await db.query(`DELETE FROM service_performers WHERE service_transaction_id=$1`, [id]);
+    const { rowCount } = await db.query(`DELETE FROM service_transactions WHERE id=$1`, [id]);
+    await db.query("COMMIT");
+    return rowCount > 0;
+  } catch (err) {
+    await db.query("ROLLBACK");
+    console.error("Error deleting service transaction:", err);
+    throw err;
+  }
+};
+
+// =========================================================
+// EXPORT DEFAULT
+// =========================================================
 export default {
-  saveService,
-  fetchAllServices,
-  fetchServiceById,
-  UpdateServiceById,
-  DeleteServiceById,
-  UpdateServiceByIdt
+  saveServiceTransaction,
+  fetchAllServiceTransactions,
+  fetchServiceTransactionById,
+  updateServiceTransactionModel,
+  updateServiceTransactionModelt,
+  DeleteServiceTransaction,
+  fetchServiceDefinitionsModel,
+  fetchServiceDefinitionByIdModel,
+  createServiceDefinitionModel,
+  updateServiceDefinitionModel,
+  deleteServiceDefinitionModel,
+  fetchServiceRolesModel
 };

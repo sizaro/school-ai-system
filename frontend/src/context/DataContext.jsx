@@ -16,6 +16,10 @@ export const DataProvider = ({ children }) => {
   const [loading, setLoading] = useState(false); // Only used for fetchUsers
   const [user, setUser] = useState(null);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [sections, setSections] = useState([]);
+  const [serviceDefinitions, setServiceDefinitions] = useState([]);
+  const [serviceRoles, setServiceRoles] = useState([]);
+
   const navigate = useNavigate();
 
   const API_URL = import.meta.env.VITE_API_URL || "/api";
@@ -25,7 +29,7 @@ export const DataProvider = ({ children }) => {
     try {
       const [clockingsRes, servicesRes] = await Promise.all([
         axios.get(`${API_URL}/clockings`),
-        axios.get(`${API_URL}/services`),
+        axios.get(`${API_URL}/services/service_transactions`),
       ]);
       setClockings(clockingsRes.data);
       setServices(servicesRes.data);
@@ -44,6 +48,9 @@ export const DataProvider = ({ children }) => {
       console.error("Error fetching sessions:", err);
     }
   };
+
+
+  
 
   // ---------- Reports ----------
   const fetchDailyData = async (date) => {
@@ -155,6 +162,7 @@ export const DataProvider = ({ children }) => {
       throw err;
     }
   };
+
 
   // ---------- Employees CRUD ----------
   const fetchUsers = async () => {
@@ -426,6 +434,169 @@ export const DataProvider = ({ children }) => {
     }
   };
 
+
+  // fetch sections
+
+    const fetchSections = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/sections`);
+      setSections(res.data);
+      console.log("sections:", res.data);
+      return res.data;
+    } catch (err) {
+      console.error("Error fetching sections:", err);
+      throw err;
+    }
+  };
+
+  // ---------- Sections CRUD ----------
+
+const createSection = async (sectionData) => {
+  try {
+    const res = await axios.post(`${API_URL}/sections/create`, sectionData);
+    await fetchSections();
+    return res.data;
+  } catch (err) {
+    console.error("Error creating section:", err);
+    throw err;
+  }
+};
+
+const updateSection = async (id, sectionData) => {
+  try {
+    const res = await axios.put(`${API_URL}/sections/${id}`, sectionData);
+    await fetchSections();
+    return res.data;
+  } catch (err) {
+    console.error("Error updating section:", err);
+    throw err;
+  }
+};
+
+const deleteSection = async (id) => {
+  try {
+    await axios.delete(`${API_URL}/sections/${id}`);
+    await fetchSections();
+  } catch (err) {
+    console.error("Error deleting section:", err);
+    throw err;
+  }
+};
+
+
+
+  //fetch service definitions
+
+    const fetchServiceDefinitions = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/services/service_definitions`);
+      setServiceDefinitions(res.data);
+      console.log("service definitions:", res.data);
+      return res.data;
+    } catch (err) {
+      console.error("Error fetching service definitions:", err);
+      throw err;
+    }
+  };
+
+
+  // ---------- CREATE SERVICE DEFINITION ----------
+const createServiceDefinition = async (serviceData) => {
+  try {
+    const res = await axios.post(`${API_URL}/services/service_definitions/create`, serviceData);
+    await fetchServiceDefinitions();
+    await fetchServiceRoles()
+    return res.data;
+  } catch (err) {
+    console.error("Error creating service definition:", err);
+    throw err;
+  }
+};
+
+// ---------- UPDATE SERVICE DEFINITION ----------
+const updateServiceDefinition = async (id, serviceData) => {
+  try {
+    const res = await axios.put(`${API_URL}/services/service_definitions/${id}`, serviceData);
+    await fetchServiceDefinitions(); // refresh after update
+    return res.data;
+  } catch (err) {
+    console.error("Error updating service definition:", err);
+    throw err;
+  }
+};
+
+// ---------- DELETE SERVICE DEFINITION ----------
+const deleteServiceDefinition = async (id) => {
+  try {
+    await axios.delete(`${API_URL}/services/service_definitions/${id}`);
+    await fetchServiceDefinitions(); // refresh after deletion
+  } catch (err) {
+    console.error("Error deleting service definition:", err);
+    throw err;
+  }
+};
+
+
+  // fetch service roles
+
+    const fetchServiceRoles = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/services/service_roles`);
+      setServiceRoles(res.data);
+      console.log("service roles:", res.data);
+      return res.data;
+    } catch (err) {
+      console.error("Error fetching service roles:", err);
+      throw err;
+    }
+  };
+
+
+  //insert service transactions and performers
+
+    const createServiceTransaction = async (payload) => {
+    try {
+      const res = await axios.post(`${API_URL}/services/service_transactions`, payload);
+
+      // returns something like:
+      // { transaction_id, performersInsertedCount }
+      console.log("service transaction saved:", res.data);
+
+      await fetchAllData(); 
+      return res.data;
+    } catch (err) {
+      console.error("Error creating service transaction:", err);
+      throw err;
+    }
+  };
+
+  // ---------- DELETE SERVICE TRANSACTION ----------
+const deleteServiceTransaction = async (id) => {
+  try {
+    await axios.delete(`${API_URL}/services/service_transactions/${id}`);
+    await fetchAllData();
+  } catch (err) {
+    console.error("Error deleting service transaction:", err);
+    throw err;
+  }
+};
+
+
+const fetchServiceTransactions = async () => {
+  try {
+    const res = await axios.get(`${API_URL}/services/service_transactions`);
+    setServiceTransactions(res.data);
+    console.log("Service transactions:", res.data);
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching service transactions:", err);
+    throw err;
+  }
+};
+
+
+
+
   // ---------- Auth ----------
   const loginUser = async (credentials) => {
     try {
@@ -514,20 +685,37 @@ export const DataProvider = ({ children }) => {
   };
 
   // ---------- useEffect ----------
-  useEffect(() => {
-    const initializeApp = async () => {
-      try {
-        fetchSessions();        // ✅ fetch sessions in background
-      } catch (err) {
-        console.error("Error initializing app:", err);
-      }
-    };
+useEffect(() => {
+  const initializeApp = async () => {
+    try {
+      fetchSessions(); // fetch sessions in background
+    } catch (err) {
+      console.error("Error initializing app:", err);
+    }
+  };
 
-    initializeApp();
+  const transactionData = async () => {
+    try {
+      await Promise.all([
+        fetchSections(),
+        fetchServiceDefinitions(),
+        fetchServiceRoles(),
+        fetchUsers(),
+      ]);
+    } catch (err) {
+      console.error("Error fetching transaction data:", err);
+    }
+  };
 
-    const interval = setInterval(fetchSessions, 60 * 1000); // refresh sessions every minute
-    return () => clearInterval(interval);
-  }, []);
+  // --- initialize all data ---
+  initializeApp();
+  transactionData();
+
+  const interval = setInterval(fetchSessions, 60 * 1000); 
+  return () => clearInterval(interval);
+
+}, []);
+
 
   useEffect(()=>{
     checkAuth();
@@ -547,6 +735,21 @@ export const DataProvider = ({ children }) => {
         lateFees,
         tagFees,
         isDataLoaded,
+        sections,
+        sections,
+        serviceDefinitions,
+        serviceRoles,
+        fetchSections,
+        createSection,
+        updateSection,
+        deleteSection,
+        fetchServiceDefinitions,
+        createServiceDefinition,
+        deleteServiceDefinition,
+        fetchServiceRoles,
+        createServiceTransaction,
+        fetchServiceTransactions,
+        deleteServiceTransaction,
         fetchAllData,
         sendFormData,
         fetchDailyData,

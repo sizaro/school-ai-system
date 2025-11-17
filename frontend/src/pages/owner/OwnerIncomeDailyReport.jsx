@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useData } from "../../context/DataContext.jsx";
 import "../../styles/IncomeDailyReport.css";
 import Modal from "../../components/Modal";
@@ -10,19 +10,27 @@ const OwnerIncomeDailyReport = () => {
     services,
     lateFees,
     tagFees,
-    users =[],
+    users = [],
     advances,
     expenses,
     sessions,
+    sections, // <-- dynamic sections from context if available
     fetchUsers,
     fetchDailyData,
+    deleteServiceTransaction,
     fetchServiceById,
     updateService,
     deleteService,
   } = useData();
 
-  console.log("users in the daily report:", users)
-  const Employees = users.filter((user)=> `${user.first_name} ${user.last_name}`.toLowerCase() !== 'ntege saleh' && user.role !== 'customer')
+  console.log("These are the services in the daily report page:\n", services);
+
+  const Employees = (users || []).filter(
+    (user) =>
+      user &&
+      `${user.first_name || ""} ${user.last_name || ""}`.toLowerCase() !== "ntege saleh" &&
+      user.role !== "customer"
+  );
 
   const today = new Date();
   const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
@@ -36,11 +44,15 @@ const OwnerIncomeDailyReport = () => {
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState(null);
 
-  // ---- Modal Handlers ----
-  const handleEditClick = async (serviceId) => {
-    const service = await fetchServiceById(serviceId);
+  // Utility to pick service transaction id (handles variations)
+  const txIdOf = (s) => s?.service_transaction_id ?? s?.transaction_id ?? s?.id ?? null;
 
-    console.log("service fetched by id in income daily report:", service)
+  // ---- Modal Handlers ----
+  const handleEditClick = async (serviceIdOrObj) => {
+    // serviceIdOrObj can be an object or id; handle both
+    const id = typeof serviceIdOrObj === "object" ? txIdOf(serviceIdOrObj) : serviceIdOrObj;
+    if (!id) return console.error("No id provided for edit");
+    const service = await fetchServiceById(id);
     setEditingService(service);
     setShowModal(true);
   };
@@ -52,100 +64,108 @@ const OwnerIncomeDailyReport = () => {
     setEditingService(null);
   };
 
-  const handleDelete = (serviceId) => {
-    setServiceToDelete(serviceId);
+  const handleDelete = (serviceObjOrId) => {
+    const id = typeof serviceObjOrId === "object" ? txIdOf(serviceObjOrId) : serviceObjOrId;
+    setServiceToDelete(id);
     setConfirmModalOpen(true);
   };
 
   const confirmDelete = async () => {
     if (serviceToDelete) {
-      await deleteService(serviceToDelete);
-      await fetchDailyData(selectedDate);
-      setConfirmModalOpen(false);
-      setServiceToDelete(null);
+      try {
+        await deleteServiceTransaction(serviceToDelete);
+        await fetchDailyData(selectedDate);
+      } catch (err) {
+        console.error("Failed to delete service:", err);
+      } finally {
+        setConfirmModalOpen(false);
+        setServiceToDelete(null);
+      }
     }
   };
 
-// ---- SECTION CALCULATIONS ----
-const sectionData = {
-  men: services.filter((s) => s.section === "men"),
-  women: services.filter((s) => s.section === "women"),
-  nails: services.filter((s) => s.section === "nails"),
-};
+  // ---- Sections: dynamic ----
+  // Prefer `sections` from context; if absent, infer from services list
+  const sectionList = useMemo(() => {
+    if (Array.isArray(sections) && sections.length > 0) {
+      // map to canonical shape { id, name }
+      return sections.map((sec) => ({
+        id: sec.id,
+        name: sec.section_name ?? sec.name ?? String(sec.id),
+      }));
+    }
+    // infer from services
+    const map = new Map();
+    (services || []).forEach((s) => {
+      const id = s.section_id ?? s.sectionId ?? s.section?.id ?? s.section_transaction_id ?? (s.section_name ? s.section_name : null);
+      const name = s.section_name ?? s.section?.section_name ?? s.section?.name ?? (typeof id === "string" ? id : `Section ${id}`);
+      const key = id ?? name;
+      if (!map.has(key)) map.set(key, { id: id ?? name, name });
+    });
+    // if still empty, provide a fallback single section
+    if (map.size === 0) {
+      return [{ id: "default", name: "Default" }];
+    }
+    return Array.from(map.values());
+  }, [sections, services]);
 
-const calculateSectionTotals = (sectionServices) => {
-  const gross = sectionServices.reduce(
-    (sum, s) => sum + (parseInt(s.service_amount, 10) || 0),
-    0
-  );
+  // helper: returns services filtered by a section object (works with id or name)
+  const servicesForSection = (section) => {
+    if (!section) return [];
+    // match by id if numeric-ish, else match by name
+    return (services || []).filter((s) => {
+      // prefer numeric id match
+      if (section.id != null && s.section_id != null) return String(s.section_id) === String(section.id);
+      // fallback to matching section_name
+      if (section.name && s.section_name) return String(s.section_name).toLowerCase() === String(section.name).toLowerCase();
+      return false;
+    });
+  };
 
-  const employeeSalary = sectionServices.reduce((sum, s) => {
-    return (
-      sum +
-      (parseInt(s.barber_amount, 10) || 0) +
-      (parseInt(s.barber_assistant_amount, 10) || 0) +
-      (parseInt(s.scrubber_assistant_amount, 10) || 0) +
-      (parseInt(s.black_shampoo_assistant_amount, 10) || 0) +
-      (parseInt(s.super_black_assistant_amount, 10) || 0) +
-      (parseInt(s.black_mask_assistant_amount, 10) || 0) +
-      (parseInt(s.women_emp_amt, 10) || 0) +
-      (parseInt(s.nail_emp_amt, 10) || 0)
-    );
-  }, 0);
+  const calculateSectionTotals = (sectionServices) => {
+    const gross = sectionServices.reduce((sum, s) => sum + (parseFloat(s.full_amount || s.service_amount || 0) || 0), 0);
 
-  const cashAvailable = gross - employeeSalary;
-
-  return { gross, employeeSalary, cashAvailable };
-};
-
-// Calculate totals for each section
-const menTotals = calculateSectionTotals(sectionData.men);
-const womenTotals = calculateSectionTotals(sectionData.women);
-const nailsTotals = calculateSectionTotals(sectionData.nails);
-
-
-  // ---- Totals Calculation ----
-  const calculateTotals = (services, expenses, advances, tagFees, lateFees) => {
-    const grossIncome = services.reduce(
-      (sum, s) => sum + (parseInt(s.service_amount, 10) || 0),
-      0
-    );
-
-    const employeesSalary = services.reduce((sum, s) => {
-      return (
-        sum +
-        (parseInt(s.barber_amount, 10) || 0) +
-        (parseInt(s.barber_assistant_amount, 10) || 0) +
-        (parseInt(s.scrubber_assistant_amount, 10) || 0) +
-        (parseInt(s.black_shampoo_assistant_amount, 10) || 0) +
-        (parseInt(s.super_black_assistant_amount, 10) || 0) +
-        (parseInt(s.black_mask_assistant_amount, 10) || 0)+
-        (parseInt(s.women_emp_amt, 10) || 0) +
-        (parseInt(s.nail_emp_amt, 10) || 0)
-      );
+    const employeeSalary = sectionServices.reduce((sum, s) => {
+      if (!s.performers || !Array.isArray(s.performers)) return sum;
+      const filtperf = s.performers.filter((p) => (p.role_name || "").toLowerCase() !== "salon");
+      const performersTotal = filtperf.reduce((pSum, p) => pSum + (parseFloat(p.role_amount || p.earned_amount || 0) || 0), 0);
+      return sum + performersTotal;
     }, 0);
 
-    const totalExpenses = expenses.reduce(
-      (sum, e) => sum + (parseInt(e.amount, 10) || 0),
-      0
-    );
+    const salonIncome = sectionServices.reduce((sum, s) => sum + (parseFloat(s.salon_amount || 0) || 0), 0);
 
-    const totalAdvances = advances.reduce(
-      (sum, a) => sum + (parseInt(a.amount, 10) || 0),
-      0
-    );
+    return { gross, employeeSalary, salonIncome };
+  };
 
-    const totalLateFees = lateFees.reduce(
-      (sum, l) => sum + (parseInt(l.amount, 10) || 0),
-      0
-    );
+  // Build dynamic summaries per section
+  const dynamicSectionSummaries = useMemo(() => {
+    return sectionList.map((sec) => {
+      const secServices = servicesForSection(sec);
+      const totals = calculateSectionTotals(secServices);
+      return {
+        id: sec.id,
+        name: sec.name,
+        services: secServices,
+        totals,
+      };
+    });
+  }, [sectionList, services]);
 
-    const totaltagFees = tagFees.reduce(
-      (sum, t) => sum + (parseInt(t.amount, 10) || 0),
-      0
-    );
+  // ---- Totals Calculation (overall) ----
+  const calculateTotals = (servicesList, expensesList, advancesList, tagFeesList, lateFeesList) => {
+    const grossIncome = (servicesList || []).reduce((sum, s) => sum + (parseFloat(s.full_amount || s.service_amount || 0) || 0), 0);
 
-    const netEmployeeSalary = employeesSalary - (totalAdvances + totalLateFees + totaltagFees);
+    const employeesSalary = (servicesList || []).reduce((sum, s) => {
+      if (!s.performers || !Array.isArray(s.performers)) return sum;
+      return sum + s.performers.reduce((pSum, p) => pSum + (parseFloat(p.amount || p.role_amount || p.earned_amount || 0) || 0), 0);
+    }, 0);
+
+    const totalExpenses = (expensesList || []).reduce((sum, e) => sum + (parseFloat(e.amount || 0) || 0), 0);
+    const totalAdvances = (advancesList || []).reduce((sum, a) => sum + (parseFloat(a.amount || 0) || 0), 0);
+    const totalLateFees = (lateFeesList || []).reduce((sum, l) => sum + (parseFloat(l.amount || 0) || 0), 0);
+    const totaltagFees = (tagFeesList || []).reduce((sum, t) => sum + (parseFloat(t.amount || 0) || 0), 0);
+
+    const netEmployeeSalary = Math.max(0, employeesSalary - (totalAdvances + totalLateFees + totaltagFees));
     const netIncome = grossIncome - (totalExpenses + netEmployeeSalary);
     const cashAtHand = netIncome + netEmployeeSalary;
 
@@ -171,33 +191,26 @@ const nailsTotals = calculateSectionTotals(sectionData.nails);
     totalAdvances,
     netEmployeeSalary,
     netIncome,
-    cashAtHand
-  } = calculateTotals(services, expenses, advances,tagFees, lateFees);
+    cashAtHand,
+  } = calculateTotals(services, expenses, advances, tagFees, lateFees);
 
   // ---- Format UTC Date to EAT ----
   const formatEAT = (dateString) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleString("en-UG", {
-      timeZone: "Africa/Kampala",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return new Date(dateString).toLocaleString("en-UG", { timeZone: "Africa/Kampala", hour: "2-digit", minute: "2-digit" });
   };
 
   // ---- Duration Calculation ----
   const calculateDuration = (openUTC, closeUTC) => {
     if (!openUTC || !closeUTC) return "N/A";
-
     const diffMs = new Date(closeUTC) - new Date(openUTC);
     const hours = Math.floor(diffMs / (1000 * 60 * 60));
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-
     return `${hours}h ${minutes}m`;
   };
 
   useEffect(() => {
     if (!session) return;
-
     const openUTC = session.open_time;
     const closeUTC = session.close_time || session.server_now;
     setLiveDuration(calculateDuration(openUTC, closeUTC));
@@ -206,12 +219,10 @@ const nailsTotals = calculateSectionTotals(sectionData.nails);
       const interval = setInterval(() => {
         setLiveDuration(calculateDuration(openUTC, session.server_now));
       }, 60 * 1000);
-
       return () => clearInterval(interval);
     }
   }, [session]);
 
-  // ---- Handle Day Change ----
   const handleDayChange = (e) => {
     const pickedDate = e.target.value;
     setSelectedDate(pickedDate);
@@ -220,293 +231,194 @@ const nailsTotals = calculateSectionTotals(sectionData.nails);
 
   useEffect(() => {
     fetchDailyData(selectedDate);
-    fetchUsers()
+    fetchUsers();
   }, []);
 
   // ---- Service Count Summary ----
   const serviceCount = services.reduce((acc, service) => {
-    const name = service.name || "Unknown";
+    const name = service.service_name || service.service_name || "Unknown";
     acc[name] = (acc[name] || 0) + 1;
     return acc;
   }, {});
 
-  // ---- Tabbed Appointments ----
-  const [activeTab, setActiveTab] = useState("pending");
-
-  const pendingAppointments = services.filter(s => s.status === 'pending');
-  const confirmedAppointments = services.filter(s => s.status === 'confirmed');
-  const completedAppointments = services.filter(s => s.status === 'completed');
-  const cancelledAppointments = services.filter(s => s.status === 'cancelled');
-
-  const appointmentsByStatus = {
-    pending: pendingAppointments,
-    confirmed: confirmedAppointments,
-    completed: completedAppointments,
-    cancelled: cancelledAppointments,
-  };
-
+  // ---------- Render ----------
   return (
-    <div className="income-page max-w-4xl mx-auto p-4 overflow-y-hidden">
-      <h1 className="text-3xl font-bold text-center mb-6 text-gray-800 break-words max-w-full">
-        {reportDate} Daily Income Report
-      </h1>
+    <div className="income-page max-w-6xl mx-auto p-6">
+      <h1 className="text-3xl font-extrabold text-center mb-6 text-gray-800">{reportDate} Daily Income Report</h1>
 
-      {/* Day Picker */}
-      <div className="mb-4">
-        <label className="block mb-2 font-medium">Pick a day:</label>
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={handleDayChange}
-          className="border rounded p-2"
-        />
+      <div className="mb-6 flex items-center gap-4">
+        <div>
+          <label className="block mb-1 font-medium">Pick a day:</label>
+          <input type="date" value={selectedDate} onChange={handleDayChange} className="border rounded p-2" />
+        </div>
+
+        <div className="ml-auto text-right">
+          <p className="text-sm text-gray-600">{new Date().toLocaleString()}</p>
+        </div>
       </div>
 
       {session ? (
         <>
           {/* SESSION INFO */}
-          <section className="bg-white shadow-md rounded-lg p-4 mb-6">
+          <section className="bg-white shadow rounded-lg p-4 mb-6">
             <h2 className="text-xl font-semibold text-blue-700 mb-2">{reportDate}</h2>
-            <p><span className="font-medium">Opened:</span> {formatEAT(session.open_time)}</p>
-            <p><span className="font-medium">Closed:</span> {session.close_time ? formatEAT(session.close_time) : "N/A"}</p>
-            <p><span className="font-medium">Duration:</span> {liveDuration} {!session.close_time && "(Counting...)"}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <p className="text-sm text-gray-600">Opened</p>
+                <p className="font-medium">{formatEAT(session.open_time)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Closed</p>
+                <p className="font-medium">{session.close_time ? formatEAT(session.close_time) : "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Duration</p>
+                <p className="font-medium">{liveDuration} {!session.close_time && "(Counting...)"}</p>
+              </div>
+            </div>
           </section>
 
-          {/* TABBED APPOINTMENTS */}
-          <section className="bg-white shadow-md rounded-lg p-4 mb-6">
-            <h2 className="text-xl font-semibold text-blue-700 mb-4">Appointments</h2>
+          {/* DYNAMIC SECTION SUMMARIES */}
+          <section className="mb-6">
+            <h2 className="text-lg font-semibold text-gray-700 mb-3">Section Summaries</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {dynamicSectionSummaries.map((sec) => (
+                <div key={sec.id} className="bg-white rounded-lg shadow p-4">
+                  <h3 className="text-md font-semibold text-blue-700 mb-2">{sec.name} Section Summary</h3>
+                  <div className="grid grid-cols-1 gap-2">
+                    <div className="p-3 rounded border bg-blue-50">
+                      <div className="text-sm text-gray-700">Gross Income</div>
+                      <div className="text-xl font-bold">{(sec.totals.gross || 0).toLocaleString()} UGX</div>
+                    </div>
 
-            {/* Tabs */}
-            <div className="flex gap-2 mb-4 flex-wrap">
-              {['pending', 'confirmed', 'completed', 'cancelled'].map((status) => (
-                <button
-                  key={status}
-                  className={`px-4 py-2 rounded ${
-                    activeTab === status
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                  onClick={() => setActiveTab(status)}
-                >
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                </button>
+                    <div className="p-3 rounded border bg-blue-50">
+                      <div className="text-sm text-gray-700">Employees Salary</div>
+                      <div className="text-xl font-bold">{(sec.totals.employeeSalary || 0).toLocaleString()} UGX</div>
+                    </div>
+
+                    <div className="p-3 rounded border bg-blue-100">
+                      <div className="text-sm text-gray-700">Salon Income</div>
+                      <div className="text-xl font-bold text-green-700">{(sec.totals.salonIncome || 0).toLocaleString()} UGX</div>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
-
-            {/* Tab Content */}
-            <div className="flex flex-wrap gap-4">
-              {appointmentsByStatus[activeTab].length > 0 ? (
-                appointmentsByStatus[activeTab].map((s) => (
-                  <div
-                    key={s.id}
-                    className={`border rounded-lg p-4 w-[calc(33.333%-1rem)] min-w-[180px] ${
-                      activeTab === 'pending'
-                        ? 'bg-yellow-50 border-yellow-200'
-                        : activeTab === 'confirmed'
-                        ? 'bg-green-50 border-green-200'
-                        : activeTab === 'completed'
-                        ? 'bg-blue-50 border-blue-200'
-                        : 'bg-red-50 border-red-200'
-                    }`}
-                  >
-                    <p className="font-medium">{s.name}</p>
-                    <p>Customer: {s.customer_name || 'N/A'}</p>
-                    <p>Time: {formatEAT(s.service_timestamp)}</p>
-                    <p>Barber: {s.barber}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500">No {activeTab} appointments</p>
-              )}
-            </div>
           </section>
 
-
-{/* ---- SECTION SUMMARIES ---- */}
-{[
-  { label: "Men’s", totals: menTotals },
-  { label: "Women’s", totals: womenTotals },
-  { label: "Nails", totals: nailsTotals },
-].map(({ label, totals }) => (
-  <section
-    key={label}
-    className="bg-white shadow-md rounded-lg p-4 mb-6"
-  >
-    <h2 className="text-xl font-semibold text-blue-700 mb-4">
-      {label} Section Summary
-    </h2>
-
-    <div className="flex flex-wrap gap-4">
-      {/* Gross Income */}
-      <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-        <span className="font-medium text-gray-700">Gross Income</span>
-        <span className="text-blue-700 text-xl font-bold">
-          {(totals.gross || 0).toLocaleString()} UGX
-        </span>
-      </div>
-
-      {/* Employees Salary */}
-      <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-        <span className="font-medium text-gray-700">Employees Salary</span>
-        <span className="text-blue-700 text-xl font-bold">
-          {(totals.employeeSalary || 0).toLocaleString()} UGX
-        </span>
-      </div>
-
-      {/* Cash Available */}
-      <div className="flex flex-col justify-center items-center bg-blue-100 border border-blue-300 rounded-lg shadow-md p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-        <span className="font-semibold text-gray-800">Cash Available</span>
-        <span className="text-green-700 text-xl font-bold">
-          {(totals.cashAvailable || 0).toLocaleString()} UGX
-        </span>
-      </div>
-    </div>
-  </section>
-))}
-
-
-          {/* SUMMARY Section in Divs */}
-          <section className="bg-white shadow-md rounded-lg p-4 mb-6">
+          {/* SUMMARY */}
+          <section className="bg-white shadow rounded-lg p-4 mb-6">
             <h2 className="text-xl font-semibold text-blue-700 mb-4">Summary</h2>
-            <div className="flex flex-wrap gap-4">
-              <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-                <span className="font-medium text-gray-700">Gross Income</span>
-                <span className="text-blue-700 text-xl font-bold">{grossIncome.toLocaleString()} UGX</span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="summary-box p-3 border rounded">
+                <div className="text-sm text-gray-600">Gross Income</div>
+                <div className="font-bold text-lg">{grossIncome.toLocaleString()} UGX</div>
+              </div>
+              <div className="summary-box p-3 border rounded">
+                <div className="text-sm text-gray-600">Employees Salary</div>
+                <div className="font-bold text-lg">{employeesSalary.toLocaleString()} UGX</div>
+              </div>
+              <div className="summary-box p-3 border rounded">
+                <div className="text-sm text-gray-600">Expenses</div>
+                <div className="font-bold text-lg">{totalExpenses.toLocaleString()} UGX</div>
               </div>
 
-              <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-                <span className="font-medium text-gray-700">Employees Salary</span>
-                <span className="text-blue-700 text-xl font-bold">{employeesSalary.toLocaleString()} UGX</span>
+              <div className="summary-box p-3 border rounded">
+                <div className="text-sm text-gray-600">Advances</div>
+                <div className="font-bold text-lg">{totalAdvances.toLocaleString()} UGX</div>
+              </div>
+              <div className="summary-box p-3 border rounded">
+                <div className="text-sm text-gray-600">Tag Fees</div>
+                <div className="font-bold text-lg">{totaltagFees.toLocaleString()} UGX</div>
+              </div>
+              <div className="summary-box p-3 border rounded">
+                <div className="text-sm text-gray-600">Late Fees</div>
+                <div className="font-bold text-lg">{totalLateFees.toLocaleString()} UGX</div>
               </div>
 
-              <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-                <span className="font-medium text-gray-700">Expenses</span>
-                <span className="text-blue-700 text-xl font-bold">{totalExpenses.toLocaleString()} UGX</span>
+              <div className="summary-box p-3 border rounded">
+                <div className="text-sm text-gray-600">Net Employees Salary</div>
+                <div className="font-bold text-lg">{netEmployeeSalary.toLocaleString()} UGX</div>
               </div>
-
-              <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-                <span className="font-medium text-gray-700">Advances</span>
-                <span className="text-blue-700 text-xl font-bold">{totalAdvances.toLocaleString()} UGX</span>
+              <div className="summary-box p-3 border rounded">
+                <div className="text-sm text-gray-600">Salon Net Income</div>
+                <div className="font-bold text-lg">{netIncome.toLocaleString()} UGX</div>
               </div>
-
-              <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-                <span className="font-medium text-gray-700">Tag Fees</span>
-                <span className="text-blue-700 text-xl font-bold">{totaltagFees.toLocaleString()} UGX</span>
-              </div>
-
-              <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-                <span className="font-medium text-gray-700">Late Fees</span>
-                <span className="text-blue-700 text-xl font-bold">{totalLateFees.toLocaleString()} UGX</span>
-              </div>
-
-              <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-                <span className="font-medium text-gray-700">Net Employees Salary</span>
-                <span className="text-green-600 text-xl font-bold">{netEmployeeSalary.toLocaleString()} UGX</span>
-              </div>
-
-              <div className="flex flex-col justify-center items-center bg-blue-100 border border-blue-300 rounded-lg shadow-md p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-                <span className="font-semibold text-gray-800">Salon Net Income</span>
-                <span className="text-green-700 text-xl font-bold">{netIncome.toLocaleString()} UGX</span>
-              </div>
-
-              <div className="flex flex-col justify-center items-center bg-blue-100 border border-blue-300 rounded-lg shadow-md p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-                <span className="font-semibold text-gray-800">Total Cash Available</span>
-                <span className="text-green-700 text-xl font-bold">{cashAtHand.toLocaleString()} UGX</span>
+              <div className="summary-box p-3 border rounded">
+                <div className="text-sm text-gray-600">Total Cash Available</div>
+                <div className="font-bold text-lg">{cashAtHand.toLocaleString()} UGX</div>
               </div>
             </div>
           </section>
 
-          {/* SERVICES COUNT SECTION */}
-          <section className="w-full bg-white shadow-md rounded-lg p-4 mb-6">
-            <h2 className="text-xl font-semibold text-blue-700 mb-4">
-              Service Summary (By Count)
-            </h2>
-            <div className="flex flex-wrap gap-4">
+          {/* SERVICE SUMMARY (COUNT) */}
+          <section className="bg-white shadow rounded-lg p-4 mb-6">
+            <h2 className="text-xl font-semibold text-blue-700 mb-4">Service Summary (By Count)</h2>
+            <div className="flex flex-wrap gap-3">
               {Object.entries(serviceCount).map(([name, count]) => (
-                <div
-                  key={name}
-                  className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(25%-1rem)] min-w-[150px] flex-grow"
-                >
-                  <span className="font-semibold text-gray-800 text-lg text-center">{name}</span>
-                  <span className="text-blue-700 text-2xl font-bold">{count}</span>
+                <div key={name} className="px-3 py-2 border rounded bg-gray-50">
+                  {name}: <strong>{count}</strong>
                 </div>
               ))}
             </div>
           </section>
 
           {/* SERVICES TABLE */}
-          <section className="bg-white shadow-md rounded-lg p-4">
+          <section className="bg-white shadow rounded-lg p-4">
             <h2 className="text-xl font-semibold text-blue-700 mb-4">Services Rendered</h2>
-            <div className="overflow-x-auto max-h-[60vh] overflow-y-auto border border-gray-300 rounded">
+            <div className="overflow-x-auto max-h-[60vh] overflow-y-auto border border-gray-200 rounded">
               <table className="min-w-full border-collapse text-sm">
                 <thead className="bg-blue-700 text-white sticky top-0 z-10">
                   <tr>
                     <th className="px-3 py-2 text-left">No.</th>
-                    <th className="px-3 py-2 text-left">Name</th>
-                    <th className="px-3 py-2 text-left">Service Amount</th>
+                    <th className="px-3 py-2 text-left">Service Name</th>
+                    <th className="px-3 py-2 text-left">Section</th>
+                    <th className="px-3 py-2 text-left">Full Amount</th>
                     <th className="px-3 py-2 text-left">Salon Amount</th>
-                    <th className="px-3 py-2 text-left">Barber</th>
-                    <th className="px-3 py-2 text-left">Barber Amount</th>
-                    <th className="px-3 py-2 text-left">Aesthetician</th>
-                    <th className="px-3 py-2 text-left">Aesthetician Amount</th>
-                    <th className="px-3 py-2 text-left">Scrub Aesthetician</th>
-                    <th className="px-3 py-2 text-left">Scrubber Amount</th>
-                    <th className="px-3 py-2 text-left">Black Shampoo Aesthetician</th>
-                    <th className="px-3 py-2 text-left">Black Shampoo Aesthetician Amount</th>
-                    <th className="px-3 py-2 text-left">Black Shampoo Amount</th>
-                    <th className="px-3 py-2 text-left">Super Black Aesthetician</th>
-                    <th className="px-3 py-2 text-left">Super Black Aesthetician Amount</th>
-                    <th className="px-3 py-2 text-left">Super Black Amount</th>
-                    <th className="px-3 py-2 text-left">Black Mask Aesthetician</th>
-                    <th className="px-3 py-2 text-left">Black Mask Aesthetician Amount</th>
-                    <th className="px-3 py-2 text-left">Black Mask Amount</th>
-                    <th className="px-3 py-2 text-left">Time of Service</th>
+                    <th className="px-3 py-2 text-left">Performers</th>
+                    <th className="px-3 py-2 text-left">Time</th>
                     <th className="px-3 py-2 text-left">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {services.length > 0 ? (
-                    services.map((s, index) => (
-                      <tr key={s.id} className="border-b hover:bg-gray-50">
-                        <td className="px-3 py-2">{index + 1}</td>
-                        <td className="px-3 py-2">{s.name}</td>
-                        <td className="px-3 py-2">{s.service_amount}</td>
-                        <td className="px-3 py-2">{s.salon_amount}</td>
-                        <td className="px-3 py-2">{s.barber}</td>
-                        <td className="px-3 py-2">{s.barber_amount}</td>
-                        <td className="px-3 py-2">{s.barber_assistant}</td>
-                        <td className="px-3 py-2">{s.barber_assistant_amount}</td>
-                        <td className="px-3 py-2">{s.scrubber_assistant}</td>
-                        <td className="px-3 py-2">{s.scrubber_assistant_amount}</td>
-                        <td className="px-3 py-2">{s.black_shampoo_assistant}</td>
-                        <td className="px-3 py-2">{s.black_shampoo_assistant_amount}</td>
-                        <td className="px-3 py-2">{s.black_shampoo_amount}</td>
-                        <td className="px-3 py-2">{s.super_black_assistant}</td>
-                        <td className="px-3 py-2">{s.super_black_assistant_amount}</td>
-                        <td className="px-3 py-2">{s.super_black_amount}</td>
-                        <td className="px-3 py-2">{s.black_mask_assistant}</td>
-                        <td className="px-3 py-2">{s.black_mask_assistant_amount}</td>
-                        <td className="px-3 py-2">{s.black_mask_amount}</td>
-                        <td className="px-3 py-2">{formatEAT(s.service_timestamp)}</td>
-                        <td className="px-3 py-2 flex gap-2">
-                          <button
-                            onClick={() => handleEditClick(s.id)}
-                            className="text-blue-700 hover:underline"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(s.id)}
-                            className="text-red-600 hover:underline"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                    services.map((s, index) => {
+                      const rowId = txIdOf(s);
+                      return (
+                        <tr key={rowId ?? index} className="border-b hover:bg-gray-50">
+                          <td className="px-3 py-2 align-top">{index + 1}</td>
+                          <td className="px-3 py-2 align-top">{s.service_name}</td>
+                          <td className="px-3 py-2 align-top">{s.section_name}</td>
+                          <td className="px-3 py-2 align-top">{(parseFloat(s.full_amount || 0) || 0).toLocaleString()} UGX</td>
+                          <td className="px-3 py-2 align-top">{(parseFloat(s.salon_amount || 0) || 0).toLocaleString()} UGX</td>
+                          <td className="px-3 py-2 align-top">
+                            {s.performers && s.performers.length > 0
+                              ? s.performers
+                                  .map((p) => `${p.employee_name || "N/A"} (${p.role_name || "N/A"} - ${p.role_amount || p.amount || 0} )`)
+                                  .join(", ")
+                              : "N/A"}
+                          </td>
+                          <td className="px-3 py-2 align-top">{formatEAT(s.service_time ?? s.service_timestamp ?? s.service_time)}</td>
+                          <td className="px-3 py-2 align-top flex gap-2">
+                            <button
+                              onClick={() => handleEditClick(s)}
+                              className="text-blue-700 hover:underline"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(s)}
+                              className="text-red-600 hover:underline"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
                   ) : (
                     <tr>
-                      <td colSpan="21" className="text-center py-4">
+                      <td colSpan="8" className="text-center py-4">
                         No services found for this day
                       </td>
                     </tr>
@@ -519,18 +431,15 @@ const nailsTotals = calculateSectionTotals(sectionData.nails);
       ) : (
         <p className="text-red-600 font-medium">No session data available.</p>
       )}
-        <Modal isOpen={showModal} onClose={() => setShowModal(false)}>
-          <ServiceForm
-            serviceData={editingService}
-            Employees={Employees}
-            onSubmit={handleModalSubmit}
-          />
-        </Modal>
+
+      <Modal isOpen={showModal} onClose={() => setShowModal(false)}>
+        <ServiceForm serviceData={editingService} Employees={Employees} onSubmit={handleModalSubmit} />
+      </Modal>
 
       {confirmModalOpen && (
-        <ConfirmModal 
-        isOpen={confirmModalOpen}
-        confirmMessage="yes"
+        <ConfirmModal
+          isOpen={confirmModalOpen}
+          confirmMessage="yes"
           message="Are you sure you want to delete this service?"
           onConfirm={confirmDelete}
           onClose={() => setConfirmModalOpen(false)}

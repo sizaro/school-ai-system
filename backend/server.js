@@ -22,6 +22,7 @@ import usersRoutes from "./routes/usersRoutes.js";
 import reportsRoutes from "./routes/reportsRoutes.js";
 import feesRoutes from "./routes/feesRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import sectionsRoutes from "./routes/sectionsRoutes.js"
 
 const app = express();
 
@@ -113,6 +114,7 @@ app.use("/api/users", usersRoutes);
 app.use("/api/reports", reportsRoutes);
 app.use("/api/fees", feesRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/sections", sectionsRoutes)
 
 
 

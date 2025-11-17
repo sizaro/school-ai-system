@@ -11,7 +11,6 @@ export const fetchAllUsers = async () => {
     ORDER BY u.id ASC;
   `;
   const result = await db.query(query);
-  console.log("Fetched all users:", result.rows);
   return result.rows;
 };
 

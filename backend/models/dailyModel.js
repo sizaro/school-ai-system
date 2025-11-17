@@ -1,34 +1,66 @@
 import db from './database.js';
 
-// ===============================
-// SERVICES
-// ===============================
 async function getServicesByDay(startOfDay, endOfDay) {
   const query = `
-    SELECT 
-      s.*,
-      (s.service_timestamp AT TIME ZONE 'Africa/Kampala') AS service_time,
-      CONCAT(b.first_name, ' ', b.last_name) AS barber,
-      CONCAT(a.first_name, ' ', a.last_name) AS barber_assistant,
-      CONCAT(sc.first_name, ' ', sc.last_name) AS scrubber_assistant,
-      CONCAT(bs.first_name, ' ', bs.last_name) AS black_shampoo_assistant,
-      CONCAT(sb.first_name, ' ', sb.last_name) AS super_black_assistant,
-      CONCAT(bm.first_name, ' ', bm.last_name) AS black_mask_assistant
-    FROM services s
-    LEFT JOIN users b  ON s.barber_id = b.id
-    LEFT JOIN users a  ON s.barber_assistant_id = a.id
-    LEFT JOIN users sc ON s.scrubber_assistant_id = sc.id
-    LEFT JOIN users bs ON s.black_shampoo_assistant_id = bs.id
-    LEFT JOIN users sb ON s.super_black_assistant_id = sb.id
-    LEFT JOIN users bm ON s.black_mask_assistant_id = bm.id
-    WHERE s.service_timestamp BETWEEN $1 AND $2
-      AND (s.status IS NULL OR LOWER(s.status) = 'completed')
-    ORDER BY s.id DESC;
+    SELECT
+        st.id AS service_transaction_id,
+        st.service_timestamp AT TIME ZONE 'Africa/Kampala' AS service_time,
+        sec.id AS section_id,
+        sec.section_name,
+        sd.id AS service_definition_id,
+        sd.service_name,
+        sd.service_amount AS full_amount,
+
+        -- Calculate salon amount from roles, case-insensitive
+        MAX(CASE 
+              WHEN LOWER(TRIM(sr.role_name)) = 'salon' THEN sr.earned_amount 
+              ELSE 0 
+            END) AS salon_amount,
+
+        -- Aggregate performers (employees and their roles)
+        json_agg(
+            json_build_object(
+                'role_name', sr.role_name,
+                'role_amount', sr.earned_amount,
+                'employee_id', u.id,
+                'employee_name', u.first_name || ' ' || u.last_name
+            )
+        ) AS performers
+
+    FROM service_transactions st
+    JOIN service_performers sp 
+        ON sp.service_transaction_id = st.id
+    JOIN service_roles sr 
+        ON sr.id = sp.service_role_id
+    JOIN service_definitions sd 
+        ON sd.id = sr.service_definition_id
+    JOIN service_sections sec 
+        ON sec.id = sd.section_id
+    LEFT JOIN users u 
+        ON u.id = sp.employee_id
+
+    WHERE 
+        st.service_timestamp BETWEEN $1 AND $2
+        AND (st.status IS NULL OR LOWER(st.status) = 'completed')
+
+    GROUP BY 
+        st.id,
+        st.service_timestamp,
+        sec.id,
+        sec.section_name,
+        sd.id,
+        sd.service_name,
+        sd.service_amount
+    ORDER BY st.service_timestamp DESC;
   `;
 
   const result = await db.query(query, [startOfDay, endOfDay]);
+
+  console.log("services in the daily model", result.rows)
   return result.rows;
 }
+
+
 
 
 // ===============================
@@ -119,7 +151,6 @@ export const fetchAllEmployees = async () => {
     ORDER BY u.id ASC;
   `;
   const result = await db.query(query);
-  console.log("Fetched all employees:", result.rows);
   return result.rows;
 };
 
