@@ -42,7 +42,7 @@ export const createServiceDefinitionModel = async (data) => {
 
     const insertDef = `
       INSERT INTO service_definitions
-      (service_name, service_amount, salon_amount, section_id, service_description, service_image)
+      (service_name, service_amount, salon_amount, section_id, description, image_url)
       VALUES ($1,$2,$3,$4,$5,$6) RETURNING *;
     `;
     const { rows } = await db.query(insertDef, [service_name, service_amount || 0, salon_amount || 0, section_id, description || null, service_image || null]);
@@ -148,10 +148,10 @@ export const saveServiceTransaction = async (data) => {
 
     const insertTrans = `
       INSERT INTO service_transactions
-      (section_id, service_definition_id, created_by, appointment_date, appointment_time, customer_id, customer_note, service_timestamp)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,NOW()) RETURNING *;
+      (service_definition_id, created_by, appointment_date, appointment_time, customer_id, customer_note, service_timestamp)
+      VALUES ($1,$2,$3,$4,$5,$6,NOW()) RETURNING *;
     `;
-    const { rows } = await db.query(insertTrans, [section_id, service_definition_id, created_by, appointment_date || null, appointment_time || null, customer_id || null, customer_note || null]);
+    const { rows } = await db.query(insertTrans, [service_definition_id, created_by, appointment_date || null, appointment_time || null, customer_id || null, customer_note || null]);
     const transaction = rows[0];
 
     for (const p of performers) {
@@ -169,31 +169,54 @@ export const saveServiceTransaction = async (data) => {
     throw err;
   }
 };
-
-// FETCH ALL SERVICE TRANSACTIONS
 export const fetchAllServiceTransactions = async () => {
   const query = `
-    SELECT st.id AS transaction_id,
-           st.service_timestamp AT TIME ZONE 'Africa/Kampala' AS service_time,
-           st.section_id, st.service_definition_id, st.created_by, st.customer_id, st.customer_note,
-           sec.section_name, sd.service_name, sd.service_amount AS full_amount,
-           json_agg(
-             json_build_object(
-               'role_name', sr.role_name,
-               'role_amount', sr.earned_amount,
-               'employee_id', u.id,
-               'employee_name', u.first_name || ' ' || u.last_name
-             )
-           ) AS performers
+    SELECT 
+      st.id AS transaction_id,
+      st.service_definition_id,
+      st.created_by,
+      st.customer_id,
+      st.customer_note,
+      st.service_timestamp AT TIME ZONE 'Africa/Kampala' AS service_time,
+
+      -- service definition fields
+      sd.service_name,
+      sd.description,
+      sd.service_amount AS full_amount,
+      sd.section_id AS definition_section_id,
+
+      -- section name
+      sec.section_name,
+
+      -- group all performers
+      json_agg(
+        json_build_object(
+          'performer_id', sp.id,
+          'employee_id', u.id,
+          'employee_name', u.first_name || ' ' || u.last_name,
+          'role_name', sr.role_name,
+          'role_amount', sr.earned_amount
+        )
+      ) AS performers
+
     FROM service_transactions st
-    JOIN service_performers sp ON sp.service_transaction_id = st.id
-    JOIN service_roles sr ON sr.id = sp.service_role_id
-    JOIN service_definitions sd ON sd.id = sr.service_definition_id
+    JOIN service_definitions sd ON sd.id = st.service_definition_id
     JOIN service_sections sec ON sec.id = sd.section_id
+    LEFT JOIN service_performers sp ON sp.service_transaction_id = st.id
+    LEFT JOIN service_roles sr ON sr.id = sp.service_role_id
     LEFT JOIN users u ON u.id = sp.employee_id
-    GROUP BY st.id, sec.section_name, sd.service_name, sd.service_amount
+
+    GROUP BY 
+      st.id, 
+      sd.service_name,
+      sd.description,
+      sd.service_amount,
+      sd.section_id,
+      sec.section_name
+
     ORDER BY st.service_timestamp DESC;
   `;
+
   const { rows } = await db.query(query);
   return rows;
 };

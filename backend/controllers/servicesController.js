@@ -131,7 +131,7 @@ export const createServiceTransaction = async (req, res) => {
 export const getAllServiceTransactions = async (req, res) => {
   try {
     const transactions = await fetchAllServiceTransactions();
-    res.json({ success: true, data: transactions });
+    res.json({ success: true, data:transactions });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "Failed to fetch service transactions" });

@@ -2,56 +2,75 @@ import db from './database.js';
 
 async function getServicesByDay(startOfDay, endOfDay) {
   const query = `
-    SELECT
-        st.id AS service_transaction_id,
-        st.service_timestamp AT TIME ZONE 'Africa/Kampala' AS service_time,
-        sec.id AS section_id,
-        sec.section_name,
-        sd.id AS service_definition_id,
-        sd.service_name,
-        sd.service_amount AS full_amount,
+  SELECT 
+  st.id AS transaction_id,
+  st.service_definition_id,
+  st.customer_id,
+  st.customer_note,
+  st.created_by,
+  st.service_timestamp AT TIME ZONE 'Africa/Kampala' AS service_time,
 
-        -- Calculate salon amount from roles, case-insensitive
-        MAX(CASE 
-              WHEN LOWER(TRIM(sr.role_name)) = 'salon' THEN sr.earned_amount 
-              ELSE 0 
-            END) AS salon_amount,
+  -- Service definition fields
+  sd.service_name,
+  sd.description,
+  sd.service_amount,
+  sd.salon_amount,
+  sd.section_id AS definition_section_id,
 
-        -- Aggregate performers (employees and their roles)
-        json_agg(
-            json_build_object(
-                'role_name', sr.role_name,
-                'role_amount', sr.earned_amount,
-                'employee_id', u.id,
-                'employee_name', u.first_name || ' ' || u.last_name
-            )
-        ) AS performers
+  -- Section info
+  sec.section_name,
 
-    FROM service_transactions st
-    JOIN service_performers sp 
-        ON sp.service_transaction_id = st.id
-    JOIN service_roles sr 
-        ON sr.id = sp.service_role_id
-    JOIN service_definitions sd 
-        ON sd.id = sr.service_definition_id
-    JOIN service_sections sec 
-        ON sec.id = sd.section_id
-    LEFT JOIN users u 
-        ON u.id = sp.employee_id
+  -- Performers array
+  json_agg(
+    DISTINCT jsonb_build_object(
+      'role_name', sr.role_name,
+      'role_amount', sr.earned_amount,
+      'employee_id', u.id,
+      'employee_name', u.first_name || ' ' || u.last_name
+    )
+  ) FILTER (WHERE sp.id IS NOT NULL) AS performers,
 
-    WHERE 
+  -- Materials array (NEW)
+  (
+    SELECT json_agg(
+      jsonb_build_object(
+        'material_name', sm.material_name,
+        'material_cost', sm.material_cost
+      )
+    )
+    FROM service_materials sm
+    WHERE sm.service_definition_id = sd.id
+  ) AS materials
+
+FROM service_transactions st
+JOIN service_definitions sd 
+  ON sd.id = st.service_definition_id
+JOIN service_sections sec
+  ON sec.id = sd.section_id
+
+LEFT JOIN service_performers sp 
+  ON sp.service_transaction_id = st.id
+LEFT JOIN service_roles sr 
+  ON sr.id = sp.service_role_id
+LEFT JOIN users u 
+  ON u.id = sp.employee_id
+
+  WHERE 
         st.service_timestamp BETWEEN $1 AND $2
         AND (st.status IS NULL OR LOWER(st.status) = 'completed')
 
-    GROUP BY 
-        st.id,
-        st.service_timestamp,
-        sec.id,
-        sec.section_name,
-        sd.id,
-        sd.service_name,
-        sd.service_amount
-    ORDER BY st.service_timestamp DESC;
+GROUP BY 
+  st.id,
+  sd.service_name,
+  sd.description,
+  sd.service_amount,
+  sd.salon_amount,
+  sd.section_id,
+  sec.section_name,
+  sd.id
+
+ORDER BY st.service_timestamp DESC;
+
   `;
 
   const result = await db.query(query, [startOfDay, endOfDay]);
@@ -59,9 +78,6 @@ async function getServicesByDay(startOfDay, endOfDay) {
   console.log("services in the daily model", result.rows)
   return result.rows;
 }
-
-
-
 
 // ===============================
 // EXPENSES

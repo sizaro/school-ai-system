@@ -162,10 +162,10 @@ export default function OwnerDashboard() {
   };
 
   const appointmentsByStatus = {
-    pending: services.filter((s) => s.status === "pending"),
-    confirmed: services.filter((s) => s.status === "confirmed"),
-    completed: services.filter((s) => s.status === "completed"),
-    cancelled: services.filter((s) => s.status === "cancelled"),
+    pending: (services.data|| []).filter((s) => s.status === "pending"),
+    confirmed: (services.data|| []).filter((s) => s.status === "confirmed"),
+    completed: (services.data|| []).filter((s) => s.status === "completed"),
+    cancelled: (services.data|| []).filter((s) => s.status === "cancelled"),
   };
 
   useEffect(() => {
@@ -377,8 +377,8 @@ export default function OwnerDashboard() {
             <ServiceForm
               onSubmit={createServiceTransaction}
               onClose={closeModal}
-              Services={serviceDefinitions}
-              Roles={serviceRoles}
+              Services={serviceDefinitions.data}
+              Roles={serviceRoles.data}
               Employees={Employees}
               Sections={sections}
               createdBy={createdbyID.id}

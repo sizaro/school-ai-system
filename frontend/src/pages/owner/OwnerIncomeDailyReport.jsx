@@ -7,14 +7,14 @@ import ConfirmModal from "../../components/ConfirmModal.jsx";
 
 const OwnerIncomeDailyReport = () => {
   const {
-    services,
-    lateFees,
-    tagFees,
+    services = [],
+    lateFees = [],
+    tagFees = [],
     users = [],
-    advances,
-    expenses,
-    sessions,
-    sections, // <-- dynamic sections from context if available
+    advances = [],
+    expenses = [],
+    sessions = [],
+    sections = [], // dynamic sections from context if available
     fetchUsers,
     fetchDailyData,
     deleteServiceTransaction,
@@ -23,7 +23,8 @@ const OwnerIncomeDailyReport = () => {
     deleteService,
   } = useData();
 
-  console.log("These are the services in the daily report page:\n", services);
+  
+  console.log("Daily services:", services.data);
 
   const Employees = (users || []).filter(
     (user) =>
@@ -49,7 +50,6 @@ const OwnerIncomeDailyReport = () => {
 
   // ---- Modal Handlers ----
   const handleEditClick = async (serviceIdOrObj) => {
-    // serviceIdOrObj can be an object or id; handle both
     const id = typeof serviceIdOrObj === "object" ? txIdOf(serviceIdOrObj) : serviceIdOrObj;
     if (!id) return console.error("No id provided for edit");
     const service = await fetchServiceById(id);
@@ -85,24 +85,20 @@ const OwnerIncomeDailyReport = () => {
   };
 
   // ---- Sections: dynamic ----
-  // Prefer `sections` from context; if absent, infer from services list
   const sectionList = useMemo(() => {
     if (Array.isArray(sections) && sections.length > 0) {
-      // map to canonical shape { id, name }
       return sections.map((sec) => ({
         id: sec.id,
         name: sec.section_name ?? sec.name ?? String(sec.id),
       }));
     }
-    // infer from services
     const map = new Map();
-    (services || []).forEach((s) => {
-      const id = s.section_id ?? s.sectionId ?? s.section?.id ?? s.section_transaction_id ?? (s.section_name ? s.section_name : null);
+    (services.data || []).forEach((s) => {
+      const id = s.section_id ?? s.sectionId ?? s.section?.id ?? s.definition_section_id ?? (s.section_name ? s.section_name : null);
       const name = s.section_name ?? s.section?.section_name ?? s.section?.name ?? (typeof id === "string" ? id : `Section ${id}`);
       const key = id ?? name;
       if (!map.has(key)) map.set(key, { id: id ?? name, name });
     });
-    // if still empty, provide a fallback single section
     if (map.size === 0) {
       return [{ id: "default", name: "Default" }];
     }
@@ -110,31 +106,70 @@ const OwnerIncomeDailyReport = () => {
   }, [sections, services]);
 
   // helper: returns services filtered by a section object (works with id or name)
-  const servicesForSection = (section) => {
-    if (!section) return [];
-    // match by id if numeric-ish, else match by name
-    return (services || []).filter((s) => {
-      // prefer numeric id match
-      if (section.id != null && s.section_id != null) return String(s.section_id) === String(section.id);
-      // fallback to matching section_name
-      if (section.name && s.section_name) return String(s.section_name).toLowerCase() === String(section.name).toLowerCase();
-      return false;
-    });
+ const servicesForSection = (section) => {
+  if (!section) return [];
+
+  return (services.data || services || []).filter((s) => {
+    const secId = String(section.id ?? "").trim().toLowerCase();
+    const secName = String(section.section_name ?? "").trim().toLowerCase();
+
+    const sId = String(
+      s.section_id ??
+      s.definition_section_id ??
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+    const sName = String(
+      s.section_name ??
+      (s.section && s.section.section_name) ??
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+    // match by ID if possible
+    if (secId && sId && secId === sId) return true;
+
+    // match by name
+    if (secName && sName && secName === sName) return true;
+
+    // loose fallback (if spelling or capitalization varies)
+    if (secName && sName && (sName.includes(secName) || secName.includes(sName)))
+      return true;
+
+    return false;
+  });
+};
+
+
+  // helpers to compute per-service derived numbers (do not overwrite original service_amount)
+  const serviceEmployeeSalary = (s) => {
+    if (!s || !Array.isArray(s.performers)) return 0;
+    return s.performers.reduce((sum, p) => sum + (parseFloat(p.role_amount || p.earned_amount || p.amount || 0) || 0), 0);
   };
 
+  const serviceMaterialsTotal = (s) => {
+    if (!s || !Array.isArray(s.materials)) return 0;
+    return s.materials.reduce((sum, m) => sum + (parseFloat(m.material_cost || m.cost || 0) || 0), 0);
+  };
+
+  // section totals (gross = sum of full_amount/service_amount; employeeSalary, materialsTotal, salonIncome)
   const calculateSectionTotals = (sectionServices) => {
-    const gross = sectionServices.reduce((sum, s) => sum + (parseFloat(s.full_amount || s.service_amount || 0) || 0), 0);
+    const gross = sectionServices.reduce((sum, s) => sum + (parseFloat(s.service_amount || s.full_amount || 0) || 0), 0);
 
     const employeeSalary = sectionServices.reduce((sum, s) => {
-      if (!s.performers || !Array.isArray(s.performers)) return sum;
-      const filtperf = s.performers.filter((p) => (p.role_name || "").toLowerCase() !== "salon");
-      const performersTotal = filtperf.reduce((pSum, p) => pSum + (parseFloat(p.role_amount || p.earned_amount || 0) || 0), 0);
-      return sum + performersTotal;
+      return sum + serviceEmployeeSalary(s);
+    }, 0);
+
+    const materialsTotal = sectionServices.reduce((sum, s) => {
+      return sum + serviceMaterialsTotal(s);
     }, 0);
 
     const salonIncome = sectionServices.reduce((sum, s) => sum + (parseFloat(s.salon_amount || 0) || 0), 0);
 
-    return { gross, employeeSalary, salonIncome };
+    return { gross, employeeSalary, materialsTotal, salonIncome };
   };
 
   // Build dynamic summaries per section
@@ -152,21 +187,25 @@ const OwnerIncomeDailyReport = () => {
   }, [sectionList, services]);
 
   // ---- Totals Calculation (overall) ----
-  const calculateTotals = (servicesList, expensesList, advancesList, tagFeesList, lateFeesList) => {
-    const grossIncome = (servicesList || []).reduce((sum, s) => sum + (parseFloat(s.full_amount || s.service_amount || 0) || 0), 0);
+  const calculateTotals = (servicesList = [], expensesList = [], advancesList = [], tagFeesList = [], lateFeesList = []) => {
+    const grossIncome = (servicesList || []).reduce((sum, s) => sum + (parseFloat(s.service_amount || s.full_amount || 0) || 0), 0);
 
-    const employeesSalary = (servicesList || []).reduce((sum, s) => {
-      if (!s.performers || !Array.isArray(s.performers)) return sum;
-      return sum + s.performers.reduce((pSum, p) => pSum + (parseFloat(p.amount || p.role_amount || p.earned_amount || 0) || 0), 0);
-    }, 0);
+    const employeesSalary = (servicesList || []).reduce((sum, s) => sum + serviceEmployeeSalary(s), 0);
+
+    const materialsTotal = (servicesList || []).reduce((sum, s) => sum + serviceMaterialsTotal(s), 0);
 
     const totalExpenses = (expensesList || []).reduce((sum, e) => sum + (parseFloat(e.amount || 0) || 0), 0);
     const totalAdvances = (advancesList || []).reduce((sum, a) => sum + (parseFloat(a.amount || 0) || 0), 0);
     const totalLateFees = (lateFeesList || []).reduce((sum, l) => sum + (parseFloat(l.amount || 0) || 0), 0);
     const totaltagFees = (tagFeesList || []).reduce((sum, t) => sum + (parseFloat(t.amount || 0) || 0), 0);
 
+    // employees net after advances/tags/late fees
     const netEmployeeSalary = Math.max(0, employeesSalary - (totalAdvances + totalLateFees + totaltagFees));
-    const netIncome = grossIncome - (totalExpenses + netEmployeeSalary);
+
+    // netIncome: gross minus (expenses + materials + netEmployeeSalary)
+    const netIncome = grossIncome - (totalExpenses + materialsTotal + netEmployeeSalary);
+
+    // cashAtHand: what remains available (we add back netEmployeeSalary since it's still in cash flows depending on your model)
     const cashAtHand = netIncome + netEmployeeSalary;
 
     return {
@@ -174,6 +213,7 @@ const OwnerIncomeDailyReport = () => {
       totaltagFees,
       grossIncome,
       employeesSalary,
+      materialsTotal,
       totalExpenses,
       totalAdvances,
       netEmployeeSalary,
@@ -187,6 +227,7 @@ const OwnerIncomeDailyReport = () => {
     totaltagFees,
     grossIncome,
     employeesSalary,
+    materialsTotal,
     totalExpenses,
     totalAdvances,
     netEmployeeSalary,
@@ -197,7 +238,11 @@ const OwnerIncomeDailyReport = () => {
   // ---- Format UTC Date to EAT ----
   const formatEAT = (dateString) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleString("en-UG", { timeZone: "Africa/Kampala", hour: "2-digit", minute: "2-digit" });
+    try {
+      return new Date(dateString).toLocaleString("en-UG", { timeZone: "Africa/Kampala", hour: "2-digit", minute: "2-digit" });
+    } catch (e) {
+      return dateString;
+    }
   };
 
   // ---- Duration Calculation ----
@@ -232,14 +277,37 @@ const OwnerIncomeDailyReport = () => {
   useEffect(() => {
     fetchDailyData(selectedDate);
     fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ---- Service Count Summary ----
-  const serviceCount = services.reduce((acc, service) => {
+  const serviceCount = (services || []).reduce((acc, service) => {
     const name = service.service_name || service.service_name || "Unknown";
     acc[name] = (acc[name] || 0) + 1;
     return acc;
   }, {});
+
+  // format performers + materials (Option B)
+  const formatPerformersAndMaterials = (s) => {
+    const lines = [];
+    if (Array.isArray(s.performers) && s.performers.length > 0) {
+      lines.push("Performers:");
+      s.performers.forEach((p) => {
+        const amount = Number(p.role_amount ?? p.earned_amount ?? p.amount ?? 0);
+        lines.push(`- ${p.employee_name ?? "N/A"} (${p.role_name ?? "N/A"} - ${amount.toLocaleString()} )`);
+      });
+    }
+    if (Array.isArray(s.materials) && s.materials.length > 0) {
+      lines.push("Materials:");
+      s.materials.forEach((m) => {
+        const cost = Number(m.material_cost ?? m.cost ?? 0);
+        lines.push(`- ${m.material_name ?? "Material"} (${cost.toLocaleString()})`);
+      });
+    }
+    if (lines.length === 0) return "N/A";
+    // join with newline for visual separation; in table we'll render as <div> with <div> lines
+    return lines;
+  };
 
   // ---------- Render ----------
   return (
@@ -296,8 +364,13 @@ const OwnerIncomeDailyReport = () => {
                       <div className="text-xl font-bold">{(sec.totals.employeeSalary || 0).toLocaleString()} UGX</div>
                     </div>
 
+                    <div className="p-3 rounded border bg-blue-50">
+                      <div className="text-sm text-gray-700">Materials Cost</div>
+                      <div className="text-xl font-bold">{(sec.totals.materialsTotal || 0).toLocaleString()} UGX</div>
+                    </div>
+
                     <div className="p-3 rounded border bg-blue-100">
-                      <div className="text-sm text-gray-700">Salon Income</div>
+                      <div className="text-sm text-gray-700">Salon Amount</div>
                       <div className="text-xl font-bold text-green-700">{(sec.totals.salonIncome || 0).toLocaleString()} UGX</div>
                     </div>
                   </div>
@@ -312,41 +385,46 @@ const OwnerIncomeDailyReport = () => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="summary-box p-3 border rounded">
                 <div className="text-sm text-gray-600">Gross Income</div>
-                <div className="font-bold text-lg">{grossIncome.toLocaleString()} UGX</div>
+                <div className="font-bold text-lg">{(grossIncome || 0).toLocaleString()} UGX</div>
               </div>
               <div className="summary-box p-3 border rounded">
                 <div className="text-sm text-gray-600">Employees Salary</div>
-                <div className="font-bold text-lg">{employeesSalary.toLocaleString()} UGX</div>
+                <div className="font-bold text-lg">{(employeesSalary || 0).toLocaleString()} UGX</div>
               </div>
               <div className="summary-box p-3 border rounded">
-                <div className="text-sm text-gray-600">Expenses</div>
-                <div className="font-bold text-lg">{totalExpenses.toLocaleString()} UGX</div>
+                <div className="text-sm text-gray-600">Materials Cost</div>
+                <div className="font-bold text-lg">{(materialsTotal || 0).toLocaleString()} UGX</div>
               </div>
 
               <div className="summary-box p-3 border rounded">
+                <div className="text-sm text-gray-600">Expenses</div>
+                <div className="font-bold text-lg">{(totalExpenses || 0).toLocaleString()} UGX</div>
+              </div>
+              <div className="summary-box p-3 border rounded">
                 <div className="text-sm text-gray-600">Advances</div>
-                <div className="font-bold text-lg">{totalAdvances.toLocaleString()} UGX</div>
+                <div className="font-bold text-lg">{(totalAdvances || 0).toLocaleString()} UGX</div>
               </div>
               <div className="summary-box p-3 border rounded">
                 <div className="text-sm text-gray-600">Tag Fees</div>
-                <div className="font-bold text-lg">{totaltagFees.toLocaleString()} UGX</div>
+                <div className="font-bold text-lg">{(totaltagFees || 0).toLocaleString()} UGX</div>
               </div>
+
               <div className="summary-box p-3 border rounded">
                 <div className="text-sm text-gray-600">Late Fees</div>
-                <div className="font-bold text-lg">{totalLateFees.toLocaleString()} UGX</div>
+                <div className="font-bold text-lg">{(totalLateFees || 0).toLocaleString()} UGX</div>
               </div>
 
               <div className="summary-box p-3 border rounded">
                 <div className="text-sm text-gray-600">Net Employees Salary</div>
-                <div className="font-bold text-lg">{netEmployeeSalary.toLocaleString()} UGX</div>
+                <div className="font-bold text-lg">{(netEmployeeSalary || 0).toLocaleString()} UGX</div>
               </div>
               <div className="summary-box p-3 border rounded">
                 <div className="text-sm text-gray-600">Salon Net Income</div>
-                <div className="font-bold text-lg">{netIncome.toLocaleString()} UGX</div>
+                <div className="font-bold text-lg">{(netIncome || 0).toLocaleString()} UGX</div>
               </div>
               <div className="summary-box p-3 border rounded">
                 <div className="text-sm text-gray-600">Total Cash Available</div>
-                <div className="font-bold text-lg">{cashAtHand.toLocaleString()} UGX</div>
+                <div className="font-bold text-lg">{(cashAtHand || 0).toLocaleString()} UGX</div>
               </div>
             </div>
           </section>
@@ -375,7 +453,7 @@ const OwnerIncomeDailyReport = () => {
                     <th className="px-3 py-2 text-left">Section</th>
                     <th className="px-3 py-2 text-left">Full Amount</th>
                     <th className="px-3 py-2 text-left">Salon Amount</th>
-                    <th className="px-3 py-2 text-left">Performers</th>
+                    <th className="px-3 py-2 text-left">Performers & Materials</th>
                     <th className="px-3 py-2 text-left">Time</th>
                     <th className="px-3 py-2 text-left">Actions</th>
                   </tr>
@@ -384,20 +462,32 @@ const OwnerIncomeDailyReport = () => {
                   {services.length > 0 ? (
                     services.map((s, index) => {
                       const rowId = txIdOf(s);
+                      const performersAndMaterials = formatPerformersAndMaterials(s);
+                      const serviceEmployee = serviceEmployeeSalary(s);
+                      const serviceMaterials = serviceMaterialsTotal(s);
                       return (
                         <tr key={rowId ?? index} className="border-b hover:bg-gray-50">
                           <td className="px-3 py-2 align-top">{index + 1}</td>
                           <td className="px-3 py-2 align-top">{s.service_name}</td>
                           <td className="px-3 py-2 align-top">{s.section_name}</td>
-                          <td className="px-3 py-2 align-top">{(parseFloat(s.full_amount || 0) || 0).toLocaleString()} UGX</td>
+                          <td className="px-3 py-2 align-top">{(parseFloat(s.service_amount || s.full_amount || 0) || 0).toLocaleString()} UGX</td>
                           <td className="px-3 py-2 align-top">{(parseFloat(s.salon_amount || 0) || 0).toLocaleString()} UGX</td>
+
                           <td className="px-3 py-2 align-top">
-                            {s.performers && s.performers.length > 0
-                              ? s.performers
-                                  .map((p) => `${p.employee_name || "N/A"} (${p.role_name || "N/A"} - ${p.role_amount || p.amount || 0} )`)
-                                  .join(", ")
-                              : "N/A"}
+                            {Array.isArray(performersAndMaterials) ? (
+                              <div className="space-y-1">
+                                {performersAndMaterials.map((line, idx) => (
+                                  <div key={idx} className="text-sm text-gray-700">{line}</div>
+                                ))}
+                                <div className="text-xs text-gray-500 mt-1">
+                                  <strong>Summary:</strong> Employees: {(serviceEmployee || 0).toLocaleString()} UGX &middot; Materials: {(serviceMaterials || 0).toLocaleString()} UGX
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-sm text-gray-700">{performersAndMaterials}</div>
+                            )}
                           </td>
+
                           <td className="px-3 py-2 align-top">{formatEAT(s.service_time ?? s.service_timestamp ?? s.service_time)}</td>
                           <td className="px-3 py-2 align-top flex gap-2">
                             <button

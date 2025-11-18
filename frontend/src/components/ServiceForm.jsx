@@ -11,6 +11,9 @@ export default function ServiceForm({
   createdBy,
   serviceStatus,
 }) {
+
+  console.log("servces passed to the service form", Services)
+  console.log("employees passed to the service form", Employees)
   const [sections, setSections] = useState(Sections);
   const [services, setServices] = useState([]);
   const [roles, setRoles] = useState([]);
