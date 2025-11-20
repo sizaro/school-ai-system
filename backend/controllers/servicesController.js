@@ -13,6 +13,7 @@ import {
   updateServiceTransactionModel,
   updateServiceTransactionModelt,
   DeleteServiceTransaction,
+  fetchServiceMaterialsModel
 } from "../models/servicesModel.js";
 
 // =========================================================
@@ -201,6 +202,20 @@ export const getServiceRoles = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "Failed to fetch service roles" });
+  }
+};
+
+
+// =========================================================
+// SERVICE MATERIALS
+// =========================================================
+export const getServiceMaterials = async (req, res) => {
+  try {
+    const materials = await fetchServiceMaterialsModel();
+    res.json({ success: true, data: materials });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to fetch service materials" });
   }
 };
 

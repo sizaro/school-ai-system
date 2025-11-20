@@ -1,29 +1,32 @@
 import express from 'express';
 const router = express.Router();
 
-import upload from "../middleware/upload.js"; // Add Multer import for file handling
+import upload from "../middleware/upload.js"; // Multer middleware for file uploads
 
 import {
-  // 🔹 Existing logic
+  // Service definitions
   getServiceDefinitions,
   getServiceDefinitionById,
-  getServiceRoles,
-  createServiceTransaction,
-  getAllServiceTransactions,
-
-  // 🔹 Service definitions management
   createServiceDefinition,
   updateServiceDefinition,
   deleteServiceDefinition,
 
-  // Future update functions (placeholders)
+  // Service roles
+  getServiceRoles,
+
+  getServiceMaterials,
+
+  // Service transactions
+  createServiceTransaction,
+  getAllServiceTransactions,
+  getServiceTransactionById,
   updateServiceTransaction,
   updateServiceTransactiont,
   deleteServiceTransaction,
 } from '../controllers/servicesController.js';
 
 // ===============================
-// 🔵 NEW SERVICE RESOURCES
+// 🔵 SERVICE DEFINITIONS
 // ===============================
 
 // 👉 fetch all service definitions
@@ -32,7 +35,7 @@ router.get('/service_definitions', getServiceDefinitions);
 // 👉 fetch a single service definition by ID
 router.get('/service_definitions/:id', getServiceDefinitionById);
 
-// 👉 create a service definition with image upload
+// 👉 create a service definition with optional image upload
 router.post('/service_definitions/create', upload.single("image_url"), createServiceDefinition);
 
 // 👉 update a service definition by ID with optional image upload
@@ -44,21 +47,30 @@ router.delete('/service_definitions/:id', deleteServiceDefinition);
 // 👉 fetch all service roles
 router.get('/service_roles', getServiceRoles);
 
+// ===============================
+// 🔵 SERVICE TRANSACTIONS
+// ===============================
+
 // 👉 create a service transaction + performers
 router.post('/service_transactions', createServiceTransaction);
 
 // 👉 fetch all service transactions (with performers)
 router.get('/service_transactions', getAllServiceTransactions);
 
-// ===============================
-// 🔵 OPTIONAL (for future editing)
-// ===============================
+// 👉 fetch single service transaction by ID
+router.get('/service_transactions/:id', getServiceTransactionById);
 
-// 👉 edit a service transaction
+// 👉 update a service transaction by ID
 router.put('/service_transactions/:id', updateServiceTransaction);
+
+// 👉 update only the service timestamp for a transaction
 router.put('/service_transactionst/:id', updateServiceTransactiont);
 
-// 👉 delete a service transaction
+// 👉 delete a service transaction by ID
 router.delete('/service_transactions/:id', deleteServiceTransaction);
+
+// 👉 fetch all service materials
+router.get('/service_materials', getServiceMaterials);
+
 
 export default router;

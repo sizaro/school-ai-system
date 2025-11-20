@@ -1,83 +1,86 @@
 import db from './database.js';
 
-async function getServicesByDay(startOfDay, endOfDay) {
+export const getServicesByDay = async (startOfDay, endOfDay) => {
   const query = `
-  SELECT 
-  st.id AS transaction_id,
-  st.service_definition_id,
-  st.customer_id,
-  st.customer_note,
-  st.created_by,
-  st.service_timestamp AT TIME ZONE 'Africa/Kampala' AS service_time,
+    SELECT 
+      st.id AS transaction_id,
+      st.service_definition_id,
+      st.customer_id,
+      st.customer_note,
+      st.created_by,
+      st.service_timestamp AT TIME ZONE 'Africa/Kampala' AS service_time,
 
-  -- Service definition fields
-  sd.service_name,
-  sd.description,
-  sd.service_amount,
-  sd.salon_amount,
-  sd.section_id AS definition_section_id,
+      sd.service_name,
+      sd.description,
+      sd.service_amount AS full_amount,
+      sd.salon_amount,
+      sd.section_id AS definition_section_id,
+      sec.section_name,
 
-  -- Section info
-  sec.section_name,
+      COALESCE(perf.performers, '[]'::json) AS performers,
+      COALESCE(mat.materials, '[]'::json) AS materials
 
-  -- Performers array
-  json_agg(
-    DISTINCT jsonb_build_object(
-      'role_name', sr.role_name,
-      'role_amount', sr.earned_amount,
-      'employee_id', u.id,
-      'employee_name', u.first_name || ' ' || u.last_name
-    )
-  ) FILTER (WHERE sp.id IS NOT NULL) AS performers,
+    FROM service_transactions st
+    JOIN service_definitions sd 
+      ON sd.id = st.service_definition_id
+    JOIN service_sections sec
+      ON sec.id = sd.section_id
 
-  -- Materials array (NEW)
-  (
-    SELECT json_agg(
-      jsonb_build_object(
-        'material_name', sm.material_name,
-        'material_cost', sm.material_cost
-      )
-    )
-    FROM service_materials sm
-    WHERE sm.service_definition_id = sd.id
-  ) AS materials
+    -- lateral join for performers aggregation
+    LEFT JOIN LATERAL (
+      SELECT json_agg(
+               jsonb_build_object(
+                 'role_name', sr.role_name,
+                 'role_amount', sr.earned_amount,
+                 'employee_id', u.id,
+                 'employee_name', u.first_name || ' ' || u.last_name
+               )
+             ) AS performers
+      FROM service_performers sp
+      LEFT JOIN service_roles sr ON sr.id = sp.service_role_id
+      LEFT JOIN users u ON u.id = sp.employee_id
+      WHERE sp.service_transaction_id = st.id
+    ) perf ON TRUE
 
-FROM service_transactions st
-JOIN service_definitions sd 
-  ON sd.id = st.service_definition_id
-JOIN service_sections sec
-  ON sec.id = sd.section_id
+    -- lateral join for materials aggregation
+    LEFT JOIN LATERAL (
+      SELECT json_agg(
+               jsonb_build_object(
+                 'material_name', sm.material_name,
+                 'material_cost', sm.material_cost
+               )
+             ) AS materials
+      FROM service_materials sm
+      WHERE sm.service_definition_id = sd.id
+    ) mat ON TRUE
 
-LEFT JOIN service_performers sp 
-  ON sp.service_transaction_id = st.id
-LEFT JOIN service_roles sr 
-  ON sr.id = sp.service_role_id
-LEFT JOIN users u 
-  ON u.id = sp.employee_id
+    WHERE 
+      st.service_timestamp BETWEEN $1 AND $2
+      AND (st.status IS NULL OR LOWER(st.status) = 'completed')
 
-  WHERE 
-        st.service_timestamp BETWEEN $1 AND $2
-        AND (st.status IS NULL OR LOWER(st.status) = 'completed')
-
-GROUP BY 
-  st.id,
-  sd.service_name,
-  sd.description,
-  sd.service_amount,
-  sd.salon_amount,
-  sd.section_id,
-  sec.section_name,
-  sd.id
-
-ORDER BY st.service_timestamp DESC;
-
+    ORDER BY st.service_timestamp DESC;
   `;
 
-  const result = await db.query(query, [startOfDay, endOfDay]);
+  const { rows } = await db.query(query, [startOfDay, endOfDay]);
 
-  console.log("services in the daily model", result.rows)
-  return result.rows;
-}
+  // deduplicate materials in JS
+  const result = rows.map(row => {
+    if (Array.isArray(row.materials)) {
+      row.materials = Array.from(
+        new Map(row.materials.map(m => [m.material_name, m])).values()
+      );
+    } else {
+      row.materials = [];
+    }
+    return row;
+  });
+
+  console.log("services in the daily model", result);
+  return result;
+};
+
+
+
 
 // ===============================
 // EXPENSES

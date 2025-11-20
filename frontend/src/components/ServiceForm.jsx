@@ -10,22 +10,51 @@ export default function ServiceForm({
   Employees,
   createdBy,
   serviceStatus,
+  serviceData = null,
 }) {
 
-  console.log("servces passed to the service form", Services)
-  console.log("employees passed to the service form", Employees)
+  console.log("sections in the service form", Sections)
+  console.log("roles in the service form", Roles)
+  console.log("service definitions in the service form", Services)
+  console.log("service transactioin to be edited in the service form", serviceData)
   const [sections, setSections] = useState(Sections);
   const [services, setServices] = useState([]);
   const [roles, setRoles] = useState([]);
-  const [employees, setEmployees] = useState([]);
+  const [employees, setEmployees] = useState(Employees);
 
   const [form, setForm] = useState({
+    id:null,
     section_id: "",
     service_definition_id: "",
     appointment_date: "",
     appointment_time: "",
     performers: [],
   });
+
+  // --------------------------
+  // Prefill form for editing
+  // --------------------------
+  useEffect(() => {
+    if (serviceData) {
+      setForm({
+        id:serviceData.transaction_id,
+        section_id: serviceData.definition_section_id,
+        service_definition_id: serviceData.service_definition_id,
+        appointment_date: serviceData.appointment_date || "",
+        appointment_time: serviceData.appointment_time || "",
+        performers: serviceData.performers || [],
+      });
+
+      setServices(Services.filter((s) => s.section_id === serviceData.definition_section_id));
+
+      if (serviceData.service_definition_id) {
+        const matchingRoles = Roles.filter(
+          (r) => r.service_definition_id === serviceData.service_definition_id
+        );
+        setRoles(matchingRoles);
+      }
+    }
+  }, [serviceData, Services, Roles]);
 
   // --------------------------
   // When a section is selected
@@ -48,10 +77,8 @@ export default function ServiceForm({
   const handleServiceSelect = (id) => {
     const matchingRoles = Roles.filter((r) => r.service_definition_id === id);
 
-    // Build performers automatically (Salon hidden but included)
     const performers = matchingRoles.map((role) => {
       const isSalon = role.role_name.toLowerCase() === "salon";
-
       return {
         role_id: role.id,
         employee_id: isSalon ? null : "",
@@ -82,7 +109,7 @@ export default function ServiceForm({
   };
 
   // --------------------------
-  // SUBMIT
+  // SUBMIT (create or update)
   // --------------------------
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -94,7 +121,6 @@ export default function ServiceForm({
       appointment_time: isCustomer ? form.appointment_time : null,
       created_by: createdBy,
       status: serviceStatus,
-
       performers: form.performers.map((p) => ({
         role_id: p.role_id,
         employee_id: p.employee_id === "" ? null : p.employee_id,
@@ -102,13 +128,20 @@ export default function ServiceForm({
       })),
     };
 
-    onSubmit(payload);
+    if (serviceData && serviceData.transaction_id) {
+      // Update
+      onSubmit(serviceData.transaction_id, payload);
+    } else {
+      // Create
+      onSubmit(payload);
+    }
+
     onClose();
   };
 
   useEffect(() => {
     setEmployees(Employees);
-  }, []);
+  }, [Employees]);
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full p-4">
@@ -179,18 +212,18 @@ export default function ServiceForm({
           {roles.map((role) => {
             const isSalon =
               role.role_name && role.role_name.toLowerCase() === "salon";
-
-            if (isSalon) return null; // Hide salon from UI
+            if (isSalon) return null;
 
             return (
               <div key={role.id} className="flex flex-col">
                 <label>{role.role_name}</label>
-
                 <select
                   className="overflow-y-auto"
-                  onChange={(e) =>
-                    updatePerformer(role.id, e.target.value)
+                  value={
+                    form.performers.find((p) => p.role_id === role.id)
+                      ?.employee_id || ""
                   }
+                  onChange={(e) => updatePerformer(role.id, e.target.value)}
                 >
                   <option value="">select employee</option>
                   {employees.map((emp) => (
@@ -211,7 +244,6 @@ export default function ServiceForm({
     </form>
   );
 }
-
 
 
 

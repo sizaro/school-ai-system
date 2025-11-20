@@ -3,6 +3,7 @@ import Button from "./Button";
 
 export default function NewServiceForm({ onSubmit, onClose, Sections, serviceData = null }) {
   const [formData, setFormData] = useState({
+    id:null,
     service_name: "",
     service_amount: "",
     salon_amount: "",
@@ -17,6 +18,7 @@ export default function NewServiceForm({ onSubmit, onClose, Sections, serviceDat
   useEffect(() => {
     if (serviceData) {
       setFormData({
+        id: serviceData.id,
         service_name: serviceData.service_name || "",
         service_amount: serviceData.service_amount || "",
         salon_amount: serviceData.salon_amount || "",
@@ -69,10 +71,11 @@ export default function NewServiceForm({ onSubmit, onClose, Sections, serviceDat
     if (!formData.salon_amount.trim()) return alert("Salon amount is required");
     if (!formData.description.trim()) return alert("Service description is required");
 
-    const validRoles = formData.roles.filter(r => r.role_name.trim() && r.role_amount.trim());
-    const validMaterials = formData.materials.filter(m => m.material_name.trim() && m.material_cost.trim());
+    const validRoles = formData.roles.filter(r => r.role_name.trim() && r.role_amount);
+    const validMaterials = formData.materials.filter(m => m.material_name.trim() && m.material_cost);
 
     const data = new FormData();
+    data.append("id", formData.id);
     data.append("service_name", formData.service_name);
     data.append("service_amount", Number(formData.service_amount));
     data.append("salon_amount", Number(formData.salon_amount));
@@ -90,7 +93,14 @@ export default function NewServiceForm({ onSubmit, onClose, Sections, serviceDat
       data.append(`materials[${i}][material_cost]`, Number(m.material_cost));
     });
 
+  if (serviceData && serviceData.id) {
+    // Editing: pass id + data
+    onSubmit(serviceData.id, data);
+  } else {
+    // Creating: only pass data
     onSubmit(data);
+  }
+
     onClose();
   };
 

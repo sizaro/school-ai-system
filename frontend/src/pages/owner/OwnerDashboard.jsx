@@ -16,7 +16,7 @@ export default function OwnerDashboard() {
   const [modalType, setModalType] = useState(null);
   const [salonStatus, setSalonStatus] = useState("closed");
   const [selectedFee, setSelectedFee] = useState(null);
-  const [selectedItem, setSelectedItem] = useState(null); // For editing sections/services
+  const [edittingServiceDefinition, setEdittingServiceDefinition] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelServiceId, setCancelServiceId] = useState(null);
   const [activeTab, setActiveTab] = useState("pending");
@@ -44,6 +44,8 @@ export default function OwnerDashboard() {
     serviceDefinitions,
     createServiceDefinition,
     updateServiceDefinition,
+    fetchServiceDefinitionById,
+    deleteServiceDefinition,
     serviceRoles,
     fetchSections,
     createSection,
@@ -102,8 +104,6 @@ export default function OwnerDashboard() {
 
   const closeModal = () => {
     setModalType(null);
-    setSelectedFee(null);
-    setSelectedItem(null);
   };
 
   const createService = async (formData) => {
@@ -162,10 +162,10 @@ export default function OwnerDashboard() {
   };
 
   const appointmentsByStatus = {
-    pending: (services.data|| []).filter((s) => s.status === "pending"),
-    confirmed: (services.data|| []).filter((s) => s.status === "confirmed"),
-    completed: (services.data|| []).filter((s) => s.status === "completed"),
-    cancelled: (services.data|| []).filter((s) => s.status === "cancelled"),
+    pending: (services.data || []).filter((s) => s.status === "pending"),
+    confirmed: (services.data || []).filter((s) => s.status === "confirmed"),
+    completed: (services.data || []).filter((s) => s.status === "completed"),
+    cancelled: (services.data || []).filter((s) => s.status === "cancelled"),
   };
 
   useEffect(() => {
@@ -199,14 +199,62 @@ export default function OwnerDashboard() {
     }
   };
 
-  const handleEditSection = (section) => {
-    setSelectedItem(section);
+  const handleEditSection = async (sectionOrId) => {
+   await setSelectedItem(item);
     setModalType("edit_section");
   };
 
-  const handleEditServiceDefinition = (serviceDef) => {
-    setSelectedItem(serviceDef);
-    setModalType("edit_service_definition");
+  const handleEditServiceDefinition = async (id) => {
+    try {
+        const serviceDef = await fetchServiceDefinitionById(id);
+        await setEdittingServiceDefinition(serviceDef);
+        setModalType("edit_service_definition");
+      } catch (err) {
+        console.error("Failed to fetch:", err);
+      }
+  };
+
+  const handleAddServiceDefinition = async (formData) => {
+  try {
+    await createServiceDefinition(formData);
+    closeModal();
+  } catch (err) {
+    console.error("Failed to create service definition", err);
+  }
+};
+
+
+  const handleUpdateSection = async (formData) => {
+    try {
+      if (!selectedItem || !selectedItem.id) throw new Error("No section selected for update");
+      await updateSection(selectedItem.id, formData);
+      closeModal();
+    } catch (err) {
+      console.error("Failed to update section", err);
+    }
+  };
+
+  const handleUpdateServiceDefinition = async (id, formData) => {
+    try {
+      if (!formData) throw new Error("No service definition selected for update");
+      await updateServiceDefinition(id, formData);
+      closeModal();
+    } catch (err) {
+      console.error("Failed to update service definition", err);
+    }
+  };
+
+  const getRolesFromDef = (def) => def.roles || def.service_roles || def.role_list || [];
+  const getMaterialsFromDef = (def) => def.materials || def.service_materials || def.material_list || [];
+  const sumRolesAmount = (roles) => Array.isArray(roles) ? roles.reduce((sum, r) => sum + (parseFloat(r.amount || r.role_amount || r.earned_amount || 0) || 0), 0) : 0;
+  const sumMaterialsCost = (materials) => Array.isArray(materials) ? materials.reduce((sum, m) => sum + (parseFloat(m.cost || m.material_cost || 0) || 0), 0) : 0;
+
+  const handleDeleteSectionClick = async (id) => {
+    try { await deleteSection(id); } catch (err) { console.error("Failed to delete section", err); }
+  };
+
+  const handleDeleteServiceDefinitionClick = async (id) => {
+    try { await deleteServiceDefinition(id); } catch (err) { console.error("Failed to delete service definition", err); }
   };
 
   return (
@@ -222,7 +270,6 @@ export default function OwnerDashboard() {
           )}
         </div>
 
-        {/* Action Buttons */}
         <Button onClick={() => setModalType("service")}>Add Service</Button>
         <Button onClick={() => setModalType("expense")}>Add Expense</Button>
         <Button onClick={() => setModalType("advance")}>Add Advance</Button>
@@ -230,19 +277,14 @@ export default function OwnerDashboard() {
         <Button onClick={() => setModalType("tagfee")}>Add Tag Fee</Button>
         <Button onClick={() => setModalType("latefee")}>Add Late Fee</Button>
 
-        {/* New Setup Section */}
         <h2 className="text-lg font-semibold mt-10">Service Setup</h2>
         <div className="flex gap-3 mt-3">
           <Button onClick={() => setModalType("new_section")}>Add Section</Button>
           <Button onClick={() => setModalType("new_service_definition")}>Add New Service</Button>
         </div>
 
-
-        {/* Tabbed Appointments */}
         <section className="bg-white shadow-md rounded-lg p-4 mb-6">
           <h2 className="text-xl font-semibold text-blue-700 mb-4">Appointments</h2>
-
-          {/* Tabs */}
           <div className="flex gap-2 mb-4 flex-wrap">
             {["pending", "confirmed", "completed", "cancelled"].map((status) => (
               <button
@@ -254,8 +296,6 @@ export default function OwnerDashboard() {
               </button>
             ))}
           </div>
-
-          {/* Tab Content */}
           <div className="flex flex-wrap gap-4">
             {appointmentsByStatus[activeTab].length > 0 ? (
               appointmentsByStatus[activeTab].map((s) => {
@@ -266,13 +306,11 @@ export default function OwnerDashboard() {
                   { label: "Super Black", id: s.super_black_assistant_id },
                   { label: "Black Mask", id: s.black_mask_assistant_id },
                   { label: "Aesthetician", id: s.barber_assistant_id },
-                ]
-                  .filter((a) => a.id)
-                  .map((a) => {
-                    const emp = Employees.find((e) => e.id === a.id);
-                    return emp ? { label: a.label, name: `${emp.first_name} ${emp.last_name}` } : null;
-                  })
-                  .filter((a) => a !== null);
+                ].filter((a) => a.id)
+                 .map((a) => {
+                   const emp = Employees.find((e) => e.id === a.id);
+                   return emp ? { label: a.label, name: `${emp.first_name} ${emp.last_name}` } : null;
+                 }).filter((a) => a !== null);
 
                 const customer = Customers.find((c) => c.id === s.customer_id);
 
@@ -282,14 +320,10 @@ export default function OwnerDashboard() {
                     <p>Customer: {customer ? `${customer.first_name} ${customer.last_name}` : "N/A"}</p>
                     <p>Date: {formatDate(s.appointment_date)}</p>
                     <p>Time: {formatTime12h(s.appointment_time)}</p>
-
                     {assigned.length > 0 ? assigned.map((a, idx) => (
                       <p key={idx} className="text-sm text-gray-700">{a.label}: <span className="font-medium">{a.name}</span></p>
                     )) : <p className="text-sm text-gray-500">No staff assigned</p>}
-
                     {s.status === "cancelled" && s.cancel_reason && <p className="text-red-600 text-sm mt-2"><strong>Reason:</strong> {s.cancel_reason}</p>}
-
-                    {/* Status Buttons */}
                     {activeTab === "pending" && (
                       <div className="flex gap-2 mt-2">
                         <Button onClick={() => handleStatusUpdate(s.id, "confirmed")}>Confirm</Button>
@@ -309,7 +343,6 @@ export default function OwnerDashboard() {
           </div>
         </section>
 
-        {/* Sections Table */}
         <section className="mt-6">
           <h3 className="text-md font-semibold mb-2">Sections</h3>
           <table className="min-w-full border border-gray-300">
@@ -326,7 +359,7 @@ export default function OwnerDashboard() {
                     <td className="border px-4 py-2">{section.section_name}</td>
                     <td className="border px-4 py-2 flex gap-2">
                       <Button onClick={() => handleEditSection(section)}>Edit</Button>
-                      <Button onClick={() => deleteSection(section.id)}>Delete</Button>
+                      <Button onClick={() => handleDeleteSectionClick(section.id)}>Delete</Button>
                     </td>
                   </tr>
                 ))
@@ -339,7 +372,6 @@ export default function OwnerDashboard() {
           </table>
         </section>
 
-        {/* Service Definitions Table */}
         <section className="mt-6">
           <h3 className="text-md font-semibold mb-2">Service Definitions</h3>
           <table className="min-w-full border border-gray-300">
@@ -347,41 +379,89 @@ export default function OwnerDashboard() {
               <tr className="bg-gray-100">
                 <th className="border px-4 py-2 text-left">Name</th>
                 <th className="border px-4 py-2 text-left">Section</th>
+                <th className="border px-4 py-2 text-left">Roles</th>
+                <th className="border px-4 py-2 text-left">Materials</th>
+                <th className="border px-4 py-2 text-left">Total Roles Amount</th>
+                <th className="border px-4 py-2 text-left">Total Material Cost</th>
+                <th className="border px-4 py-2 text-left">Salon Amount</th>
+                <th className="border px-4 py-2 text-left">Full Amount</th>
                 <th className="border px-4 py-2">Actions</th>
               </tr>
             </thead>
             <tbody>
               {serviceDefinitions && serviceDefinitions.length > 0 ? (
-                serviceDefinitions.map((service) => (
-                  <tr key={service.id}>
-                    <td className="border px-4 py-2">{service.name}</td>
-                    <td className="border px-4 py-2">{sections.find(s => s.id === service.section_id)?.name || "N/A"}</td>
-                    <td className="border px-4 py-2 flex gap-2">
-                      <Button onClick={() => handleEditServiceDefinition(service)}>Edit</Button>
-                      <Button onClick={() => deleteServiceDefinition(service.id)}>Delete</Button>
-                    </td>
-                  </tr>
-                ))
+                serviceDefinitions.map((service) => {
+                  const roles = getRolesFromDef(service);
+                  const materials = getMaterialsFromDef(service);
+                  const totalRoles = sumRolesAmount(roles);
+                  const totalMaterials = sumMaterialsCost(materials);
+
+                  const displayName = service.name || service.service_name || service.serviceName || "N/A";
+                  const displaySalon = (service.salon_amount ?? service.salonAmount ?? service.salon) || "0";
+                  const displayFull = (service.full_amount ?? service.service_amount ?? service.price) || "0";
+
+                  const sectionName =
+                    (sections || []).find((s) => String(s.id) === String(service.section_id))?.section_name ||
+                    (sections || []).find((s) => String(s.id) === String(service.section_id))?.name ||
+                    service.section_name ||
+                    "N/A";
+
+                  return (
+                    <tr key={service.id}>
+                      <td className="border px-4 py-2 align-top">{displayName}</td>
+                      <td className="border px-4 py-2 align-top">{sectionName}</td>
+                      <td className="border px-4 py-2 align-top">
+                        {roles && roles.length > 0 ? (
+                          <ul className="list-disc ml-4">
+                            {roles.map((r, idx) => (
+                              <li key={idx}>
+                                {(r.role_name || r.role || r.name) || "role"}: <span className="font-semibold">{(r.role_amount || r.amount || r.earned_amount || 0).toString()}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : <span className="text-gray-500">None</span>}
+                      </td>
+                      <td className="border px-4 py-2 align-top">
+                        {materials && materials.length > 0 ? (
+                          <ul className="list-disc ml-4">
+                            {materials.map((m, idx) => (
+                              <li key={idx}>
+                                {(m.material_name || m.name) || "material"}: <span className="font-semibold">{(m.material_cost || m.cost || 0).toString()}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : <span className="text-gray-500">None</span>}
+                      </td>
+                      <td className="border px-4 py-2 align-top font-semibold">{totalRoles}</td>
+                      <td className="border px-4 py-2 align-top font-semibold">{totalMaterials}</td>
+                      <td className="border px-4 py-2 align-top font-semibold">{displaySalon}</td>
+                      <td className="border px-4 py-2 align-top font-semibold">{displayFull}</td>
+                      <td className="border px-4 py-2 flex gap-2 align-top">
+                        <Button onClick={() => handleEditServiceDefinition(service.id)}>Edit</Button>
+                        <Button onClick={() => handleDeleteServiceDefinitionClick(service.id)}>Delete</Button>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
-                  <td className="border px-4 py-2" colSpan={3}>No service definitions available</td>
+                  <td className="border px-4 py-2" colSpan={9}>No service definitions available</td>
                 </tr>
               )}
             </tbody>
           </table>
         </section>
 
-        {/* Modals */}
         <Modal isOpen={modalType !== null} onClose={closeModal}>
           {modalType === "service" && (
             <ServiceForm
               onSubmit={createServiceTransaction}
               onClose={closeModal}
-              Services={serviceDefinitions.data}
-              Roles={serviceRoles.data}
+              Services={serviceDefinitions}
+              Roles={serviceRoles}
               Employees={Employees}
               Sections={sections}
-              createdBy={createdbyID.id}
+              createdBy={createdbyID?.id}
               serviceStatus={null}
             />
           )}
@@ -390,38 +470,12 @@ export default function OwnerDashboard() {
           {modalType === "clocking" && <ClockForm onSubmit={handleClocking} onClose={closeModal} employees={Employees} />}
           {modalType === "tagfee" && <TagFeeForm onSubmit={CreateTagFee} onClose={closeModal} feeData={selectedFee} employees={Employees || []} />}
           {modalType === "latefee" && <LateFeeForm onSubmit={CreateLateFee} onClose={closeModal} feeData={selectedFee} employees={Employees || []} />}
-          {modalType === "new_section" && (
-            <SectionForm
-              onSubmit={createSection}
-              onClose={closeModal}
-              sectionData={null}
-            />
-          )}
-          {modalType === "edit_section" && (
-            <SectionForm
-              onSubmit={(data) => updateSection(selectedItem.id, data)}
-              onClose={closeModal}
-              sectionData={selectedItem}
-            />
-          )}
-          {modalType === "new_service_definition" && (
-            <NewServiceForm
-              onSubmit={createServiceDefinition}
-              onClose={closeModal}
-              Sections={sections}
-            />
-          )}
-          {modalType === "edit_service_definition" && (
-            <NewServiceForm
-              onSubmit={(data) => updateServiceDefinition(selectedItem.id, data)}
-              onClose={closeModal}
-              Sections={sections}
-              serviceData={selectedItem}
-            />
-          )}
+          {modalType === "new_section" && <SectionForm onSubmit={createSection} onClose={closeModal} sectionData={null} />}
+          {modalType === "edit_section" && <SectionForm onSubmit={handleUpdateSection} onClose={closeModal} sectionData={selectedItem} />}
+          {modalType === "new_service_definition" && <NewServiceForm onSubmit={handleAddServiceDefinition} onClose={closeModal} Sections={sections} />}
+          {modalType === "edit_service_definition" && <NewServiceForm onSubmit={handleUpdateServiceDefinition} onClose={closeModal} Sections={sections} serviceData={edittingServiceDefinition} />}
         </Modal>
 
-        {/* Cancel Modal */}
         <Modal isOpen={showCancelModal} onClose={() => setShowCancelModal(false)}>
           <CancelReasonForm serviceId={cancelServiceId} onSubmit={handleStatusUpdate} onClose={() => setShowCancelModal(false)} />
         </Modal>

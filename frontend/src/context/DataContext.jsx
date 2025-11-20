@@ -19,6 +19,7 @@ export const DataProvider = ({ children }) => {
   const [sections, setSections] = useState([]);
   const [serviceDefinitions, setServiceDefinitions] = useState([]);
   const [serviceRoles, setServiceRoles] = useState([]);
+  const [serviceMaterials, setServiceMaterials] = useState([]);
 
   const navigate = useNavigate();
 
@@ -62,6 +63,7 @@ export const DataProvider = ({ children }) => {
       const data = res.data;
 
       setServices(data.services);
+      console.log("service transactions in daily context", data.services)
       setExpenses(data.expenses);
       setAdvances(data.advances);
       setClockings(data.clockings);
@@ -490,14 +492,27 @@ const deleteSection = async (id) => {
     const fetchServiceDefinitions = async () => {
     try {
       const res = await axios.get(`${API_URL}/services/service_definitions`);
-      setServiceDefinitions(res.data);
-      console.log("service definitions:", res.data);
-      return res.data;
+      setServiceDefinitions(res.data.data);
+      console.log("service definitions in context:", res.data.data);
+      return res.data.data;
     } catch (err) {
       console.error("Error fetching service definitions:", err);
       throw err;
     }
   };
+
+
+  const fetchServiceDefinitionById = async (id) => {
+  try {
+    if (!id) throw new Error("Service definition ID is required");
+    const res = await axios.get(`${API_URL}/services/service_definitions/${id}`);
+    console.log(`Service definition ${id}:`, res.data.data);
+    return res.data.data; // returns the single service definition object
+  } catch (err) {
+    console.error(`Error fetching service definition with ID ${id}:`, err);
+    throw err;
+  }
+};
 
 
   // ---------- CREATE SERVICE DEFINITION ----------
@@ -542,9 +557,9 @@ const deleteServiceDefinition = async (id) => {
     const fetchServiceRoles = async () => {
     try {
       const res = await axios.get(`${API_URL}/services/service_roles`);
-      setServiceRoles(res.data);
-      console.log("service roles:", res.data);
-      return res.data;
+      setServiceRoles(res.data.data);
+      console.log("service roles:", res.data.data);
+      return res.data.data;
     } catch (err) {
       console.error("Error fetching service roles:", err);
       throw err;
@@ -552,41 +567,52 @@ const deleteServiceDefinition = async (id) => {
   };
 
 
-  //insert service transactions and performers
-
-    const createServiceTransaction = async (payload) => {
-    try {
-      const res = await axios.post(`${API_URL}/services/service_transactions`, payload);
-
-      // returns something like:
-      // { transaction_id, performersInsertedCount }
-      console.log("service transaction saved:", res.data);
-
-      await fetchAllData(); 
-      return res.data;
-    } catch (err) {
-      console.error("Error creating service transaction:", err);
-      throw err;
-    }
-  };
-
-  // ---------- DELETE SERVICE TRANSACTION ----------
-const deleteServiceTransaction = async (id) => {
+  // fetch service materials
+const fetchServiceMaterials = async () => {
   try {
-    await axios.delete(`${API_URL}/services/service_transactions/${id}`);
-    await fetchAllData();
+    const res = await axios.get(`${API_URL}/services/service_materials`);
+    setServiceMaterials(res.data.data);
+    console.log("service materials:", res.data.data);
+    return res.data.data;
   } catch (err) {
-    console.error("Error deleting service transaction:", err);
+    console.error("Error fetching service materials:", err);
     throw err;
   }
 };
 
 
+
+  //insert service transactions and performers
+// ---------- CREATE ----------
+const createServiceTransaction = async (payload) => {
+  try {
+    const res = await axios.post(`${API_URL}/services/service_transactions`, payload);
+    await fetchServiceTransactions(); // refresh list
+    return res.data;
+  } catch (err) {
+    console.error("Error creating service transaction:", err);
+    throw err;
+  }
+};
+
+// ---------- UPDATE ----------
+const updateServiceTransactionById = async (id, payload) => {
+  try {
+    const res = await axios.put(`${API_URL}/services/service_transactions/${id}`, payload);
+    await fetchServiceTransactions(); // refresh list
+    return res.data;
+  } catch (err) {
+    console.error("Error updating service transaction:", err);
+    throw err;
+  }
+};
+
+// ---------- FETCH ALL ----------
 const fetchServiceTransactions = async () => {
   try {
     const res = await axios.get(`${API_URL}/services/service_transactions`);
-    setServiceTransactions(res.data);
-    console.log("Service transactions:", res.data);
+    setServices(res.data.data);
+    console.log("service transactions in the data context", res.data.data)
     return res.data;
   } catch (err) {
     console.error("Error fetching service transactions:", err);
@@ -594,7 +620,26 @@ const fetchServiceTransactions = async () => {
   }
 };
 
+// ---------- FETCH SINGLE ----------
+const fetchServiceTransactionById = async (id) => {
+  try {
+    const res = await axios.get(`${API_URL}/services/service_transactions/${id}`);
+    return res.data.data;
+  } catch (err) {
+    console.error("Error fetching transaction by ID:", err);
+    throw err;
+  }
+};
 
+const deleteServiceTransaction = async (id) => {
+  try {
+    await axios.delete(`${API_URL}/services/service_transactions/${id}`);
+    await fetchServiceDefinitions(); // refresh after deletion
+  } catch (err) {
+    console.error("Error deleting service transaction:", err);
+    throw err;
+  }
+};
 
 
   // ---------- Auth ----------
@@ -701,6 +746,8 @@ useEffect(() => {
         fetchServiceDefinitions(),
         fetchServiceRoles(),
         fetchUsers(),
+        fetchServiceTransactions(),
+        fetchServiceMaterials(),
       ]);
     } catch (err) {
       console.error("Error fetching transaction data:", err);
@@ -739,16 +786,23 @@ useEffect(() => {
         sections,
         serviceDefinitions,
         serviceRoles,
+        serviceMaterials,
+        fetchServiceRoles,
+        fetchServiceMaterials,
         fetchSections,
         createSection,
         updateSection,
         deleteSection,
         fetchServiceDefinitions,
+        fetchServiceDefinitionById,
         createServiceDefinition,
         deleteServiceDefinition,
+        updateServiceDefinition,
         fetchServiceRoles,
         createServiceTransaction,
         fetchServiceTransactions,
+        fetchServiceTransactionById,
+        updateServiceTransactionById,
         deleteServiceTransaction,
         fetchAllData,
         sendFormData,
