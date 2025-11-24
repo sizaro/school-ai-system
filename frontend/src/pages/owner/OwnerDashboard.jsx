@@ -381,8 +381,8 @@ export default function OwnerDashboard() {
                 <th className="border px-4 py-2 text-left">Section</th>
                 <th className="border px-4 py-2 text-left">Roles</th>
                 <th className="border px-4 py-2 text-left">Materials</th>
-                <th className="border px-4 py-2 text-left">Total Roles Amount</th>
-                <th className="border px-4 py-2 text-left">Total Material Cost</th>
+                <th className="border px-4 py-2 text-left">Employees Total Amount</th>
+                <th className="border px-4 py-2 text-left">Other services Total Costs</th>
                 <th className="border px-4 py-2 text-left">Salon Amount</th>
                 <th className="border px-4 py-2 text-left">Full Amount</th>
                 <th className="border px-4 py-2">Actions</th>
