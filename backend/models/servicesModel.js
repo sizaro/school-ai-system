@@ -7,36 +7,39 @@ import db from "./database.js";
 // FETCH ALL SERVICE DEFINITIONS
 export const fetchServiceDefinitionsModel = async () => {
   const { rows } = await db.query(`SELECT 
-      sd.id,
-      sd.service_name,
-      sd.service_amount,
-      sd.salon_amount,
-      sd.section_id,
-      sd.description,
-      sd.image_url,
+  sd.id,
+  sd.service_name,
+  sd.service_amount,
+  sd.salon_amount,
+  sd.section_id,
+  sd.description,
+  sd.image_url,
 
-      json_agg(
-        jsonb_build_object(
-          'role_name', sr.role_name,
-          'role_amount', sr.earned_amount
-        )
-      ) FILTER (WHERE sr.id IS NOT NULL) AS roles,
+  -- roles array
+  json_agg(
+    DISTINCT jsonb_build_object(
+      'role_name', sr.role_name,
+      'role_amount', sr.earned_amount
+    )
+  ) FILTER (WHERE sr.id IS NOT NULL) AS roles,
 
-      SELECT json_agg(
-               jsonb_build_object(
-                 'material_name', sm.material_name,
-                 'material_cost', sm.material_cost
-               )
-             ) AS materials
+  -- materials array
+  json_agg(
+    DISTINCT jsonb_build_object(
+      'material_name', sm.material_name,
+      'material_cost', sm.material_cost
+    )
+  ) FILTER (WHERE sm.id IS NOT NULL) AS materials
 
-    FROM service_definitions sd
-    LEFT JOIN service_roles sr 
-        ON sr.service_definition_id = sd.id
-    LEFT JOIN service_materials sm
-        ON sm.service_definition_id = sd.id
+FROM service_definitions sd
+LEFT JOIN service_roles sr 
+  ON sr.service_definition_id = sd.id
+LEFT JOIN service_materials sm
+  ON sm.service_definition_id = sd.id
 
-    GROUP BY sd.id
-    ORDER BY sd.id DESC;`);
+GROUP BY sd.id
+ORDER BY sd.id DESC;
+`);
   return rows;
 };
 
