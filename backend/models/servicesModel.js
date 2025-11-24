@@ -22,12 +22,12 @@ export const fetchServiceDefinitionsModel = async () => {
         )
       ) FILTER (WHERE sr.id IS NOT NULL) AS roles,
 
-      json_agg(
-        jsonb_build_object(
-          'material_name', sm.material_name,
-          'material_cost', sm.material_cost
-        )
-      ) FILTER (WHERE sm.id IS NOT NULL) AS materials
+      SELECT json_agg(
+               jsonb_build_object(
+                 'material_name', sm.material_name,
+                 'material_cost', sm.material_cost
+               )
+             ) AS materials
 
     FROM service_definitions sd
     LEFT JOIN service_roles sr 

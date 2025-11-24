@@ -6,7 +6,7 @@
     },
     {
       "source": "/uploads/images/:path*",
-      "destination": "https://salonmanagementsystem.onrender.com:path*"
+      "destination": "https://salonmanagementsystem.onrender.com/uploads/:path*"
     },
     {
       "source": "/(.*)",
