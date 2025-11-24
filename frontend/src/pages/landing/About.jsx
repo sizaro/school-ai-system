@@ -11,7 +11,11 @@ export default function About() {
   console.log("list of users in about", users)
   // Absolute backend base URL (Render backend)
   const backendBaseUrl = import.meta.env.VITE_API_URL;
-const staticBaseUrl = import.meta.env.VITE_STATIC_URL;
+const staticBaseUrl =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000"
+    : "https://salonmanagementsystem.onrender.com";
+
 
 
 
