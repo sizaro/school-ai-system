@@ -43,5 +43,5 @@ export const updateSectionModel = async (id, sectionData) => {
 export const deleteSectionModel = async (id) => {
   const query = `DELETE FROM service_sections WHERE id = $1 RETURNING *`;
   const result = await db.query(query, [id]);
-  return result.rows[0]; // returns the deleted row
+  return result.rows[0];
 };

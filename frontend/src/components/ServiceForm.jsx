@@ -17,10 +17,12 @@ export default function ServiceForm({
   console.log("roles in the service form", Roles)
   console.log("service definitions in the service form", Services)
   console.log("service transactioin to be edited in the service form", serviceData)
+  
   const [sections, setSections] = useState(Sections);
   const [services, setServices] = useState([]);
   const [roles, setRoles] = useState([]);
   const [employees, setEmployees] = useState(Employees);
+  console.log("employees to be edited in the service form", Employees)
 
   const [form, setForm] = useState({
     id:null,
@@ -55,6 +57,10 @@ export default function ServiceForm({
       }
     }
   }, [serviceData, Services, Roles]);
+
+  useEffect(()=>{
+    setEmployees(Employees)
+  }, [])
 
   // --------------------------
   // When a section is selected
@@ -111,37 +117,40 @@ export default function ServiceForm({
   // --------------------------
   // SUBMIT (create or update)
   // --------------------------
+
   const handleSubmit = (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const payload = {
-      section_id: form.section_id,
-      service_definition_id: form.service_definition_id,
-      appointment_date: isCustomer ? form.appointment_date : null,
-      appointment_time: isCustomer ? form.appointment_time : null,
-      created_by: createdBy,
-      status: serviceStatus,
-      performers: form.performers.map((p) => ({
-        role_id: p.role_id,
-        employee_id: p.employee_id === "" ? null : p.employee_id,
-        earned_amount: p.earned_amount,
-      })),
-    };
-
-    if (serviceData && serviceData.transaction_id) {
-      // Update
-      onSubmit(serviceData.transaction_id, payload);
-    } else {
-      // Create
-      onSubmit(payload);
-    }
-
-    onClose();
+  const payload = {
+    id: form.id || null,
+    section_id: form.section_id,
+    service_definition_id: form.service_definition_id,
+    appointment_date: isCustomer ? form.appointment_date : null,
+    appointment_time: isCustomer ? form.appointment_time : null,
+    created_by: createdBy,
+    status: serviceStatus,
+    performers: form.performers.map((p) => ({
+      role_id: p.role_id,
+      employee_id: p.employee_id === "" ? null : p.employee_id,
+      earned_amount: p.earned_amount,
+    })),
   };
 
-  useEffect(() => {
-    setEmployees(Employees);
-  }, [Employees]);
+  // ⬇️ DEEP LOG - shows the REAL payload sent to backend
+  console.log(
+    "🟦 FINAL PAYLOAD SENT TO BACKEND →\n",
+    JSON.stringify(payload, null, 2)
+  );
+
+  if (serviceData && serviceData.transaction_id) {
+    onSubmit(serviceData.transaction_id, payload);
+  } else {
+    onSubmit(payload);
+  }
+
+  onClose();
+};
+
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full p-4">

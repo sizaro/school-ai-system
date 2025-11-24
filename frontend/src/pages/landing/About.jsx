@@ -3,29 +3,38 @@ import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import { useData } from "../../context/DataContext";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 
 export default function About() {
-  const { users } = useData();
+  const { users = [], fetchUsers } = useData();
 
+  console.log("list of users in about", users)
   // Absolute backend base URL (Render backend)
-  const backendBaseUrl = "https://salonmanagementsystem.onrender.com";
+  const backendBaseUrl = import.meta.env.VITE_API_URL;
+const staticBaseUrl = import.meta.env.VITE_STATIC_URL;
+
+
 
   // Identify owner, manager, and employees
-  const owner = users.find((u) => u.role === "owner") || {};
-  const manager = users.find((u) => u.role === "manager") || {};
-  const employees = users.filter(
+  const owner = (users || []).find((u) => u.role === "owner") || {};
+  const manager = (users || []).find((u) => u.role === "manager") || {};
+  const employees = (users || []).filter(
     (u) => u.role !== "owner" && u.role !== "manager" && u.role !== "customer"
   );
 
   // Helper to get full name
   const fullName = (user) => `${user.last_name || ""}`;
 
-  // Helper to get image URL with fallback
-const getImage = (user, fallback) => {
+  const getImage = (user, fallback) => {
   if (!user?.image_url || user.image_url === "-") return fallback;
-  return `/uploads/images/${user.image_url}`;
+  console.log("images urls", `${staticBaseUrl}${user.image_url}`)
+
+  return `${staticBaseUrl}${user.image_url}`;
 };
 
+useEffect(()=>{
+  fetchUsers()
+}, [])
 
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col">

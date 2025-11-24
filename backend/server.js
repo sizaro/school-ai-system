@@ -100,7 +100,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // --- Static files ---
-app.use("/uploads/images", express.static(path.join(__dirname, "uploads/images")));
+app.use("/uploads/images", express.static(path.join(__dirname, "/uploads/images")));
 
 
 // --- Routes ---

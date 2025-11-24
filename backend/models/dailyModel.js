@@ -33,7 +33,8 @@ export const getServicesByDay = async (startOfDay, endOfDay) => {
                  'role_name', sr.role_name,
                  'role_amount', sr.earned_amount,
                  'employee_id', u.id,
-                 'employee_name', u.first_name || ' ' || u.last_name
+                 'first_name', u.first_name,
+                 'last_name', u.last_name
                )
              ) AS performers
       FROM service_performers sp

@@ -37,12 +37,18 @@ const OwnerIncomeDailyReport = () => {
     });
   }, [services, serviceMaterials]);
 
+  console.log("services with materials", servicesWithMaterials)
+
   const Employees = (users || []).filter(
     (user) =>
       user &&
       `${user.first_name || ""} ${user.last_name || ""}`.toLowerCase() !== "ntege saleh" &&
       user.role !== "customer"
   );
+
+  console.log("users in the daily page", users)
+
+  const toYMD = (date) => date.toISOString().split("T")[0];
 
   const today = new Date();
   const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
@@ -51,24 +57,29 @@ const OwnerIncomeDailyReport = () => {
   const session = sessions && sessions.length > 0 ? sessions[0] : null;
 
   const [liveDuration, setLiveDuration] = useState("");
-  const [selectedDate, setSelectedDate] = useState(today.toLocaleDateString("en-CA"));
-  const [showModal, setShowModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(toYMD(today));
+  const [showModal, setShowModal] = useState(null);
   const [editingService, setEditingService] = useState(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState(null);
 
   const txIdOf = (s) => s?.service_transaction_id ?? s?.transaction_id ?? s?.id ?? null;
 
-  // ---- Handlers ----
   const handleEditClick = async (id) => {
-    if (!id) return console.error("No id provided for edit");
-    const service = await fetchServiceTransactionById(id);
-    console.log("service transaction to be edited", service)
-    setEditingService(service);
-    setShowModal(true);
-  };
+
+  if (!id) return console.error("No id provided for edit");
+  if (!Employees || Employees.length === 0) {
+    await fetchUsers();
+  }
+  const service = await fetchServiceTransactionById(id);
+  console.log("service transaction to be edited", service)
+  setEditingService(service);
+  setShowModal(true);
+};
+
 
   const handleEditServiceSubmit = async (id, updatedService) => {
+    console.log("received service to be edited in parent", updatedService)
     await updateServiceTransactionById(id, updatedService);
     await fetchDailyData(selectedDate);
     setShowModal(false);
@@ -83,7 +94,7 @@ const OwnerIncomeDailyReport = () => {
   const confirmDelete = async () => {
     if (serviceToDelete) {
       try {
-        await deleteServiceTransaction(serviceToDelete);
+        await deleteServiceTransaction(serviceToDelete); 
         await fetchDailyData(selectedDate);
       } catch (err) {
         console.error("Failed to delete service:", err);
@@ -221,9 +232,7 @@ const OwnerIncomeDailyReport = () => {
   useEffect(() => {
     fetchDailyData(selectedDate);
     fetchUsers();
-    fetchServiceTransactions();
     fetchServiceMaterials();
-    fetchServiceDefinitions();
   }, []);
 
   const formatPerformersAndMaterials = (s) => {
@@ -232,7 +241,7 @@ const OwnerIncomeDailyReport = () => {
       lines.push("Performers:");
       s.performers.forEach((p) => {
         const amount = Number(p.role_amount ?? p.earned_amount ?? p.amount ?? 0);
-        lines.push(`- ${p.employee_name ?? "N/A"} (${p.role_name ?? "N/A"} - ${amount.toLocaleString()} )`);
+        lines.push(`- ${p.last_name ?? "N/A"} (${p.role_name ?? "N/A"} - ${amount.toLocaleString()} )`);
       });
     }
     if (Array.isArray(s.materials) && s.materials.length > 0) {
@@ -242,10 +251,34 @@ const OwnerIncomeDailyReport = () => {
         lines.push(`- ${m.material_name ?? "Material"} (${cost.toLocaleString()})`);
       });
     }
-    if (lines.length === 0) return "N/A";
+    if (lines.length === 0) return ["N/A"];
     return lines;
   };
 
+  // Count total services
+const totalServicesCount = (servicesWithMaterials || []).length;
+
+// Count how many services per section
+const sectionServiceCount = (sectionId) => {
+  return (servicesWithMaterials || []).filter(
+    (s) =>
+      String(s.section_id || s.definition_section_id || "").trim().toLowerCase() ===
+      String(sectionId).trim().toLowerCase()
+  ).length;
+};
+
+// Count each service type (e.g., Scrub - 2)
+const serviceNameCounts = useMemo(() => {
+  const map = new Map();
+  (servicesWithMaterials || []).forEach((s) => {
+    const name = s.service_name || "Unknown";
+    map.set(name, (map.get(name) || 0) + 1);
+  });
+  return Array.from(map.entries()); // [["Scrub", 2], ["Hair Cut", 1]]
+}, [servicesWithMaterials]);
+
+
+console.log("Employees in te income daily report", Employees)
   // ---------- Render ----------
   return (
     <div className="income-page max-w-6xl mx-auto p-6">
@@ -313,6 +346,9 @@ const OwnerIncomeDailyReport = () => {
                       <div className="text-sm text-gray-700">Salon Amount</div>
                       <div className="text-xl font-bold text-green-700">{(sec.totals.salonIncome || 0).toLocaleString()} UGX</div>
                     </div>
+                    <div className="mb-2 text-sm font-medium text-purple-700">
+                          Services Count: {sec.services.length}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -344,7 +380,25 @@ const OwnerIncomeDailyReport = () => {
                 </div>
               ))}
             </div>
+            <p className="text-md font-bold text-gray-700 mb-3">
+              Total Services: {totalServicesCount}
+            </p>
+
           </section>
+
+          <section className="bg-white shadow rounded-lg p-4 mb-6">
+            <h2 className="text-lg font-semibold text-gray-700 mb-3">Service Counts</h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {serviceNameCounts.map(([name, count], i) => (
+                <div key={i} className="p-3 rounded border bg-purple-50 shadow">
+                  <div className="font-bold text-gray-800">{name}</div>
+                  <div className="text-lg text-blue-700">{count}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
 
           {/* SERVICE DETAILS TABLE */}
           <section className="bg-white shadow rounded-lg p-4 mb-6">
@@ -395,15 +449,17 @@ const OwnerIncomeDailyReport = () => {
           </section>
 
           {/* EDIT SERVICE MODAL */}
-            <Modal isOpen={showModal} onClose={() => setShowModal(false)}>
+            <Modal isOpen={showModal} onClose={() => setShowModal(null)}>
               <ServiceForm serviceData={editingService} onSubmit={handleEditServiceSubmit} Sections={sections} Services={serviceDefinitions} Roles={serviceRoles} Employees={Employees} />
             </Modal>
 
           {/* CONFIRM DELETE MODAL */}
           {confirmModalOpen && (
             <ConfirmModal
+            isOpen={confirmModalOpen}
+            confirmMessage="Yes"
               onConfirm={confirmDelete}
-              onCancel={() => setConfirmModalOpen(false)}
+              onClose={() => setConfirmModalOpen(null)}
               message="Are you sure you want to delete this service?"
             />
           )}

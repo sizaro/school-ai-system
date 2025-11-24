@@ -156,8 +156,8 @@ export const getServiceTransactionById = async (req, res) => {
 export const updateServiceTransaction = async (req, res) => {
   try {
     const { id } = req.params;
-    const { section_id, service_definition_id, appointment_date, appointment_time, customer_id, customer_note, serviceRoles = [] } = req.body;
-    const updates = { section_id, service_definition_id, appointment_date, appointment_time, customer_id, customer_note, serviceRoles };
+    const { section_id, service_definition_id, appointment_date, appointment_time, customer_id, customer_note, performers = [] } = req.body;
+    const updates = { section_id, service_definition_id, appointment_date, appointment_time, customer_id, customer_note, performers };
     const updated = await updateServiceTransactionModel(id, updates);
     res.json({ success: true, data: updated });
   } catch (err) {

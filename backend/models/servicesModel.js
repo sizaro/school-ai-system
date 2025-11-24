@@ -318,34 +318,109 @@ export const fetchServiceTransactionById = async (id) => {
 
 
 // UPDATE SERVICE TRANSACTION (with performers)
+
 export const updateServiceTransactionModel = async (id, updates) => {
-  const { section_id, service_definition_id, appointment_date, appointment_time, customer_id, customer_note, serviceRoles = [] } = updates;
+  console.log("🔄 UPDATE SERVICE TRANSACTION MODEL");
+  console.log("👉 ID to update:", id);
+  console.log("👉 Received updates:", JSON.stringify(updates, null, 2));
+
+  const { 
+    section_id, 
+    service_definition_id, 
+    appointment_date, 
+    appointment_time, 
+    customer_id, 
+    customer_note, 
+    performers = [] 
+  } = updates;
+
+  console.log("🎭 Extracted performers:", JSON.stringify(performers, null, 2));
+
   try {
     await db.query("BEGIN");
+    console.log("🔐 BEGIN TRANSACTION");
 
+    // Update main transaction
     const updateTrans = `
       UPDATE service_transactions
-      SET section_id=$1, service_definition_id=$2, appointment_date=$3,
-          appointment_time=$4, customer_id=$5, customer_note=$6
-      WHERE id=$7 RETURNING *;
+      SET service_definition_id=$1,
+          appointment_date=$2,
+          appointment_time=$3,
+          customer_id=$4,
+          customer_note=$5
+      WHERE id=$6
+      RETURNING *;
     `;
-    const { rows } = await db.query(updateTrans, [section_id, service_definition_id, appointment_date || null, appointment_time || null, customer_id || null, customer_note || null, id]);
-    const updated = rows[0];
-    if (!updated) throw new Error("Service transaction not found");
 
-    await db.query(`DELETE FROM service_performers WHERE service_transaction_id=$1`, [id]);
-    for (const p of serviceRoles) {
-      await db.query(
-        `INSERT INTO service_performers (service_transaction_id, service_role_id, employee_id, earned_amount) VALUES ($1,$2,$3,$4)`,
-        [id, p.role_id, p.employee_id || null, p.earned_amount || 0]
-      );
+    console.log("📝 Running main UPDATE with values:", {
+      service_definition_id,
+      appointment_date,
+      appointment_time,
+      customer_id,
+      customer_note,
+      id
+    });
+
+    const { rows } = await db.query(updateTrans, [
+      service_definition_id,
+      appointment_date || null,
+      appointment_time || null,
+      customer_id || null,
+      customer_note || null,
+      id
+    ]);
+
+    const updated = rows[0];
+    console.log("✅ Updated transaction:", updated);
+
+    if (!updated) throw new Error("❌ Service transaction not found");
+
+    // Remove old performers
+    console.log("🗑️ Deleting old performers for transaction:", id);
+    const deleteResult = await db.query(
+      `DELETE FROM service_performers WHERE service_transaction_id=$1 RETURNING *`,
+      [id]
+    );
+
+    console.log("🗑️ Deleted performers count:", deleteResult.rows.length);
+    console.log("🗑️ Deleted performers:", deleteResult.rows);
+
+    // Insert new performers
+    console.log("🎬 Inserting new performers... count:", performers.length);
+
+    let insertCount = 0;
+
+    for (const p of performers) {
+      console.log("➡️ Preparing to insert performer:", p);
+
+      if (!p.role_id) console.log("⚠️ performer missing role_id:", p);
+      if (!p.employee_id) console.log("⚠️ performer missing employee_id:", p);
+
+      const values = [id, p.role_id, p.employee_id];
+      console.log("➡️ SQL INSERT VALUES:", values);
+
+      const insertQuery = `
+        INSERT INTO service_performers 
+          (service_transaction_id, service_role_id, employee_id)
+        VALUES ($1,$2,$3)
+        RETURNING *;
+      `;
+
+      const insertResult = await db.query(insertQuery, values);
+      console.log("✅ Inserted performer row:", insertResult.rows[0]);
+      insertCount++;
     }
 
+    console.log("🎉 Total performers inserted:", insertCount);
+
     await db.query("COMMIT");
+    console.log("🔐 COMMIT TRANSACTION");
+
     return updated;
+
   } catch (err) {
     await db.query("ROLLBACK");
-    console.error("Error updating service transaction:", err);
+    console.error("🔥 ERROR updating service transaction:", err);
     throw err;
   }
 };
