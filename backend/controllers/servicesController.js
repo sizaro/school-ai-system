@@ -13,7 +13,8 @@ import {
   updateServiceTransactionModel,
   updateServiceTransactionModelt,
   DeleteServiceTransaction,
-  fetchServiceMaterialsModel
+  fetchServiceMaterialsModel,
+  updateServiceTransactionAppointmentModel
 } from "../models/servicesModel.js";
 
 // =========================================================
@@ -116,9 +117,9 @@ export const deleteServiceDefinition = async (req, res) => {
 // CREATE SERVICE TRANSACTION
 export const createServiceTransaction = async (req, res) => {
   try {
-    const { section_id, service_definition_id, created_by, appointment_date, appointment_time, customer_id, customer_note, performers = [] } = req.body;
+    const { service_definition_id, created_by, appointment_date, appointment_time, customer_id, customer_note, status, performers = [] } = req.body;
 
-    const data = { section_id, service_definition_id, created_by, appointment_date, appointment_time, customer_id, customer_note, performers };
+    const data = { service_definition_id, created_by, appointment_date, appointment_time, customer_id, customer_note, status, performers };
 
     const transaction = await saveServiceTransaction(data);
     res.json({ success: true, data: transaction });
@@ -156,9 +157,25 @@ export const getServiceTransactionById = async (req, res) => {
 export const updateServiceTransaction = async (req, res) => {
   try {
     const { id } = req.params;
-    const { section_id, service_definition_id, appointment_date, appointment_time, customer_id, customer_note, performers = [] } = req.body;
-    const updates = { section_id, service_definition_id, appointment_date, appointment_time, customer_id, customer_note, performers };
+    const { service_definition_id, created_by, appointment_date, appointment_time, customer_id, customer_note, status, performers = [] } = req.body;
+    const updates = { service_definition_id, created_by, appointment_date, appointment_time, customer_id, customer_note, status, performers };
     const updated = await updateServiceTransactionModel(id, updates);
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to update transaction" });
+  }
+};
+
+
+//appointment update
+
+export const updateServiceTransactionAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, cancel_reason } = req.body;
+    const updates = { status, cancel_reason, id };
+    const updated = await updateServiceTransactionAppointmentModel(id, updates);
     res.json({ success: true, data: updated });
   } catch (err) {
     console.error(err);
@@ -218,4 +235,8 @@ export const getServiceMaterials = async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to fetch service materials" });
   }
 };
+
+
+
+
 

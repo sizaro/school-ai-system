@@ -179,16 +179,16 @@ export const fetchServiceRolesModel = async () => {
 
 // SAVE SERVICE TRANSACTION (with performers)
 export const saveServiceTransaction = async (data) => {
-  const { section_id, service_definition_id, created_by, appointment_date, appointment_time, customer_id, customer_note, performers = [] } = data;
+  const { service_definition_id, created_by, appointment_date, appointment_time, customer_id, customer_note, status, performers = [] } = data;
   try {
     await db.query("BEGIN");
 
     const insertTrans = `
       INSERT INTO service_transactions
-      (service_definition_id, created_by, appointment_date, appointment_time, customer_id, customer_note, service_timestamp)
-      VALUES ($1,$2,$3,$4,$5,$6,NOW()) RETURNING *;
+      (service_definition_id, created_by, appointment_date, appointment_time, customer_id, customer_note, status, service_timestamp)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,NOW()) RETURNING *;
     `;
-    const { rows } = await db.query(insertTrans, [service_definition_id, created_by, appointment_date || null, appointment_time || null, customer_id || null, customer_note || null]);
+    const { rows } = await db.query(insertTrans, [service_definition_id, created_by, appointment_date || null, appointment_time || null, customer_id || null, customer_note || null, status || null]);
     const transaction = rows[0];
 
     for (const p of performers) {
@@ -212,6 +212,10 @@ export const fetchAllServiceTransactions = async () => {
       st.id AS transaction_id,
       st.service_definition_id,
       st.created_by,
+      st.cancel_reason,
+      st.appointment_date,
+      st.appointment_time,
+      st.status,
       st.customer_id,
       st.customer_note,
       st.service_timestamp AT TIME ZONE 'Africa/Kampala' AS service_time,
@@ -231,7 +235,8 @@ export const fetchAllServiceTransactions = async () => {
         json_build_object(
           'performer_id', sp.id,
           'employee_id', u.id,
-          'employee_name', u.first_name || ' ' || u.last_name,
+          'first_name', u.first_name,
+          'last_name',  u.last_name,
           'role_id', sr.id,
           'role_name', sr.role_name,
           'role_amount', sr.earned_amount
@@ -268,6 +273,10 @@ export const fetchServiceTransactionById = async (id) => {
       st.id AS transaction_id,
       st.service_definition_id,
       st.created_by,
+      st.cancel_reason,
+      st.appointment_date,
+      st.appointment_time,
+      st.status,
       st.customer_id,
       st.customer_note,
       st.service_timestamp AT TIME ZONE 'Africa/Kampala' AS service_time,
@@ -327,40 +336,44 @@ export const updateServiceTransactionModel = async (id, updates) => {
   console.log("👉 ID to update:", id);
   console.log("👉 Received updates:", JSON.stringify(updates, null, 2));
 
-  const { 
-    section_id, 
-    service_definition_id, 
-    appointment_date, 
-    appointment_time, 
-    customer_id, 
-    customer_note, 
-    performers = [] 
+  const {
+    service_definition_id,
+    appointment_date,
+    appointment_time,
+    customer_id,
+    customer_note,
+    status,
+    cancel_reason,
+    performers = []   // <-- very important
   } = updates;
-
-  console.log("🎭 Extracted performers:", JSON.stringify(performers, null, 2));
 
   try {
     await db.query("BEGIN");
     console.log("🔐 BEGIN TRANSACTION");
 
-    // Update main transaction
+    // 🔥 Update main transaction (same structure as save)
     const updateTrans = `
       UPDATE service_transactions
-      SET service_definition_id=$1,
-          appointment_date=$2,
-          appointment_time=$3,
-          customer_id=$4,
-          customer_note=$5
-      WHERE id=$6
+      SET 
+        service_definition_id=$1,
+        appointment_date=$2,
+        appointment_time=$3,
+        customer_id=$4,
+        customer_note=$5,
+        status=$6,
+        cancel_reason=$7
+      WHERE id=$8
       RETURNING *;
     `;
 
-    console.log("📝 Running main UPDATE with values:", {
+    console.log("📝 Running UPDATE with:", {
       service_definition_id,
       appointment_date,
       appointment_time,
       customer_id,
       customer_note,
+      status,
+      cancel_reason,
       id
     });
 
@@ -370,54 +383,43 @@ export const updateServiceTransactionModel = async (id, updates) => {
       appointment_time || null,
       customer_id || null,
       customer_note || null,
+      status || null,
+      cancel_reason || null,
       id
     ]);
 
     const updated = rows[0];
+    if (!updated) throw new Error("Service transaction not found");
+
     console.log("✅ Updated transaction:", updated);
 
-    if (!updated) throw new Error("❌ Service transaction not found");
-
-    // Remove old performers
-    console.log("🗑️ Deleting old performers for transaction:", id);
-    const deleteResult = await db.query(
-      `DELETE FROM service_performers WHERE service_transaction_id=$1 RETURNING *`,
+    // 🔥 Delete old performers
+    console.log("🗑️ Deleting old performers");
+    await db.query(
+      `DELETE FROM service_performers WHERE service_transaction_id=$1`,
       [id]
     );
 
-    console.log("🗑️ Deleted performers count:", deleteResult.rows.length);
-    console.log("🗑️ Deleted performers:", deleteResult.rows);
-
-    // Insert new performers
-    console.log("🎬 Inserting new performers... count:", performers.length);
-
-    let insertCount = 0;
+    // 🔥 Insert new performers
+    console.log("🎭 Inserting new performers…");
 
     for (const p of performers) {
-      console.log("➡️ Preparing to insert performer:", p);
+      console.log("➡️ Performer:", p);
 
-      if (!p.role_id) console.log("⚠️ performer missing role_id:", p);
-      if (!p.employee_id) console.log("⚠️ performer missing employee_id:", p);
-
-      const values = [id, p.role_id, p.employee_id];
-      console.log("➡️ SQL INSERT VALUES:", values);
-
-      const insertQuery = `
+      await db.query(
+        `
         INSERT INTO service_performers 
-          (service_transaction_id, service_role_id, employee_id)
+        (service_transaction_id, service_role_id, employee_id)
         VALUES ($1,$2,$3)
-        RETURNING *;
-      `;
-
-      const insertResult = await db.query(insertQuery, values);
-      console.log("✅ Inserted performer row:", insertResult.rows[0]);
-      insertCount++;
+      `,
+        [id, p.role_id, p.employee_id || null]
+      );
     }
 
-    console.log("🎉 Total performers inserted:", insertCount);
+    console.log("🎉 Performers updated:", performers.length);
 
     await db.query("COMMIT");
-    console.log("🔐 COMMIT TRANSACTION");
+    console.log("🔐 COMMIT");
 
     return updated;
 
@@ -427,6 +429,53 @@ export const updateServiceTransactionModel = async (id, updates) => {
     throw err;
   }
 };
+
+
+
+export const updateServiceTransactionAppointmentModel = async (id, updates) => {
+  console.log("🔄 UPDATE APPOINTMENT MODEL");
+  console.log("👉 ID:", id);
+  console.log("👉 Received updates:", updates);
+
+  // Extract only the fields we allow to update
+  const { status, cancel_reason } = updates;
+
+  if (!status && !cancel_reason) {
+    throw new Error("No valid fields provided. Only status or cancel_reason can be updated.");
+  }
+
+  try {
+    await db.query("BEGIN");
+
+    const query = `
+      UPDATE service_transactions
+      SET 
+        status = COALESCE($1, status),
+        cancel_reason = COALESCE($2, cancel_reason)
+      WHERE id = $3
+      RETURNING *;
+    `;
+
+    console.log("📝 Running status update with:", { status, cancel_reason });
+
+    const { rows } = await db.query(query, [status || null, cancel_reason || null, id]);
+
+    if (rows.length === 0) throw new Error("❌ Appointment not found");
+
+    const updated = rows[0];
+    console.log("✅ Updated appointment:", updated);
+
+    await db.query("COMMIT");
+
+    return updated;
+
+  } catch (err) {
+    await db.query("ROLLBACK");
+    console.error("🔥 ERROR updating appointment:", err);
+    throw err;
+  }
+};
+
 
 // UPDATE SERVICE TRANSACTION TIME ONLY
 export const updateServiceTransactionModelt = async (id, newTime) => {
@@ -486,5 +535,6 @@ export default {
   updateServiceDefinitionModel,
   deleteServiceDefinitionModel,
   fetchServiceRolesModel,
-  fetchServiceMaterialsModel
+  fetchServiceMaterialsModel,
+  updateServiceTransactionAppointmentModel
 };

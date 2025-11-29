@@ -64,6 +64,11 @@ export const createAdvance = async (req, res) => {
 export const updateAdvanceById = async (req, res) => {
   try {
     const { id, employee_id, amount, description, created_at } = req.body;
+    console.log("data in the advances controller",  id,
+  employee_id,
+  amount,
+  description,
+  created_at)
 
     if (!id) return res.status(400).json({ error: "Missing advance ID" });
 

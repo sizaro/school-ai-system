@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
+import { useData } from "../context/DataContext";
 
-export default function LateFeeForm({ onSubmit, onClose, feeData, employees = [] }) {
+export default function LateFeeForm({ onSubmit, onClose, feeData = null, employees = [] }) {
+
+  const {
+       users =[],
+       fetchUsers,
+     } = useData();
   // Fixed Late Fee Object
   const LATE_FEE = {
     reason: "Late Arrival Fee",
@@ -14,6 +20,9 @@ export default function LateFeeForm({ onSubmit, onClose, feeData, employees = []
     amount: LATE_FEE.amount,
     created_at: "",
   });
+
+  console.log("data for late fee to be edited", feeData)
+  console.log("employees in the late fee form", employees)
 
   // Prefill when editing
   useEffect(() => {
@@ -32,6 +41,10 @@ export default function LateFeeForm({ onSubmit, onClose, feeData, employees = []
     setForm({ ...form, employee_id: e.target.value });
   };
 
+   useEffect(()=>{
+    fetchUsers()
+  }, [])
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -40,6 +53,7 @@ export default function LateFeeForm({ onSubmit, onClose, feeData, employees = []
       employee_id: form.employee_id,
       reason: form.reason,
       amount: form.amount,
+      created_at:form.created_at
     };
 
     onSubmit(payload);
@@ -52,7 +66,7 @@ export default function LateFeeForm({ onSubmit, onClose, feeData, employees = []
       className="space-y-4 p-4 bg-white rounded shadow-md max-w-md mx-auto"
     >
       <h2 className="text-2xl font-bold text-gray-800 text-center">
-        {form.id ? "Edit Late Fee" : "Add Late Fee"}
+        {feeData ? "Edit Late Fee" : "Add Late Fee"}
       </h2>
 
       {/* Employee Select */}

@@ -13,7 +13,7 @@ export default function About() {
   const backendBaseUrl = import.meta.env.VITE_API_URL;
 const staticBaseUrl =
   import.meta.env.MODE === "development"
-    ? "http://localhost:5000"
+    ? "http://localhost:5500"
     : "https://salonmanagementsystem.onrender.com";
 
 
@@ -61,7 +61,7 @@ useEffect(()=>{
         <section className="grid md:grid-cols-2 gap-8 items-center">
           <div className="m-5">
             <img
-              src={getImage(owner, "/images/default_owner.webp")}
+              src={`${staticBaseUrl}${owner.image_url}`}
               alt={fullName(owner)}
               className="rounded-xl shadow-lg"
             />

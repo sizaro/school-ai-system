@@ -1,19 +1,37 @@
+import { useState, useEffect, useMemo } from "react";
 import { useData } from "../../context/DataContext.jsx";
-import { useEffect, useState } from "react";
 
 export default function CustomerAppointments() {
-  const { services, users, user } = useData();
+  const { user, users, services = [], serviceMaterials = [] } = useData();
   const [myAppointments, setMyAppointments] = useState([]);
   const [activeTab, setActiveTab] = useState("pending");
 
+  // Enrich services with their materials
+  const servicesWithMaterials = useMemo(() => {
+    return services.map((service) => {
+      const matchedMaterials = serviceMaterials.filter(
+        (m) => m.service_definition_id === service.service_definition_id
+      );
+      return { ...service, materials: matchedMaterials.length > 0 ? matchedMaterials : [] };
+    });
+  }, [services, serviceMaterials]);
+
+  // Filter services for the logged-in customer
+  useEffect(() => {
+    if (user && servicesWithMaterials.length > 0) {
+      const filtered = servicesWithMaterials.filter(
+        (service) => service.customer_id === user.id
+      );
+      setMyAppointments(filtered);
+    }
+  }, [servicesWithMaterials, user]);
+
   const formatDate = (dateString) => {
-  if (!dateString) return "N/A";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-UG", { timeZone: "Africa/Kampala" });
-};
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-UG", { timeZone: "Africa/Kampala" });
+  };
 
-
- // Helper to convert 24-hour to 12-hour AM/PM
   const formatTime12h = (time24) => {
     if (!time24) return "N/A";
     let [hour, minute] = time24.split(":").map(Number);
@@ -23,57 +41,29 @@ export default function CustomerAppointments() {
     return `${hour}:${minute.toString().padStart(2, "0")} ${ampm}`;
   };
 
-  // Filter services for the logged-in customer
-  useEffect(() => {
-    if (user && services.length > 0) {
-      const filtered = services.filter(
-        (service) => service.customer_id === user.id
-      );
-      setMyAppointments(filtered);
-    }
-  }, [services, user]);
-
-  const formatDateTime = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleString("en-UG", {
-      timeZone: "Africa/Kampala",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
-
+  // Get assigned employees from the 'performers' array
   const getAssignedEmployees = (appointment) => {
-    const employeeRoles = [
-      { label: "Barber", id: appointment.barber_id },
-      { label: "Barber Assistant", id: appointment.barber_assistant_id },
-      { label: "Scrubber", id: appointment.scrubber_assistant_id },
-      { label: "Black Shampoo", id: appointment.black_shampoo_assistant_id },
-      { label: "Super Black", id: appointment.super_black_assistant_id },
-      { label: "Black Mask", id: appointment.black_mask_assistant_id },
-      { label: "Aesthetician", id: appointment.aesthetician_id },
-    ];
+    if (!appointment.performers || appointment.performers.length === 0) return "N/A";
 
-    return employeeRoles
-      .filter((r) => r.id)
-      .map((r) => {
-        const emp = users.find((u) => u.id === r.id);
-        return emp ? `${r.label}: ${emp.first_name} ${emp.last_name}` : null;
+    return appointment.performers
+      .map((p) => {
+        const emp = users.find((u) => u.id === p.employee_id);
+        return emp ? `${p.role_name}: ${emp.first_name} ${emp.last_name}` : null;
       })
       .filter(Boolean)
       .join(", ");
   };
 
-  const filteredByStatus = myAppointments.filter(
-    (a) => a.status === activeTab
-  );
+  // Get a readable list of materials for the service
+  const getMaterialsList = (appointment) => {
+    if (!appointment.materials || appointment.materials.length === 0) return "None";
+    return appointment.materials.map((m) => m.name).join(", ");
+  };
+
+  const filteredByStatus = myAppointments.filter((a) => a.status === activeTab);
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">
         {user ? `${user.first_name}'s Appointments` : "Your Appointments"}
       </h1>
@@ -108,6 +98,12 @@ export default function CustomerAppointments() {
                   Service
                 </th>
                 <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">
+                  Description
+                </th>
+                <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">
+                  Materials
+                </th>
+                <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">
                   Date
                 </th>
                 <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">
@@ -120,32 +116,31 @@ export default function CustomerAppointments() {
                   Status
                 </th>
                 <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">
-                  Reason
-                </th>
+                {activeTab === "cancelled" ? "Cancel Reason" : "Customer Note"}
+              </th>
+
               </tr>
             </thead>
             <tbody>
               {filteredByStatus.map((appointment) => (
-                <tr key={appointment.id} className="hover:bg-gray-50">
-                  <td className="py-3 px-4 border-b">
-                    {appointment.name || "N/A"}
-                  </td>
-                  <td className="py-3 px-4 border-b">
-                    {formatDate(appointment.appointment_date)}
+                <tr key={appointment.transaction_id} className="hover:bg-gray-50">
+                  <td className="py-3 px-4 border-b">{appointment.service_name || "N/A"}</td>
+                  <td className="py-3 px-4 border-b">{appointment.description || "N/A"}</td>
+                  <td className="py-3 px-4 border-b">{getMaterialsList(appointment)}</td>
+                  <td className="py-3 px-4 border-b">{formatDate(appointment.appointment_date)}</td>
+                  <td className="py-3 px-4 border-b">{formatTime12h(appointment.appointment_time)}</td>
+                  <td className="py-3 px-4 border-b">{getAssignedEmployees(appointment)}</td>
+                  <td className="py-3 px-4 border-b capitalize">{appointment.status}</td>
+                  <td
+                    className={`py-3 px-4 border-b ${
+                      activeTab === "cancelled" ? "bg-red-100 text-red-800" : ""
+                    }`}
+                  >
+                    {activeTab === "cancelled"
+                      ? appointment.cancel_reason || "N/A"
+                      : appointment.customer_note || "N/A"}
                   </td>
 
-                  <td className="py-3 px-4 border-b">
-                    {formatTime12h(appointment.appointment_time)}
-                  </td>
-                  <td className="py-3 px-4 border-b">
-                    {getAssignedEmployees(appointment) || "N/A"}
-                  </td>
-                  <td className="py-3 px-4 border-b capitalize">
-                    {appointment.status}
-                  </td>
-                  <td className="py-5 px-6 border-b capitalize text-black-700 bg-red-300">
-                    {appointment.customer_note}
-                  </td>
                 </tr>
               ))}
             </tbody>

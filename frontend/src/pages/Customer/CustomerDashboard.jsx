@@ -15,7 +15,22 @@ export default function customerDashboard() {
   const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
 
-  const { user, users, services, fetchAllData, sendFormData } = useData();
+  const { 
+    user, 
+    users, 
+    services, 
+    serviceMaterials = [],
+    sections,
+    serviceDefinitions,
+    serviceRoles,
+    fetchSections,
+    fetchServiceDefinitions,
+    fetchServiceTransactions,
+    fetchServiceMaterials,
+    fetchServiceRoles,
+    createServiceTransaction,
+    fetchUsers 
+  } = useData();
 
   // Filter employees (exclude Saleh & customers)
   const employees = useMemo(
@@ -28,6 +43,18 @@ export default function customerDashboard() {
     [users]
   );
 
+  // Services enriched with their materials
+  const servicesWithMaterials = useMemo(() => {
+    return (services || []).map((service) => {
+      const matchedMaterials = (serviceMaterials || []).filter(
+        (m) => m.service_definition_id === service.service_definition_id
+      );
+      return { ...service, materials: matchedMaterials.length > 0 ? matchedMaterials : [] };
+    });
+  }, [services, serviceMaterials]);
+
+  console.log("services with materials in the customer dashboard", servicesWithMaterials)
+
   // Modal controls
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
@@ -35,22 +62,14 @@ export default function customerDashboard() {
     setMessageModal({ open: true, text, type });
   const closeMessage = () => setMessageModal({ open: false, text: "", type: "" });
 
-  // Handle Appointment Submission
-  const handleAppointmentSubmit = async (formData) => {
-    try {
-      await sendFormData("createService", formData);
-      setConfirmModalOpen(true);
-      setTimeout(() => setConfirmModalOpen(false), 1000);
-      closeModal();
-    } catch (err) {
-      console.error("Failed to submit appointment:", err);
-      showMessage("Failed to book appointment. Please try again.", "error");
-    }
-  };
-
   // Fetch all data on mount
   useEffect(() => {
-    fetchAllData();
+    fetchUsers();
+    fetchServiceRoles();
+    fetchSections();
+    fetchServiceDefinitions();
+    fetchServiceMaterials();
+    fetchServiceTransactions();
   }, []);
 
   // Simulate adverts
@@ -78,9 +97,9 @@ export default function customerDashboard() {
 
   // Weekly schedule map (only confirmed services)
   const scheduleMap = useMemo(() => {
-    if (!selectedEmployee || !services) return {};
+    if (!selectedEmployee || !servicesWithMaterials) return {};
 
-    const confirmedServices = services.filter((s) => s.status === "confirmed");
+    const confirmedServices = servicesWithMaterials.filter((s) => s.status === "confirmed");
     const map = {};
     weekDates.forEach((d) => {
       const iso = d.toISOString().split("T")[0];
@@ -88,18 +107,10 @@ export default function customerDashboard() {
     });
 
     confirmedServices.forEach((s) => {
-      // Use appointment_date directly to avoid timezone shift
       const date = s.appointment_date.split("T")[0] || s.appointment_date; 
       const time = s.appointment_time;
 
-      const involvedIds = [
-        s.barber_id,
-        s.barber_assistant_id,
-        s.scrubber_assistant_id,
-        s.black_shampoo_assistant_id,
-        s.super_black_assistant_id,
-        s.black_mask_assistant_id,
-      ].filter(Boolean);
+      const involvedIds = s.performers?.map(p => p.employee_id) || [];
 
       if (!involvedIds.includes(selectedEmployee.id)) return;
       if (!map[date]) return;
@@ -108,25 +119,14 @@ export default function customerDashboard() {
       if (timeSlots.includes(hour)) {
         map[date][hour] = s;
       }
-
-      console.log(
-        "Mapping service",
-        s.id,
-        "Date:",
-        date,
-        "Time:",
-        time,
-        "Involved IDs:",
-        involvedIds
-      );
     });
 
-    console.log("Final schedule map:", map);
     return map;
-  }, [selectedEmployee, services, weekDates]);
+  }, [selectedEmployee, servicesWithMaterials, weekDates]);
 
   // Render schedule cell
   const renderSlotCell = (dateISO, time) => {
+    if (!selectedEmployee) return <td className="px-2 py-1 border h-12" />;
     const empStatus = selectedEmployee.status || "active";
     const leaveStart = selectedEmployee.leave_start_time;
     const leaveEnd = selectedEmployee.leave_end_time;
@@ -164,31 +164,24 @@ export default function customerDashboard() {
 
   // Filter available employees based on confirmed services
   useEffect(() => {
-    if (!appointmentDate || !appointmentTime) {
-      setFilteredEmployees(employees);
-      return;
-    }
+  if (!appointmentDate || !appointmentTime) {
+    setFilteredEmployees(employees);
+    return;
+  }
 
-    const available = employees.filter((emp) => {
-      const isBusy = services.some(
-        (s) =>
-          s.status === "confirmed" &&
-          [
-            s.barber_id,
-            s.barber_assistant_id,
-            s.scrubber_assistant_id,
-            s.black_shampoo_assistant_id,
-            s.super_black_assistant_id,
-            s.black_mask_assistant_id,
-          ].includes(emp.id) &&
-          s.appointment_date.split("T")[0] === appointmentDate &&
-          s.appointment_time === appointmentTime
-      );
-      return !isBusy;
-    });
+  const available = employees.filter((emp) => {
+    const isBusy = servicesWithMaterials.some((s) => 
+      s.status === "confirmed" &&
+      s.performers?.some(p => p.employee_id === emp.id) &&
+      s.appointment_date?.split("T")[0] === appointmentDate &&
+      s.appointment_time === appointmentTime
+    );
+    return !isBusy;
+  });
 
-    setFilteredEmployees(available);
-  }, [appointmentDate, appointmentTime, services, employees]);
+  setFilteredEmployees(available);
+}, [appointmentDate, appointmentTime, servicesWithMaterials, employees]);
+
 
   // Wait until user and users are loaded
   if (!user || !user.id || users.length === 0) {
@@ -287,14 +280,17 @@ export default function customerDashboard() {
       {/* Appointment Modal */}
       <Modal isOpen={modalOpen} onClose={closeModal}>
         <ServiceForm
-          Employees={employees}
-          customerId={user.id}
-          services={services}
-          onSubmit={handleAppointmentSubmit}
-          onClose={closeModal}
           isCustomer={true}
+          onSubmit={createServiceTransaction}
+          onClose={closeModal}
+          Sections={sections}
+          Services={serviceDefinitions}
+          Roles={serviceRoles}
+          Employees={employees}
+          createdBy={user.id}
+          customerId={user.id}
           serviceStatus={"pending"}
-          createdBy={"customer"}
+          serviceData={null}
         />
       </Modal>
 

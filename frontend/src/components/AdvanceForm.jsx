@@ -15,6 +15,8 @@ export default function AdvanceForm({ onSubmit, onClose, advanceData }) {
      fetchUsers,
    } = useData();
 
+   console.log("to be edited advance in advance form", advanceData)
+
    const Employees = users.filter((user)=> `${user.first_name} ${user.last_name}`.toLowerCase() !== 'saleh ntege' && user.role !== 'customer')
 
   // Prefill form when editing
@@ -45,7 +47,8 @@ export default function AdvanceForm({ onSubmit, onClose, advanceData }) {
       id: form.id || undefined,
       employee_id: form.employee_id,
       amount: Number(form.amount),
-      description: form.description
+      description: form.description,
+      created_at:form.created_at
     };
 
     onSubmit(payload);

@@ -60,6 +60,12 @@ export const UpdateAdvanceById = async ({
   description,
   created_at,
 }) => {
+
+  console.log("data in the advances model",  id,
+  employee_id,
+  amount,
+  description,
+  created_at)
   const query = `
     UPDATE advances
     SET 

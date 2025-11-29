@@ -79,9 +79,10 @@ export default function OwnerSidebar() {
               )}
             </li>
 
-            {/* Employees */}
+            {/* Employees & Employee Report */}
             <li><Link to="/owner/employees" className={linkClass('/owner/employees')}>Employees</Link></li>
             <li><Link to="/owner/advances" className={linkClass('/owner/advances')}>Employees Advances</Link></li>
+            <li><Link to="/owner/employee-report" className={linkClass('/owner/employee-report')}>Employee Report</Link></li>
 
             {/* Workers */}
             <li>
@@ -177,9 +178,10 @@ export default function OwnerSidebar() {
               )}
             </li>
 
-            {/* Employees */}
+            {/* Employees & Employee Report */}
             <li><Link to="/owner/employees" onClick={() => setMenuOpen(false)} className={linkClass('/owner/employees')}>Employees</Link></li>
             <li><Link to="/owner/advances" onClick={() => setMenuOpen(false)} className={linkClass('/owner/advances')}>Employees Advances</Link></li>
+            <li><Link to="/owner/employee-report" onClick={() => setMenuOpen(false)} className={linkClass('/owner/employee-report')}>Employee Report</Link></li>
 
             {/* Workers */}
             <li>
@@ -225,7 +227,7 @@ export default function OwnerSidebar() {
                 </ul>
               )}
             </li>
-            
+
           </ul>
         </div>
         <SidebarFooter/>

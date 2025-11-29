@@ -20,6 +20,9 @@ const OwnerIncomeDailyReport = () => {
     sections = [],
     fetchUsers,
     fetchDailyData,
+    fetchWeeklyData,
+    fetchMonthlyData,
+    fetchYearlyData,
     fetchServiceTransactions,
     fetchServiceTransactionById,
     updateServiceTransactionById,
@@ -61,9 +64,11 @@ const OwnerIncomeDailyReport = () => {
   const [showModal, setShowModal] = useState(null);
   const [editingService, setEditingService] = useState(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
-  const [serviceToDelete, setServiceToDelete] = useState(null);
-
-  const txIdOf = (s) => s?.service_transaction_id ?? s?.transaction_id ?? s?.id ?? null;
+  const [serviceToDelete, setServiceToDelete] = useState(null)
+  const [reportLabel, setReportLabel] = useState("");
+  const [week, setWeek] = useState({ start: null, end: null });
+  const [monthYear, setMonthYear] = useState("");
+  const [year, setYear] = useState(new Date().getFullYear());
 
   const handleEditClick = async (id) => {
 
@@ -224,9 +229,72 @@ const OwnerIncomeDailyReport = () => {
   }, [session]);
 
   const handleDayChange = (e) => {
-    const pickedDate = e.target.value;
-    setSelectedDate(pickedDate);
-    fetchDailyData(pickedDate);
+  console.log("handleDayChange called with value:", e.target.value);
+  setSelectedDate(e.target.value);
+  fetchDailyData(e.target.value);
+  fetchUsers();
+};
+
+const handleWeekChange = (e) => {
+  const weekString = e.target.value;
+  console.log("handleWeekChange called with weekString:", weekString);
+
+  if (!weekString) return;
+
+  const [year, week] = weekString.split("-W").map(Number);
+
+  const firstDayOfYear = new Date(year, 0, 1);
+  const day = firstDayOfYear.getDay();
+  const firstMonday = new Date(firstDayOfYear);
+  const diff = day <= 4 ? day - 1 : day - 8;
+  firstMonday.setDate(firstDayOfYear.getDate() - diff);
+
+  const monday = new Date(firstMonday);
+  monday.setDate(firstMonday.getDate() + (week - 1) * 7);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  setWeek({ start: monday, end: sunday });
+  setReportLabel(
+    `${monday.toLocaleDateString("en-US")} → ${sunday.toLocaleDateString("en-US")}`
+  );
+  fetchWeeklyData(monday, sunday);
+  fetchUsers();
+};
+
+const handleMonthChange = (e) => {
+  console.log("handleMonthChange called with value:", e.target.value);
+  const value = e.target.value;
+    if (!value) return;
+
+    const [year, month] = value.split("-").map(Number);
+    setMonthYear(value);
+    setReportLabel(
+      `${new Date(year, month - 1, 1).toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      })}`
+    );
+    fetchMonthlyData(year, month);
+    fetchUsers()
+};
+
+const handleYearChange = (e) => {
+  console.log("handleYearChange called with value:", e.target.value);
+  const selectedYear = parseInt(e.target.value, 10);
+    setYear(selectedYear);
+    setReportLabel(`Year ${selectedYear}`);
+    fetchYearlyData(selectedYear)
+};
+
+// ---- Generate year options ----
+  const generateYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let y = currentYear; y >= currentYear - 10; y--) {
+      years.push(y);
+    }
+    return years;
   };
 
   useEffect(() => {
@@ -283,23 +351,64 @@ console.log("Employees in te income daily report", Employees)
   return (
     <div className="income-page max-w-6xl mx-auto p-6">
       <h1 className="text-3xl font-extrabold text-center mb-6 text-gray-800">
-        {reportDate} Daily Income Report
+        {reportDate} Report
       </h1>
 
-      <div className="mb-6 flex items-center gap-4">
-        <div>
-          <label className="block mb-1 font-medium">Pick a day:</label>
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={handleDayChange}
-            className="border rounded p-2"
-          />
-        </div>
-        <div className="ml-auto text-right">
-          <p className="text-sm text-gray-600">{new Date().toLocaleString()}</p>
-        </div>
-      </div>
+      {/* Period Pickers */}
+<div className="mb-6 flex flex-wrap gap-4 items-end">
+  {/* Day Picker */}
+  <div>
+    <label className="block font-medium mb-1">Day:</label>
+    <input
+      type="date"
+      value={selectedDate}
+      onChange={handleDayChange}
+      className="border rounded p-2"
+    />
+  </div>
+
+  {/* Week Picker */}
+  <div>
+    <label className="block font-medium mb-1">Week:</label>
+    <input
+      type="week"
+      onChange={handleWeekChange}
+      className="border rounded p-2"
+    />
+  </div>
+
+  {/* Month Picker */}
+  <div>
+    <label className="block font-medium mb-1">Month:</label>
+    <input
+      type="month"
+      value={monthYear}
+      onChange={handleMonthChange}
+      className="border rounded p-2"
+    />
+  </div>
+
+  {/* Year Picker */}
+  <div>
+    <label className="block font-medium mb-1">Year:</label>
+    <select
+      
+      onChange={handleYearChange}
+      className="border rounded p-2"
+    >
+
+      <option value="" disabled selected>
+      Select Year
+    </option>
+      {generateYearOptions().map((y) => (
+        <option key={y} value={y}>
+          {y}
+        </option>
+      ))}
+    </select>
+  </div>
+</div>
+
 
       {session ? (
         <>
@@ -402,51 +511,59 @@ console.log("Employees in te income daily report", Employees)
 
           {/* SERVICE DETAILS TABLE */}
           <section className="bg-white shadow rounded-lg p-4 mb-6">
-            <h2 className="text-lg font-semibold text-gray-700 mb-3">Service Details</h2>
-            <table className="w-full border-collapse border">
-              <thead>
-                <tr className="bg-blue-50">
-                  <th className="border px-2 py-1 text-left">#</th>
-                  <th className="border px-2 py-1 text-left">Service Name</th>
-                  <th className="border px-2 py-1 text-left">Section</th>
-                  <th className="border px-2 py-1 text-left">Amount</th>
-                  <th className="border px-2 py-1 text-left">Salon</th>
-                  <th className="border px-2 py-1 text-left">Performers & Materials</th>
-                  <th className="border px-2 py-1 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(servicesWithMaterials || []).map((s, i) => (
-                  <tr key={s.id || i}>
-                    <td className="border px-2 py-1">{i + 1}</td>
-                    <td className="border px-2 py-1">{s.service_name}</td>
-                    <td className="border px-2 py-1">{s.section_name || s.section?.section_name}</td>
-                    <td className="border px-2 py-1">{(s.full_amount || 0).toLocaleString()}</td>
-                    <td className="border px-2 py-1">{(s.salon_amount || 0).toLocaleString()}</td>
-                    <td className="border px-2 py-1">
-                      {formatPerformersAndMaterials(s).map((line, idx) => (
-                        <div key={idx}>{line}</div>
-                      ))}
-                    </td>
-                    <td className="border px-2 py-1">
-                      <button
-                        onClick={() => handleEditClick(s.transaction_id)}
-                        className="bg-yellow-400 px-2 py-1 rounded mr-2"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(s.transaction_id)}
-                        className="bg-red-500 px-2 py-1 rounded text-white"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
+  <h2 className="text-lg font-semibold text-gray-700 mb-3">Service Details</h2>
+
+  {/* Horizontal scroll wrapper */}
+  <div className="overflow-x-auto">
+    {/* Vertical scroll wrapper */}
+    <div className="max-h-[300px] overflow-y-auto">
+      <table className="min-w-full border-collapse table-auto">
+        <thead className="bg-blue-50 sticky top-0 z-10">
+          <tr>
+            <th className="border px-2 py-1 text-left">#</th>
+            <th className="border px-2 py-1 text-left">Service Name</th>
+            <th className="border px-2 py-1 text-left">Section</th>
+            <th className="border px-2 py-1 text-left">Amount</th>
+            <th className="border px-2 py-1 text-left">Salon</th>
+            <th className="border px-2 py-1 text-left">Performers & Materials</th>
+            <th className="border px-2 py-1 text-left">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {(servicesWithMaterials || []).map((s, i) => (
+            <tr key={s.id || i} className="hover:bg-gray-50">
+              <td className="border px-2 py-1">{i + 1}</td>
+              <td className="border px-2 py-1">{s.service_name}</td>
+              <td className="border px-2 py-1">{s.section_name || s.section?.section_name}</td>
+              <td className="border px-2 py-1">{(s.full_amount || 0).toLocaleString()}</td>
+              <td className="border px-2 py-1">{(s.salon_amount || 0).toLocaleString()}</td>
+              <td className="border px-2 py-1">
+                {formatPerformersAndMaterials(s).map((line, idx) => (
+                  <div key={idx}>{line}</div>
                 ))}
-              </tbody>
-            </table>
-          </section>
+              </td>
+              <td className="border px-2 py-1 whitespace-nowrap">
+                <button
+                  onClick={() => handleEditClick(s.transaction_id)}
+                  className="bg-yellow-400 px-2 py-1 rounded mr-2"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(s.transaction_id)}
+                  className="bg-red-500 px-2 py-1 rounded text-white"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
 
           {/* EDIT SERVICE MODAL */}
             <Modal isOpen={showModal} onClose={() => setShowModal(null)}>

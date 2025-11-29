@@ -17,6 +17,7 @@ import OwnerExpensesYearlyReport from "../../pages/owner/OwnerExpensesYearlyRepo
 
 // Employees and Advances
 import OwnerEmployees from "../../pages/owner/OwnerEmployees.jsx";
+import OwnerStaffReport from "../../pages/owner/OwnerStaffReport.jsx";
 import OwnerAdvances from "../../pages/owner/OwnerAdvances.jsx";
 
 // Staff Performance
@@ -62,6 +63,8 @@ const OwnerLayout = () => {
           {/* Employees & Advances */}
           <Route path="employees" element={<OwnerEmployees />} />
           <Route path="advances" element={<OwnerAdvances />} />
+          <Route path="employee-report" element={<OwnerStaffReport />} />
+
 
           {/* Worker Performance */}
           <Route path="report/daily" element={<OwnerStaffDailyReport />} />

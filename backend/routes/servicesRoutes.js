@@ -23,6 +23,7 @@ import {
   updateServiceTransaction,
   updateServiceTransactiont,
   deleteServiceTransaction,
+  updateServiceTransactionAppointment
 } from '../controllers/servicesController.js';
 
 // ===============================
@@ -62,6 +63,9 @@ router.get('/service_transactions/:id', getServiceTransactionById);
 
 // 👉 update a service transaction by ID
 router.put('/service_transactions/:id', updateServiceTransaction);
+
+// 👉 update a service transaction appointment
+router.put('/service_transactions_appointment/:id', updateServiceTransactionAppointment);
 
 // 👉 update only the service timestamp for a transaction
 router.put('/service_transactionst/:id', updateServiceTransactiont);

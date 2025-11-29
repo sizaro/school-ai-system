@@ -56,11 +56,11 @@ export const getWeeklyReport = async (req, res) => {
 
     res.json({
       scenario, // for debugging which case fired
-      services: services.rows,
-      expenses: expenses.rows,
-      advances: advances.rows,
-      tagFees: tagFees.rows,
-      lateFees: lateFees.rows
+      services: services,
+      expenses: expenses,
+      advances: advances,
+      tagFees: tagFees,
+      lateFees: lateFees
     });
 
   } catch (err) {

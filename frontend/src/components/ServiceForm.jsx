@@ -9,6 +9,7 @@ export default function ServiceForm({
   Roles,
   Employees,
   createdBy,
+  customerId = null,
   serviceStatus,
   serviceData = null,
 }) {
@@ -22,6 +23,7 @@ export default function ServiceForm({
   const [services, setServices] = useState([]);
   const [roles, setRoles] = useState([]);
   const [employees, setEmployees] = useState(Employees);
+  const [serviceAmount, setServiceAmount] = useState("");
   console.log("employees to be edited in the service form", Employees)
 
   const [form, setForm] = useState({
@@ -30,6 +32,7 @@ export default function ServiceForm({
     service_definition_id: "",
     appointment_date: "",
     appointment_time: "",
+    customerNote: "",
     performers: [],
   });
 
@@ -80,25 +83,47 @@ export default function ServiceForm({
   // --------------------------
   // When a service is selected
   // --------------------------
-  const handleServiceSelect = (id) => {
-    const matchingRoles = Roles.filter((r) => r.service_definition_id === id);
+const handleServiceSelect = (e) => {
+  const id = Number(e.target.value);
 
-    const performers = matchingRoles.map((role) => {
-      const isSalon = role.role_name.toLowerCase() === "salon";
-      return {
-        role_id: role.id,
-        employee_id: isSalon ? null : "",
-        earned_amount: role.earned_amount,
-      };
-    });
+  // retrieve the object
+  const serviceObj = JSON.parse(
+    e.target.selectedOptions[0].dataset.service
+  );
 
+  console.log("Selected service object:", serviceObj);
+
+  const matchingRoles = Roles.filter(
+    (r) => r.service_definition_id === id
+  );
+
+  const performers = matchingRoles.map((role) => {
+    const isSalon = role.role_name.toLowerCase() === "salon";
+
+    return {
+      role_id: role.id,
+      employee_id: isSalon ? null : "",
+      earned_amount: role.earned_amount,
+    };
+  });
+
+  setForm({
+    ...form,
+    service_definition_id: id,
+    performers,
+  });
+
+  setServiceAmount(Number(serviceObj.service_amount));
+  setRoles(matchingRoles);
+};
+
+
+
+  const handleCustomerNote = (e) => {
     setForm({
       ...form,
-      service_definition_id: id,
-      performers,
+      customerNote:e.target.value
     });
-
-    setRoles(matchingRoles);
   };
 
   // --------------------------
@@ -128,6 +153,8 @@ export default function ServiceForm({
     appointment_date: isCustomer ? form.appointment_date : null,
     appointment_time: isCustomer ? form.appointment_time : null,
     created_by: createdBy,
+    customer_id:customerId,
+    customer_note:form.customerNote,
     status: serviceStatus,
     performers: form.performers.map((p) => ({
       role_id: p.role_id,
@@ -153,8 +180,17 @@ export default function ServiceForm({
 
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full p-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full p-4 max-h-[80vh] overflow-y-auto">
       {/* SECTION SELECT */}
+
+      {isCustomer && (
+        <>
+          <p className="text-sm text-gray-700 bg-yellow-100 p-2 rounded">
+          Note: Your appointment will only remain valid for <b>10 minutes</b> after the scheduled time.
+          After that, the employee may attend to another client, and you may have to wait.
+          </p>
+        </>
+      )}
       <div className="flex flex-col">
         <label>Section</label>
         <select
@@ -176,43 +212,21 @@ export default function ServiceForm({
           <label>Service</label>
           <select
             value={form.service_definition_id}
-            onChange={(e) => handleServiceSelect(Number(e.target.value))}
+            onChange={handleServiceSelect}
           >
             <option value="">Select Service</option>
             {services.map((s) => (
-              <option key={s.id} value={s.id}>
+              <option 
+                key={s.id} 
+                value={s.id}
+                data-service={JSON.stringify(s)}
+              >
                 {s.service_name}
               </option>
             ))}
           </select>
+
         </div>
-      )}
-
-      {/* CUSTOMER DATE & TIME */}
-      {isCustomer && (
-        <>
-          <div className="flex flex-col">
-            <label>Appointment Date</label>
-            <input
-              type="date"
-              value={form.appointment_date}
-              onChange={(e) =>
-                setForm({ ...form, appointment_date: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="flex flex-col">
-            <label>Appointment Time</label>
-            <input
-              type="time"
-              value={form.appointment_time}
-              onChange={(e) =>
-                setForm({ ...form, appointment_time: e.target.value })
-              }
-            />
-          </div>
-        </>
       )}
 
       {/* PERFORMERS (Salon hidden) */}
@@ -245,6 +259,52 @@ export default function ServiceForm({
             );
           })}
         </div>
+      )}
+
+      {/* CUSTOMER DATE & TIME */}
+      {isCustomer && (
+        <>
+          <div className="flex flex-col">
+            <label>Appointment Date</label>
+            <input
+              type="date"
+              value={form.appointment_date}
+              onChange={(e) =>
+                setForm({ ...form, appointment_date: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label>Appointment Time</label>
+            <input
+              type="time"
+              value={form.appointment_time}
+              onChange={(e) =>
+                setForm({ ...form, appointment_time: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="block mb-1 font-medium">Additional Information</label>
+             <textarea
+              name="customerNote"
+              value={form.customerNote}
+              onChange={handleCustomerNote}
+              placeholder="Any special requests or details..."
+              className="w-full border rounded px-2 py-1"
+            />
+          </div>
+
+          {
+            form.service_definition_id && (
+              <p className="text-gray-700 font-medium">
+                The total amount for this service is <span className="text-green-700">UGX {serviceAmount}</span>
+          </p>
+            )
+          }
+        </>
       )}
 
       <button type="submit" className="bg-blue-500 text-white p-2 rounded">

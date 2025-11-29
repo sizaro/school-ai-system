@@ -50,6 +50,8 @@ export const fetchLateFeeById = async (id) => {
  * Update a late fee record by ID
  */
 export const UpdateLateFeeById = async ({ id, employee_id, amount, reason, created_at }) => {
+
+  console.log("late fee data in the model", employee_id, amount, reason, created_at, id)
   const query = `
     UPDATE late_fees
     SET 

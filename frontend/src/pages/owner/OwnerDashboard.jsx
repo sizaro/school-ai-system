@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Modal from "../../components/Modal.jsx";
 import ServiceForm from "../../components/ServiceForm";
 import SectionForm from "../../components/SectionForm.jsx";
@@ -27,7 +27,9 @@ export default function OwnerDashboard() {
     sessions,
     users,
     fetchUsers,
-    updateService,
+    updateServiceTransactionById,
+    updateServiceTransactionAppointment,
+    fetchServiceTransactionById,
     updateServicet,
     fetchServiceById,
     fetchLateFeeById,
@@ -46,16 +48,31 @@ export default function OwnerDashboard() {
     updateServiceDefinition,
     fetchServiceDefinitionById,
     deleteServiceDefinition,
+    serviceMaterials = [],
     serviceRoles,
     fetchSections,
     createSection,
     updateSection,
     deleteSection,
     fetchServiceDefinitions,
+    fetchServiceMaterials,
     fetchServiceRoles,
     createServiceTransaction,
+    fetchServiceTransactions
   } = useData();
 
+
+  
+    const servicesWithMaterials = useMemo(() => {
+      return (services.data || services || []).map((service) => {
+        const matchedMaterials = (serviceMaterials || []).filter(
+          (m) => m.service_definition_id === service.service_definition_id
+        );
+        return { ...service, materials: matchedMaterials.length > 0 ? matchedMaterials : null };
+      });
+    }, [services, serviceMaterials]);
+  
+    console.log("services with materials", servicesWithMaterials)
   const Employees = (users || []).filter(
     (user) =>
       `${user.first_name} ${user.last_name}`.toLowerCase() !== "ntege saleh" &&
@@ -162,10 +179,10 @@ export default function OwnerDashboard() {
   };
 
   const appointmentsByStatus = {
-    pending: (services.data || []).filter((s) => s.status === "pending"),
-    confirmed: (services.data || []).filter((s) => s.status === "confirmed"),
-    completed: (services.data || []).filter((s) => s.status === "completed"),
-    cancelled: (services.data || []).filter((s) => s.status === "cancelled"),
+    pending: (servicesWithMaterials || []).filter((s) => s.status === "pending"),
+    confirmed: (servicesWithMaterials || []).filter((s) => s.status === "confirmed"),
+    completed: (servicesWithMaterials || []).filter((s) => s.status === "completed"),
+    cancelled: (servicesWithMaterials || []).filter((s) => s.status === "cancelled"),
   };
 
   useEffect(() => {
@@ -177,13 +194,26 @@ export default function OwnerDashboard() {
     fetchUsers();
     fetchSections();
     fetchServiceDefinitions();
+    fetchServiceMaterials();
+    fetchServiceTransactions();
+
   }, []);
 
   const handleStatusUpdate = async (serviceId, newStatus, cancel_reason = null) => {
     try {
-      const service = await fetchServiceById(serviceId);
+      const service = await fetchServiceTransactionById(serviceId);
       if (!service) return;
-      await updateService(serviceId, { ...service, status: newStatus, customer_note: cancel_reason });
+      await updateServiceTransactionById(serviceId, { ...service, status: newStatus, cancel_reason });
+    } catch (err) {
+      console.error("Failed to update service status", err);
+    }
+  };
+
+  const handleAppointmentStatus = async (serviceId, newStatus, cancel_reason = null) => {
+    try {
+      const service = await fetchServiceTransactionById(serviceId);
+      if (!service) return;
+      await updateServiceTransactionAppointment(serviceId, { ...service, status: newStatus, cancel_reason });
     } catch (err) {
       console.error("Failed to update service status", err);
     }
@@ -284,64 +314,129 @@ export default function OwnerDashboard() {
         </div>
 
         <section className="bg-white shadow-md rounded-lg p-4 mb-6">
-          <h2 className="text-xl font-semibold text-blue-700 mb-4">Appointments</h2>
-          <div className="flex gap-2 mb-4 flex-wrap">
-            {["pending", "confirmed", "completed", "cancelled"].map((status) => (
-              <button
-                key={status}
-                className={`px-4 py-2 rounded ${activeTab === status ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
-                onClick={() => setActiveTab(status)}
-              >
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-              </button>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-4">
-            {appointmentsByStatus[activeTab].length > 0 ? (
-              appointmentsByStatus[activeTab].map((s) => {
-                const assigned = [
-                  { label: "Barber", id: s.barber_id },
-                  { label: "Scrubber", id: s.scrubber_assistant_id },
-                  { label: "Black Shampoo", id: s.black_shampoo_assistant_id },
-                  { label: "Super Black", id: s.super_black_assistant_id },
-                  { label: "Black Mask", id: s.black_mask_assistant_id },
-                  { label: "Aesthetician", id: s.barber_assistant_id },
-                ].filter((a) => a.id)
-                 .map((a) => {
-                   const emp = Employees.find((e) => e.id === a.id);
-                   return emp ? { label: a.label, name: `${emp.first_name} ${emp.last_name}` } : null;
-                 }).filter((a) => a !== null);
+  <h2 className="text-xl font-semibold text-blue-700 mb-4">Appointments</h2>
 
-                const customer = Customers.find((c) => c.id === s.customer_id);
+  <div className="flex gap-2 mb-4 flex-wrap">
+    {["pending", "confirmed", "completed", "cancelled"].map((status) => (
+      <button
+        key={status}
+        className={`px-4 py-2 rounded ${
+          activeTab === status
+            ? "bg-blue-500 text-white"
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }`}
+        onClick={() => setActiveTab(status)}
+      >
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </button>
+    ))}
+  </div>
 
-                return (
-                  <div key={s.id} className={`border rounded-lg p-4 w-[calc(33.333%-1rem)] min-w-[180px] ${activeTab === "pending" ? "bg-yellow-50 border-yellow-200" : activeTab === "confirmed" ? "bg-green-50 border-green-200" : activeTab === "completed" ? "bg-blue-50 border-blue-200" : "bg-red-50 border-red-200"}`}>
-                    <p className="font-medium">{s.name}</p>
-                    <p>Customer: {customer ? `${customer.first_name} ${customer.last_name}` : "N/A"}</p>
-                    <p>Date: {formatDate(s.appointment_date)}</p>
-                    <p>Time: {formatTime12h(s.appointment_time)}</p>
-                    {assigned.length > 0 ? assigned.map((a, idx) => (
-                      <p key={idx} className="text-sm text-gray-700">{a.label}: <span className="font-medium">{a.name}</span></p>
-                    )) : <p className="text-sm text-gray-500">No staff assigned</p>}
-                    {s.status === "cancelled" && s.cancel_reason && <p className="text-red-600 text-sm mt-2"><strong>Reason:</strong> {s.cancel_reason}</p>}
-                    {activeTab === "pending" && (
-                      <div className="flex gap-2 mt-2">
-                        <Button onClick={() => handleStatusUpdate(s.id, "confirmed")}>Confirm</Button>
-                        <Button onClick={() => { setCancelServiceId(s.id); setShowCancelModal(true); }}>Cancel</Button>
-                      </div>
-                    )}
-                    {activeTab === "confirmed" && (
-                      <div className="flex gap-2 mt-2">
-                        <Button onClick={() => handleStatusUpdatet(s.id, "completed")}>Complete</Button>
-                        <Button onClick={() => { setCancelServiceId(s.id); setShowCancelModal(true); }}>Cancel</Button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            ) : <p className="text-gray-500">No {activeTab} appointments</p>}
+  <div className="flex flex-wrap gap-4">
+    {appointmentsByStatus[activeTab].length > 0 ? (
+      appointmentsByStatus[activeTab].map((s) => {
+        const assigned = (s.performers || [])
+          .map((p) => {
+            const emp = Employees.find((e) => e.id === p.employee_id);
+            const role = serviceRoles.find((r) => r.id === p.role_id);
+
+            if (!emp || !role) return null;
+
+            return {
+              label: role.role_name,
+              name: `${emp.first_name} ${emp.last_name}`,
+            };
+          })
+          .filter(Boolean);
+
+        const customer = Customers.find((c) => c.id === s.customer_id);
+
+        return (
+          <div
+            key={s.id}
+            className={`border rounded-lg p-4 w-[calc(33.333%-1rem)] min-w-[180px] ${
+              activeTab === "pending"
+                ? "bg-yellow-50 border-yellow-200"
+                : activeTab === "confirmed"
+                ? "bg-green-50 border-green-200"
+                : activeTab === "completed"
+                ? "bg-blue-50 border-blue-200"
+                : "bg-red-50 border-red-200"
+            }`}
+          >
+            <p className="font-medium">{s.service_name}</p>
+
+            <p>
+              Customer:{" "}
+              {customer
+                ? `${customer.first_name} ${customer.last_name}`
+                : "N/A"}
+            </p>
+
+            <p>Date: {formatDate(s.appointment_date)}</p>
+            <p>Time: {formatTime12h(s.appointment_time)}</p>
+            <p>Customer Note: {s.customer_note}</p>
+
+            {assigned.length > 0 ? (
+              assigned.map((a, idx) => (
+                <p key={idx} className="text-sm text-gray-700">
+                  {a.label}:{" "}
+                  <span className="font-medium">{a.name}</span>
+                </p>
+              ))
+            )
+            
+            : (
+              <p className="text-sm text-gray-500">No staff assigned</p>
+            )}
+
+            {s.status === "cancelled" && s.cancel_reason && (
+              <p className="text-red-600 text-sm mt-2">
+                <strong>Reason:</strong> {s.cancel_reason}
+              </p>
+            )}
+
+
+            {activeTab === "pending" && (
+              <div className="flex gap-2 mt-2">
+                <Button onClick={() => handleAppointmentStatus(s.transaction_id, "confirmed")}>
+                  Confirm
+                </Button>
+                <Button
+                  onClick={() => {
+                    setCancelServiceId(s.transaction_id);
+                    setShowCancelModal(true);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            )}
+
+            {activeTab === "confirmed" && (
+              <div className="flex gap-2 mt-2">
+                <Button onClick={() => handleAppointmentStatus(s.transaction_id, "completed")}>
+                  Complete
+                </Button>
+                <Button
+                  onClick={() => {
+                    setCancelServiceId(s.transaction_id);
+                    setShowCancelModal(true);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            )}
           </div>
-        </section>
+        );
+      })
+    ) : (
+      <p className="text-gray-500">No {activeTab} appointments</p>
+    )}
+  </div>
+</section>
+
 
         <section className="mt-6">
           <h3 className="text-md font-semibold mb-2">Sections</h3>
@@ -380,7 +475,7 @@ export default function OwnerDashboard() {
                 <th className="border px-4 py-2 text-left">Name</th>
                 <th className="border px-4 py-2 text-left">Section</th>
                 <th className="border px-4 py-2 text-left">Roles</th>
-                <th className="border px-4 py-2 text-left">Materials</th>
+                <th className="border px-4 py-2 text-left">Other Services</th>
                 <th className="border px-4 py-2 text-left">Employees Total Amount</th>
                 <th className="border px-4 py-2 text-left">Other services Total Costs</th>
                 <th className="border px-4 py-2 text-left">Salon Amount</th>
@@ -477,7 +572,7 @@ export default function OwnerDashboard() {
         </Modal>
 
         <Modal isOpen={showCancelModal} onClose={() => setShowCancelModal(false)}>
-          <CancelReasonForm serviceId={cancelServiceId} onSubmit={handleStatusUpdate} onClose={() => setShowCancelModal(false)} />
+          <CancelReasonForm serviceId={cancelServiceId} onSubmit={handleAppointmentStatus} onClose={() => setShowCancelModal(false)} />
         </Modal>
       </div>
     </>

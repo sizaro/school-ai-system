@@ -9,7 +9,6 @@ const CustomerSidebar = () => {
 
   const menuItems = [
     { path: "/customer/dashboard", label: "Dashboard" },
-    { path: "/customer/book", label: "Book Appointment" },
     { path: "/customer/appointments", label: "My Appointments" },
     { path: "/customer/notifications", label: "Notifications" },
     { path: "/customer/profile", label: "Profile" },

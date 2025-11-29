@@ -3,24 +3,25 @@ import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import Modal from "../../components/Modal.jsx";
 import LoginForm from "../../components/auth/login.jsx";
+import UserForm from "../../components/UserForm.jsx";
 import { useData } from "../../context/DataContext.jsx";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState(null);
 
-  const { loginUser, checkAuth, user } = useData();
+  const { loginUser, createUser, checkAuth, user } = useData();
   const navigate = useNavigate();
 
+  // ---- LOGIN ----
   const handleLogin = async ({ email, password }) => {
     setLoading(true);
     setLoginError(null);
     try {
       const res = await loginUser({ email, password });
-      console.log("this is from the backend", res);
-
       await checkAuth();
       setLoginOpen(false);
 
@@ -28,11 +29,23 @@ export default function Navbar() {
       else if (res.role === "manager") navigate("/manager");
       else if (res.role === "employee") navigate("/employee");
       else if (res.role === "customer") navigate("/customer");
-      else navigate("/"); // fallback
+      else navigate("/");
     } catch (err) {
       setLoginError(err?.response?.data?.message || "Sign in failed");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ---- CUSTOMER REGISTRATION ----
+  const handleCustomerRegister = async (formData) => {
+    try {
+      await createUser(formData);   // your backend already supports this
+      setRegisterOpen(false);
+      setLoginOpen(true); // ask them to login afterward
+    } catch (err) {
+      console.error(err);
+      alert("Account creation failed");
     }
   };
 
@@ -43,21 +56,21 @@ export default function Navbar() {
           Salehish Beauty Parlour & Spa
         </NavLink>
 
-        {/* Hamburger for small screens */}
+        {/* Hamburger Mobile */}
         <button
           className="sm:hidden text-blue-700 text-2xl"
           onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Toggle menu"
         >
           ☰
         </button>
 
-        {/* Navigation Links */}
         <div
           className={`${
             menuOpen ? "block" : "hidden"
           } absolute sm:static top-16 left-0 w-full sm:w-auto bg-white sm:flex sm:space-x-6 shadow sm:shadow-none`}
         >
+          {/* NAV LINKS */}
+
           <NavLink
             to="/"
             className={({ isActive }) =>
@@ -110,12 +123,30 @@ export default function Navbar() {
             Contact
           </NavLink>
 
-          <button
-            onClick={() => setLoginOpen(true)}
-            className="block bg-blue-600 text-white mx-4 my-2 px-4 py-2 rounded hover:bg-blue-700 transition"
-          >
-            Login
-          </button>
+          {/* ACCOUNT DROPDOWN */}
+          <div className="relative group">
+  <button className="block bg-blue-600 text-white mx-4 my-2 px-4 py-2 rounded hover:bg-blue-700 transition">
+    Account
+  </button>
+
+  {/* Dropdown menu */}
+  <div className="absolute left-0 w-40 bg-white shadow rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-500 z-50">
+    <button
+      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+      onClick={() => setLoginOpen(true)}
+    >
+      Login
+    </button>
+    <button
+      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+      onClick={() => setRegisterOpen(true)}
+    >
+      Create Account
+    </button>
+  </div>
+</div>
+
+
         </div>
       </div>
 
@@ -126,6 +157,15 @@ export default function Navbar() {
           onCancel={() => setLoginOpen(false)}
           loading={loading}
           error={loginError}
+        />
+      </Modal>
+
+      {/* ---- Create Account Modal (CUSTOMER ONLY)*/}
+      <Modal isOpen={registerOpen} onClose={() => setRegisterOpen(false)}>
+        <UserForm
+          role="customer"
+          onSubmit={handleCustomerRegister}
+          onClose={() => setRegisterOpen(false)}
         />
       </Modal>
     </nav>

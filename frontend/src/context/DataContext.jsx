@@ -66,7 +66,9 @@ export const DataProvider = ({ children }) => {
       console.log("service transactions in daily context", data.services)
       setExpenses(data.expenses);
       setAdvances(data.advances);
+      console.log("advances in daily context", data.advances)
       setClockings(data.clockings);
+      console.log("clockings in daily context", data.clockings)
       setUsers(data.users);
       setTagFees(data.tagFees);
       setLateFees(data.lateFees);
@@ -85,8 +87,13 @@ export const DataProvider = ({ children }) => {
       });
       const data = res.data;
       setServices(data.services);
+      console.log("service transactions in daily context", data.services)
       setExpenses(data.expenses);
       setAdvances(data.advances);
+      console.log("clockings in daily context", data.clockings)
+      setUsers(data.users);
+      setTagFees(data.tagFees);
+      setLateFees(data.lateFees);
       return data;
     } catch (err) {
       console.error("Error fetching weekly report:", err);
@@ -102,6 +109,9 @@ export const DataProvider = ({ children }) => {
       setServices(data.services);
       setExpenses(data.expenses);
       setAdvances(data.advances);
+      setUsers(data.users);
+      setTagFees(data.tagFees);
+      setLateFees(data.lateFees);
       return data;
     } catch (err) {
       console.error("Error fetching monthly report:", err);
@@ -116,6 +126,9 @@ export const DataProvider = ({ children }) => {
       setServices(data.services);
       setExpenses(data.expenses);
       setAdvances(data.advances);
+      setUsers(data.users);
+      setTagFees(data.tagFees);
+      setLateFees(data.lateFees);
       return data;
     } catch (err) {
       console.error("Error fetching yearly report:", err);
@@ -607,6 +620,18 @@ const updateServiceTransactionById = async (id, payload) => {
   }
 };
 
+// ---------- UPDATE APPOINTMENT ----------
+const updateServiceTransactionAppointment = async (id, payload) => {
+  try {
+    const res = await axios.put(`${API_URL}/services/service_transactions_appointment/${id}`, payload);
+    await fetchServiceTransactions(); // refresh list
+    return res.data;
+  } catch (err) {
+    console.error("Error updating service transaction:", err);
+    throw err;
+  }
+};
+
 // ---------- FETCH ALL ----------
 const fetchServiceTransactions = async () => {
   try {
@@ -803,6 +828,7 @@ useEffect(() => {
         fetchServiceTransactions,
         fetchServiceTransactionById,
         updateServiceTransactionById,
+        updateServiceTransactionAppointment,
         deleteServiceTransaction,
         fetchAllData,
         sendFormData,
@@ -833,6 +859,7 @@ useEffect(() => {
         checkAuth,
         logoutUser,
         fetchLateFeeById,
+        fetchLateFees,
         createLateFee,
         updateLateFee,
         deleteLateFee,

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 
-
 const UserForm = ({ user, onSubmit, onClose, role = "customer" }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+
   const [formData, setFormData] = useState({
     first_name: "",
     middle_name: "",
@@ -54,34 +56,34 @@ const UserForm = ({ user, onSubmit, onClose, role = "customer" }) => {
     }
   };
 
-  // Submit handler
+  // Submit handler with password validation
   const handleSubmit = (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  // Convert formData to FormData for file upload
-  const data = new FormData();
-
-  Object.entries(formData).forEach(([key, value]) => {
-    if (key === "image_url") {
-      // only append if a file was selected
-      if (value && value instanceof File) {
-        data.append(key, value);
+    // Only validate password if it's being set or changed
+    if (formData.password) {
+      const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+      if (!passwordRegex.test(formData.password)) {
+        setPasswordError(
+          "Password must be at least 8 characters, include at least 1 number and 1 special character."
+        );
+        return; // stop form submission
+      } else {
+        setPasswordError("");
       }
-    } else if (value !== "") {
-      data.append(key, value);
     }
-  });
 
-  if (user && user.id){
-    onSubmit(user.id, data);
-  }
-  else{
-    onSubmit(data);
-  }
-  // Pass this FormData object instead
-  
-};
+    // Convert formData to FormData for file upload
+    const data = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key === "image_url") {
+        if (value && value instanceof File) data.append(key, value);
+      } else if (value !== "") data.append(key, value);
+    });
 
+    if (user && user.id) onSubmit(user.id, data);
+    else onSubmit(data);
+  };
 
   return (
     <form
@@ -89,7 +91,7 @@ const UserForm = ({ user, onSubmit, onClose, role = "customer" }) => {
       className="bg-white p-6 rounded-lg shadow-md w-full max-w-2xl mx-auto space-y-4 h-[80vh] overflow-y-auto"
     >
       <h2 className="text-xl font-semibold text-gray-800">
-        {user ? "Edit User" : "Add User"} ({role})
+        {user ? "Edit User" : "Create"} ({role})
       </h2>
 
       {/* IMAGE UPLOAD */}
@@ -153,48 +155,59 @@ const UserForm = ({ user, onSubmit, onClose, role = "customer" }) => {
             className="mt-1 block w-full border rounded-md p-2"
           />
         </div>
-        <div>
+
+        {/* PASSWORD WITH EYE TOGGLE */}
+        <div className="relative">
           <label className="block text-sm font-medium text-gray-700">Password</label>
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             name="password"
             value={formData.password}
             onChange={handleChange}
             required={!user}
             placeholder={user ? "Leave blank to keep current password" : ""}
-            className="mt-1 block w-full border rounded-md p-2"
+            className="mt-1 block w-full border rounded-md p-2 pr-10"
           />
+          <span
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-9 cursor-pointer text-gray-500"
+          >
+            {showPassword ? "👁️" : "👁️‍🗨️"}
+          </span>
+          {passwordError && (
+            <p className="text-red-600 text-sm mt-1">{passwordError}</p>
+          )}
         </div>
       </div>
 
       {/* SHARED FIELDS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Birthdate</label>
+          <label className="block text-sm font-medium text-gray-700">Contact</label>
           <input
-            type="date"
-            name="birthdate"
-            value={formData.birthdate}
+            type="text"
+            name="contact"
+            value={formData.contact}
             onChange={handleChange}
             className="mt-1 block w-full border rounded-md p-2"
           />
         </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Contact</label>
-            <input
-              type="text"
-              name="contact"
-              value={formData.contact}
-              onChange={handleChange}
-              className="mt-1 block w-full border rounded-md p-2"
-            />
-          </div>
       </div>
 
       {/* EMPLOYEE-ONLY FIELDS */}
       {role === "employee" && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Birthdate</label>
+              <input
+                type="date"
+                name="birthdate"
+                value={formData.birthdate}
+                onChange={handleChange}
+                className="mt-1 block w-full border rounded-md p-2"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Next of Kin</label>
               <input
@@ -229,7 +242,6 @@ const UserForm = ({ user, onSubmit, onClose, role = "customer" }) => {
                 className="mt-1 block w-full border rounded-md p-2"
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700">Status</label>
               <select

@@ -101,7 +101,8 @@ async function getAdvancesByDay(startOfDay, endOfDay) {
   const query = `
     SELECT 
       a.*,
-      CONCAT(u.first_name, '', u.last_name) AS employee_name
+      u.first_name,
+      u.last_name
     FROM advances a
     LEFT JOIN users u ON a.employee_id = u.id
     WHERE a.created_at BETWEEN $1 AND $2
@@ -118,7 +119,8 @@ async function getClockingsByDay(startOfDay, endOfDay) {
   const query = `
     SELECT 
       ec.*,
-      CONCAT(u.first_name, '', u.last_name) AS employee_name
+      u.first_name,
+      u.last_name
     FROM employee_clocking ec
     LEFT JOIN users u ON ec.employee_id = u.id
     WHERE ec.clock_in BETWEEN $1 AND $2

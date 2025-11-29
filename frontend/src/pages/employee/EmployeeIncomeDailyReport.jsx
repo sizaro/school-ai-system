@@ -1,255 +1,531 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useData } from "../../context/DataContext.jsx";
-import "../../styles/IncomeDailyReport.css";
+import { Bar } from "react-chartjs-2";
+import Chart from "chart.js/auto";
 
 const EmployeeIncomeDailyReport = () => {
   const {
-    services,
-    lateFees,
-    tagFees,
-    advances,
-    sessions,
-    fetchDailyData,
-    user,
-    fetchUser
-  } = useData();
-
+      services = [],
+      serviceMaterials = [],
+      serviceDefinitions = [],
+      users =[],
+      user,
+      sections = [],
+      advances = [],
+      tagFees = [],
+      lateFees = [],
+      clockings = [],
+      fetchUsers,
+      fetchDailyData,
+      fetchWeeklyData,
+      fetchMonthlyData,
+      fetchYearlyData,
+      fetchServiceTransactions,
+      fetchServiceMaterials,
+      fetchServiceDefinitions,
+      fetchTagFees,
+      fetchAdvances,
+      fetchLateFees,
+      fetchSections
+    } = useData();
+  
+  
+  const usersLoading = !users.length;
+  console.log("📝 users in the report for employee page", users);
+  console.log("📝 services in the report for employee page", services);
+  console.log("📝 clockings in the report for employee page", clockings);
+  console.log("📝 sections in the report for employee page", sections);
+  console.log("📝 late fees in the report for employee page", lateFees);
+  console.log("📝 tag fees in the report for employee page", tagFees);
+  console.log("📝 advances in the report for employee page", advances);
+  
+  const toYMD = (date) => date.toISOString().split("T")[0];
   const today = new Date();
-  const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
-  const reportDate = today.toLocaleDateString("en-US", options);
-
-  const session = sessions && sessions.length > 0 ? sessions[0] : null;
-  const [liveDuration, setLiveDuration] = useState("");
-  const [selectedDate, setSelectedDate] = useState(today.toLocaleDateString("en-CA"));
-
-  // ---- Filter Services and Fees for Current User Only ----
-  const filteredServices = services.filter(
-    s =>
-      s.barber_id === user?.id ||
-      s.barber_assistant_id === user?.id ||
-      s.scrubber_assistant_id === user?.id ||
-      s.black_shampoo_assistant_id === user?.id ||
-      s.super_black_assistant_id === user?.id ||
-      s.black_mask_assistant_id === user?.id
-  );
-
-  const filteredAdvances = advances.filter(a => a.employee_id === user?.id);
-  const filteredTagFees = tagFees.filter(t => t.employee_id === user?.id);
-  const filteredLateFees = lateFees.filter(l => l.employee_id === user?.id);
   
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(toYMD(today));
+  const [reportLabel, setReportLabel] = useState("");
+  const [week, setWeek] = useState({ start: null, end: null });
+  const [monthYear, setMonthYear] = useState("");
+  const [year, setYear] = useState(new Date().getFullYear());
   
-
-  // ---- Totals Calculation Only for Current User ----
-  const calculateUserTotals = (services, advances, tagFees, lateFees, userId) => {
-    const grossSalary = filteredServices.reduce((sum, s) => {
-      let amt = 0;
-      if (s.barber_id === userId) amt += parseInt(s.barber_amount, 10) || 0;
-      if (s.barber_assistant_id === userId) amt += parseInt(s.barber_assistant_amount, 10) || 0;
-      if (s.scrubber_assistant_id === userId) amt += parseInt(s.scrubber_assistant_amount, 10) || 0;
-      if (s.black_shampoo_assistant_id === userId) amt += parseInt(s.black_shampoo_assistant_amount, 10) || 0;
-      if (s.super_black_assistant_id === userId) amt += parseInt(s.super_black_assistant_amount, 10) || 0;
-      if (s.black_mask_assistant_id === userId) amt += parseInt(s.black_mask_assistant_amount, 10) || 0;
-      return sum + amt;
-    }, 0);
-
-    const totalAdvances = advances.reduce((sum, a) => sum + (parseInt(a.amount, 10) || 0), 0);
-    const totalLateFees = lateFees.reduce((sum, l) => sum + (parseInt(l.amount, 10) || 0), 0);
-    const totalTagFees = tagFees.reduce((sum, t) => sum + (parseInt(t.amount, 10) || 0), 0);
-    
-
-    const netSalary = grossSalary - (totalAdvances + totalLateFees + totalTagFees);
-
-    return { grossSalary, totalAdvances, totalLateFees, totalTagFees, netSalary };
+  // ------------------- HANDLERS -------------------
+  const handleEmployeeChange = () => {
+    setSelectedEmployee(user || null);
+    fetchUsers();
   };
-
-  const { grossSalary, totalAdvances, totalLateFees, totalTagFees, netSalary } = 
-    calculateUserTotals(filteredServices, filteredAdvances, filteredTagFees, filteredLateFees, user?.id);
-
-  // ---- Format UTC Date to EAT ----
-  const formatEAT = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleString("en-UG", {
-      timeZone: "Africa/Kampala",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  // ---- Duration Calculation ----
-  const calculateDuration = (openUTC, closeUTC) => {
-    if (!openUTC || !closeUTC) return "N/A";
-    const diffMs = new Date(closeUTC) - new Date(openUTC);
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    return `${hours}h ${minutes}m`;
-  };
-
-  useEffect(() => {
-    if (!session) return;
-    const openUTC = session.open_time;
-    const closeUTC = session.close_time || session.server_now;
-    setLiveDuration(calculateDuration(openUTC, closeUTC));
-    if (!session.close_time) {
-      const interval = setInterval(() => {
-        setLiveDuration(calculateDuration(openUTC, session.server_now));
-      }, 60 * 1000);
-      return () => clearInterval(interval);
-    }
-  }, [session]);
-
-  // ---- Handle Day Change ----
+  
   const handleDayChange = (e) => {
-    const pickedDate = e.target.value;
-    setSelectedDate(pickedDate);
-    fetchDailyData(pickedDate);
+    console.log("handleDayChange called with value:", e.target.value);
+    setSelectedDate(e.target.value);
+    fetchDailyData(e.target.value);
+    fetchUsers();
   };
-
-  // ---- Service Count Summary ----
-  const serviceCount = filteredServices.reduce((acc, service) => {
-    const name = service.name || "Unknown";
-    acc[name] = (acc[name] || 0) + 1;
-    return acc;
-  }, {});
-
-
+  
+  const handleWeekChange = (e) => {
+    const weekString = e.target.value;
+    console.log("handleWeekChange called with weekString:", weekString);
+  
+    if (!weekString) return;
+  
+    const [year, week] = weekString.split("-W").map(Number);
+  
+    const firstDayOfYear = new Date(year, 0, 1);
+    const day = firstDayOfYear.getDay();
+    const firstMonday = new Date(firstDayOfYear);
+    const diff = day <= 4 ? day - 1 : day - 8;
+    firstMonday.setDate(firstDayOfYear.getDate() - diff);
+  
+    const monday = new Date(firstMonday);
+    monday.setDate(firstMonday.getDate() + (week - 1) * 7);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+  
+    setWeek({ start: monday, end: sunday });
+    setReportLabel(
+      `${monday.toLocaleDateString("en-US")} → ${sunday.toLocaleDateString("en-US")}`
+    );
+    fetchWeeklyData(monday, sunday);
+    fetchUsers();
+  };
+  
+  const handleMonthChange = (e) => {
+    console.log("handleMonthChange called with value:", e.target.value);
+    const value = e.target.value;
+      if (!value) return;
+  
+      const [year, month] = value.split("-").map(Number);
+      setMonthYear(value);
+      setReportLabel(
+        `${new Date(year, month - 1, 1).toLocaleDateString("en-US", {
+          month: "long",
+          year: "numeric",
+        })}`
+      );
+      fetchMonthlyData(year, month);
+      fetchUsers()
+  };
+  
+  const handleYearChange = (e) => {
+    console.log("handleYearChange called with value:", e.target.value);
+    const selectedYear = parseInt(e.target.value, 10);
+      setYear(selectedYear);
+      setReportLabel(`Year ${selectedYear}`);
+      fetchYearlyData(selectedYear)
+  };
+  
+  // ---- Generate year options ----
+    const generateYearOptions = () => {
+      const currentYear = new Date().getFullYear();
+      const years = [];
+      for (let y = currentYear; y >= currentYear - 10; y--) {
+        years.push(y);
+      }
+      return years;
+    };
+  
+  // ------------------- MEMOS -------------------
+  
+  // Map services with materials
+  const servicesWithMaterials = useMemo(() => {
+    console.log("useMemo: mapping services with materials...");
+    return (services || []).map((service) => {
+      const matchedMaterials = (serviceMaterials || []).filter(
+        (m) => m.service_definition_id === service.service_definition_id
+      );
+      return { ...service, materials: matchedMaterials.length > 0 ? matchedMaterials : [] };
+    });
+  }, [services, serviceMaterials]);
+  
+  console.log("servicesWithMaterials", servicesWithMaterials);
+  
+  // Filter services by selected employee
+  const employeeServices = useMemo(() => {
+    console.log("useMemo: filtering employeeServices for", selectedEmployee);
+    if (!selectedEmployee) return [];
+    return servicesWithMaterials.filter((s) =>
+      s.performers?.some((p) => p.employee_id === selectedEmployee.id)
+    );
+  }, [servicesWithMaterials, selectedEmployee]);
+  
+  console.log("employeeServices", employeeServices);
+  
+  // Section summaries
+  const dynamicSectionSummaries = useMemo(() => {
+    console.log("useMemo: calculating dynamicSectionSummaries...");
+    return sections.map((sec) => {
+      const secServices = employeeServices.filter((s) => s.definition_section_id === sec.id);
+      const gross = secServices.reduce((acc, s) => acc + parseInt(s.full_amount || 0), 0);
+      const salonIncome = secServices.reduce((acc, s) => acc + parseInt(s.salon_amount || 0), 0);
+      const materialsTotal = secServices.reduce(
+        (acc, s) =>
+          acc + (s.materials?.reduce((mAcc, mat) => mAcc + (parseInt(mat.amount) || 0), 0) || 0),
+        0
+      );
+      const employeeSalary = gross - salonIncome - materialsTotal;
+      return {
+        id: sec.id,
+        name: sec.section_name,
+        totals: { gross, salonIncome, materialsTotal, employeeSalary },
+        services: secServices,
+      };
+    });
+  }, [sections, employeeServices]);
+  
+  console.log("dynamicSectionSummaries", dynamicSectionSummaries);
+  
+  // General summaries
+  const grossIncome = employeeServices.reduce((acc, s) => acc + parseInt(s.full_amount || 0), 0);
+  const materialsTotal = employeeServices.reduce(
+    (acc, s) => acc + (s.materials?.reduce((mAcc, mat) => mAcc + (parseInt(mat.amount) || 0), 0) || 0),
+    0
+  );
+  const salonIncome = employeeServices.reduce((acc, s) => acc + parseInt(s.salon_amount || 0), 0);
+  const netEmployeeSalary = grossIncome - salonIncome - materialsTotal;
+  const totalServicesCount = employeeServices.length;
+  
+  console.log("grossIncome:", grossIncome, "materialsTotal:", materialsTotal, "salonIncome:", salonIncome, "netEmployeeSalary:", netEmployeeSalary, "totalServicesCount:", totalServicesCount);
+  
+  // Service counts by name
+  const serviceNameCounts = Object.entries(
+    employeeServices.reduce((acc, s) => {
+      acc[s.service_name] = (acc[s.service_name] || 0) + 1;
+      return acc;
+    }, {})
+  );
+  
+  console.log("serviceNameCounts:", serviceNameCounts);
+  
+  // Format performers and materials
+  const formatPerformersAndMaterials = (s) => {
+    const performers = s.performers?.map((p) => `${p.first_name} ${p.last_name}`).join(", ") || "-";
+    const performerAmount = s.performers?.map((p)=> p.role_amount || 0)
+    const mats = s.materials?.map((m) => `${m.name || m.material_name} (${m.material_cost || 0})`).join(", ") || "-";
+  
+    return [`Performers: ${performers} - ${performerAmount}`, `Materials: ${mats}`];
+  };
+  
+  // Employee totals including salary, advances, fees, clocking
+  const employeeTotals = useMemo(() => {
+    console.log("🔍 Calculating employeeTotals for", selectedEmployee);
+  
+    if (!selectedEmployee?.id) return [];
+  
+    const employeeId = Number(selectedEmployee.id);
+  
+    const userServices = servicesWithMaterials.filter((service) =>
+      service.performers?.some((p) => Number(p.employee_id) === employeeId)
+    );
+  
+    console.log("userServices for employee:", userServices);
+  
+    const totalSalary = userServices.reduce((acc, service) => {
+      const employeeRoles = service.performers?.filter((p) => Number(p.employee_id) === employeeId) || [];
+      const roleSum = employeeRoles.reduce((sum, role) => sum + Number(role.role_amount || 0), 0);
+      return acc + roleSum;
+    }, 0);
+  
+    const totalAdvances = advances.filter((a) => Number(a.employee_id) === employeeId)
+                                  .reduce((sum, a) => sum + Number(a.amount || 0), 0);
+  
+    const totalTagFees = tagFees.filter((t) => Number(t.employee_id) === employeeId)
+                                .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  
+    const totalLateFees = lateFees.filter((l) => Number(l.employee_id) === employeeId)
+                                  .reduce((sum, l) => sum + Number(l.amount || 0), 0);
+  
+    const todayClock = clockings.find((c) => Number(c.employee_id) === employeeId);
+    const clockIn = todayClock ? new Date(todayClock.clock_in) : null;
+    const clockOut = todayClock?.clock_out ? new Date(todayClock.clock_out) : null;
+  
+    let totalHours = "-";
+    if (clockIn && clockOut) {
+      const diffMs = clockOut - clockIn;
+      const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffMins = Math.round((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      totalHours = `${diffHrs} hrs ${diffMins} mins`;
+    }
+  
+    const netSalary = totalSalary - (totalAdvances + totalTagFees + totalLateFees);
+  
+    const user = users.find((u) => u.id === employeeId);
+  
+    return [
+      {
+        name: `${user?.last_name || "-"}`,
+        totalSalary,
+        totalAdvances,
+        totalTagFees,
+        totalLateFees,
+        netSalary,
+        clockIn,
+        clockOut,
+        totalHours,
+      },
+    ];
+  }, [servicesWithMaterials, advances, tagFees, lateFees, clockings, selectedEmployee, users]);
+  
+  // Chart data
+  const serviceChartData = useMemo(() => {
+    if (!selectedEmployee) return null;
+  
+    const counts = employeeServices.reduce((acc, s) => {
+      acc[s.service_name] = (acc[s.service_name] || 0) + 1;
+      return acc;
+    }, {});
+  
+    return {
+      labels: Object.keys(counts),
+      datasets: [
+        {
+          label: "Services Count",
+          data: Object.values(counts),
+          backgroundColor: "rgba(59, 130, 246, 0.7)",
+        },
+      ],
+    };
+  }, [employeeServices]);
+  
+  // Chart options
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: "Services Performed" },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { stepSize: 1 },
+      },
+    },
+  };
+  
+  
+  
+  // Initial data fetch
   useEffect(() => {
-      fetchDailyData(selectedDate);
-    }, []);
-
-  return (
-    <div className="income-page max-w-6xl mx-auto p-4 overflow-y-hidden">
-      <h1 className="text-3xl font-bold text-center mb-6 text-gray-800 break-words max-w-full">
-        {reportDate} Daily Income Report
-      </h1>
-
-      <div className="mb-4">
-        <label className="block mb-2 font-medium">Pick a day:</label>
-        <input type="date" value={selectedDate} onChange={handleDayChange} className="border rounded p-2" />
-      </div>
-
-      {session ? (
-        <>
-          {/* SESSION INFO */}
-          <section className="bg-white shadow-md rounded-lg p-4 mb-6">
-            <h2 className="text-xl font-semibold text-blue-700 mb-2">{reportDate}</h2>
-            <p><span className="font-medium">Opened:</span> {formatEAT(session.open_time)}</p>
-            <p><span className="font-medium">Closed:</span> {session.close_time ? formatEAT(session.close_time) : "N/A"}</p>
-            <p><span className="font-medium">Duration:</span> {liveDuration} {!session.close_time && "(Counting...)"}</p>
-          </section>
-
-          {/* SUMMARY Section */}
-          <section className="bg-white shadow-md rounded-lg p-4 mb-6">
-            <h2 className="text-xl font-semibold text-blue-700 mb-4">Summary (Your Earnings)</h2>
-            <div className="flex flex-wrap gap-4">
-
-              <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-                <span className="font-medium text-gray-700">Gross Salary</span>
-                <span className="text-red-600 text-xl font-bold">{grossSalary.toLocaleString()} UGX</span>
+    console.log("useEffect: fetching all users...");
+    fetchUsers();
+    handleEmployeeChange();
+    fetchDailyData(selectedDate)
+  }, []);
+  
+  
+    return (
+      <div className="income-page max-w-6xl mx-auto p-6">
+        {selectedEmployee && (
+          <>
+          <div>
+            <h2 className="text-200 font-bold">{selectedEmployee.last_name} Report</h2>
+          </div>
+            {/* Period Pickers */}
+            <div className="mb-6 flex flex-wrap gap-4 items-end">
+              <div>
+                <label className="block font-medium mb-1">Day:</label>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={handleDayChange}
+                  className="border rounded p-2"
+                />
               </div>
-              <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-                <span className="font-medium text-gray-700">Total Advances</span>
-                <span className="text-red-600 text-xl font-bold">{totalAdvances.toLocaleString()} UGX</span>
+              <div>
+                <label className="block font-medium mb-1">Week:</label>
+                <input
+                  type="week"
+                  onChange={handleWeekChange}
+                  className="border rounded p-2"
+                />
               </div>
-              <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-                <span className="font-medium text-gray-700">Total Tag Fees</span>
-                <span className="text-red-600 text-xl font-bold">{totalTagFees.toLocaleString()} UGX</span>
+              <div>
+                <label className="block font-medium mb-1">Month:</label>
+                <input
+                  type="month"
+                  value={monthYear}
+                  onChange={handleMonthChange}
+                  className="border rounded p-2"
+                />
               </div>
-              <div className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-                <span className="font-medium text-gray-700">Total Late Fees</span>
-                <span className="text-red-600 text-xl font-bold">{totalLateFees.toLocaleString()} UGX</span>
-              </div>
-              <div className="flex flex-col justify-center items-center bg-blue-100 border border-blue-300 rounded-lg shadow-md p-4 w-[calc(33.333%-1rem)] min-w-[180px] flex-grow">
-                <span className="font-semibold text-gray-800">Net Salary</span>
-                <span className="text-green-700 text-xl font-bold">{netSalary.toLocaleString()} UGX</span>
+              <div>
+                <label className="block font-medium mb-1">Year:</label>
+                 <select
+            value={year}
+            onChange={handleYearChange}
+            className="border rounded p-2"
+          >
+            {generateYearOptions().map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
               </div>
             </div>
-          </section>
-
-          {/* SERVICES COUNT SECTION */}
-          <section className="w-full bg-white shadow-md rounded-lg p-4 mb-6">
-            <h2 className="text-xl font-semibold text-blue-700 mb-4">Service Summary (By Count)</h2>
-            <div className="flex flex-wrap gap-4">
-              {Object.entries(serviceCount).map(([name, count]) => (
-                <div key={name} className="flex flex-col justify-center items-center bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4 w-[calc(25%-1rem)] min-w-[150px] flex-grow">
-                  <span className="font-semibold text-gray-800 text-lg text-center">{name}</span>
-                  <span className="text-blue-700 text-2xl font-bold">{count}</span>
+  
+            {/* Section Summaries */}
+            <section className="mb-6">
+              <h2 className="text-lg font-semibold text-gray-700 mb-3">Section Summaries</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {dynamicSectionSummaries.map((sec) => (
+                  <div key={sec.id} className="bg-white rounded-lg shadow p-4">
+                    <h3 className="text-md font-semibold text-blue-700 mb-2">{sec.name} Section Summary</h3>
+                    <div className="grid grid-cols-1 gap-2">
+                      <div className="p-3 rounded border bg-blue-50">
+                        <div className="text-sm text-gray-700">Employee Salary</div>
+                        <div className="text-xl font-bold">{sec.totals.employeeSalary.toLocaleString()} UGX</div>
+                      </div>
+                      <div className="mb-2 text-sm font-medium text-purple-700">
+                        Services Count: {sec.services.length}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+  
+            {/* General Summary Boxes */}
+            <section className="bg-white shadow rounded-lg p-4 mb-6">
+              <h2 className="text-xl font-semibold text-blue-700 mb-4">Summary</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {[
+                  { label: "Employee Salary", value: netEmployeeSalary },
+                  { label: "Total Services", value: totalServicesCount },
+                  // { label: "Total late fees", value: totalLateFees },
+                  // { label: "Total tag fees", value: totalTagFees },
+                  // { label: "Total Services", value: totalAdvances },
+                ].map((item, idx) => (
+                  <div key={idx} className="summary-box p-3 border rounded">
+                    <div className="text-l text-gray-600 font-bold">{item.label}</div>
+                    <div className="font-semi-bold text-lg">{item.value.toLocaleString()}</div>
+                  </div>
+                ))}
+              </div>
+              <div>
+              {employeeTotals.map((emp, idx) => (
+                <div key={idx} className="employee-summary grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-2">
+                  <div className="border px-4 py-2 text-center">
+                    <p className="font-bold text-l center text-gray-600">Total Salary</p><br />
+                    {emp.totalSalary.toLocaleString()} UGX</div>
+                  <div className="border px-4 py-2 text-center">
+                    <p className="font-bold text-l text-gray-600">Total Advances</p><br />
+                  {emp.totalAdvances.toLocaleString()} UGX</div>
+                  <div className="border px-4 py-2 text-center">
+                  <p className="font-bold text-l text-gray-600">Total Tag Fees</p><br />
+                  {emp.totalTagFees.toLocaleString()} UGX</div>
+                  <div className="border px-4 py-2 text-center">
+                  <p className="font-bold text-l text-gray-600">Total Late Fees</p><br />
+                  {emp.totalLateFees.toLocaleString()} UGX</div>
+                  <div className="border px-4 py-2 text-center font-semibold">
+                  <p className="font-bold text-l text-gray-600">Net Salary</p><br />
+                  {emp.netSalary.toLocaleString()} UGX</div>
                 </div>
               ))}
             </div>
-          </section>
 
-          {/* SERVICES TABLE */}
-          <section className="bg-white shadow-md rounded-lg p-4">
-            <h2 className="text-xl font-semibold text-blue-700 mb-4">Services Rendered</h2>
-            <div className="overflow-x-auto max-h-[60vh] overflow-y-auto border border-gray-300 rounded">
-              <table className="min-w-full border-collapse text-sm">
-                <thead className="bg-blue-700 text-white sticky top-0 z-10">
-                  <tr>
-                    <th className="px-3 py-2 text-left">No.</th>
-                    <th className="px-3 py-2 text-left">Name</th>
-                    <th className="px-3 py-2 text-left">Service Amount</th>
-                    <th className="px-3 py-2 text-left">Salon Amount</th>
-                    <th className="px-3 py-2 text-left">Barber</th>
-                    <th className="px-3 py-2 text-left">Barber Amount</th>
-                    <th className="px-3 py-2 text-left">Aesthetician</th>
-                    <th className="px-3 py-2 text-left">Aesthetician Amount</th>
-                    <th className="px-3 py-2 text-left">Scrub Aesthetician</th>
-                    <th className="px-3 py-2 text-left">Scrubber Amount</th>
-                    <th className="px-3 py-2 text-left">Black Shampoo Aesthetician</th>
-                    <th className="px-3 py-2 text-left">Black Shampoo Aesthetician Amount</th>
-                    <th className="px-3 py-2 text-left">Black Shampoo Amount</th>
-                    <th className="px-3 py-2 text-left">Super Black Aesthetician</th>
-                    <th className="px-3 py-2 text-left">Super Black Aesthetician Amount</th>
-                    <th className="px-3 py-2 text-left">Super Black Amount</th>
-                    <th className="px-3 py-2 text-left">Black Mask Aesthetician</th>
-                    <th className="px-3 py-2 text-left">Black Mask Aesthetician Amount</th>
-                    <th className="px-3 py-2 text-left">Black Mask Amount</th>
-                    <th className="px-3 py-2 text-left">Time of Service</th>
+            </section>
+  
+            {/* Service Counts */}
+            <section className="bg-white shadow rounded-lg p-4 mb-6">
+              <h2 className="text-lg font-semibold text-gray-700 mb-3">Service Counts</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {serviceNameCounts.map(([name, count], i) => (
+                  <div key={i} className="p-3 rounded border bg-purple-50 shadow">
+                    <div className="font-bold text-gray-800">{name}</div>
+                    <div className="text-lg text-blue-700">{count}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+  
+            {/* Services Chart */}
+          {serviceChartData && (
+          <section className="bg-white shadow rounded-lg p-4 mb-6">
+              <h2 className="text-lg font-semibold text-gray-700 mb-3">Services Chart</h2>
+              <div className="max-w-4xl mx-auto">
+              <Bar data={serviceChartData} options={chartOptions} />
+              </div>
+          </section>
+          )}
+  
+  
+            {/* Service Details Table */}
+            <section className="bg-white shadow rounded-lg p-4 mb-6">
+              <h2 className="text-lg font-semibold text-gray-700 mb-3">Service Details</h2>
+              <table className="w-full border-collapse border">
+                <thead>
+                  <tr className="bg-blue-50">
+                    <th className="border px-2 py-1 text-left">#</th>
+                    <th className="border px-2 py-1 text-left">Service Name</th>
+                    <th className="border px-2 py-1 text-left">Section</th>
+                    <th className="border px-2 py-1 text-left">Amount</th>
+                    <th className="border px-2 py-1 text-left">Salon</th>
+                    <th className="border px-2 py-1 text-left">Performers & Materials</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredServices.length > 0 ? (
-                    filteredServices.map((s, index) => (
-                      <tr key={s.id} className="border-b hover:bg-gray-50">
-                        <td className="px-3 py-2">{index + 1}</td>
-                        <td className="px-3 py-2">{s.name}</td>
-                        <td className="px-3 py-2">{s.service_amount}</td>
-                        <td className="px-3 py-2">{s.salon_amount}</td>
-                        <td className="px-3 py-2">{s.barber}</td>
-                        <td className="px-3 py-2">{s.barber_amount}</td>
-                        <td className="px-3 py-2">{s.barber_assistant}</td>
-                        <td className="px-3 py-2">{s.barber_assistant_amount}</td>
-                        <td className="px-3 py-2">{s.scrubber_assistant}</td>
-                        <td className="px-3 py-2">{s.scrubber_assistant_amount}</td>
-                        <td className="px-3 py-2">{s.black_shampoo_assistant}</td>
-                        <td className="px-3 py-2">{s.black_shampoo_assistant_amount}</td>
-                        <td className="px-3 py-2">{s.black_shampoo_amount}</td>
-                        <td className="px-3 py-2">{s.super_black_assistant}</td>
-                        <td className="px-3 py-2">{s.super_black_assistant_amount}</td>
-                        <td className="px-3 py-2">{s.super_black_amount}</td>
-                        <td className="px-3 py-2">{s.black_mask_assistant}</td>
-                        <td className="px-3 py-2">{s.black_mask_assistant_amount}</td>
-                        <td className="px-3 py-2">{s.black_mask_amount}</td>
-                        <td className="px-3 py-2">{formatEAT(s.service_timestamp)}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="20" className="text-center py-4">
-                        No services found for this employee today
+                  {employeeServices.map((s, i) => (
+                    <tr key={i}>
+                      <td className="border px-2 py-1">{i + 1}</td>
+                      <td className="border px-2 py-1">{s.service_name}</td>
+                      <td className="border px-2 py-1">{s.section_name || s.section?.section_name}</td>
+                      <td className="border px-2 py-1">{(s.full_amount || 0).toLocaleString()}</td>
+                      <td className="border px-2 py-1">{(s.salon_amount || 0).toLocaleString()}</td>
+                      <td className="border px-2 py-1">
+                        {formatPerformersAndMaterials(s).map((line, idx) => (
+                          <div key={idx}>{line}</div>
+                        ))}
                       </td>
                     </tr>
-                  )}
+                  ))}
                 </tbody>
               </table>
-            </div>
-          </section>
-        </>
-      ) : (
-        <p className="text-red-600 font-medium">No session data available.</p>
-      )}
-    </div>
-  );
-};
+            </section>
+  
+            {/* Employee Daily Salary Table */}
+            <section className="p-6">
+              <h2 className="text-2xl font-bold mb-4 text-gray-800">
+                Performance Report Table
+              </h2>
+              <div className="overflow-x-auto overflow-y-auto max-h-[60vh] border rounded">
+                <table className="min-w-full border-collapse">
+                  <thead className="bg-gray-200 sticky top-0">
+                    <tr>
+                      <th className="border px-4 py-2">#</th>
+                      <th className="border px-4 py-2">Employee</th>
+                      <th className="border px-4 py-2">Clock In</th>
+                      <th className="border px-4 py-2">Clock Out</th>
+                      <th className="border px-4 py-2">Hours</th>
+                      <th className="border px-4 py-2 text-right">Total Salary</th>
+                      <th className="border px-4 py-2 text-right">Advances</th>
+                      <th className="border px-4 py-2 text-right">Tag Fees</th>
+                      <th className="border px-4 py-2 text-right">Late Fees</th>
+                      <th className="border px-4 py-2 text-right">Net Salary</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {employeeTotals.map((emp, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="border px-4 py-2">{idx + 1}</td>
+                        <td className="border px-4 py-2">{selectedEmployee.last_name}</td>
+                        <td className="border px-4 py-2">{emp.clockIn ? emp.clockIn.toLocaleTimeString() : "-"}</td>
+                        <td className="border px-4 py-2">{emp.clockOut ? emp.clockOut.toLocaleTimeString() : "-"}</td>
+                        <td className="border px-4 py-2">{emp.totalHours}</td>
+                        <td className="border px-4 py-2 text-right">{emp.totalSalary.toLocaleString()} UGX</td>
+                        <td className="border px-4 py-2 text-right">{emp.totalAdvances.toLocaleString()} UGX</td>
+                        <td className="border px-4 py-2 text-right">{emp.totalTagFees.toLocaleString()} UGX</td>
+                        <td className="border px-4 py-2 text-right">{emp.totalLateFees.toLocaleString()} UGX</td>
+                        <td className="border px-4 py-2 text-right font-semibold">{emp.netSalary.toLocaleString()} UGX</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </>
+        )}
+      </div>
+    );
+  };
 
 export default EmployeeIncomeDailyReport;

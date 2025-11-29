@@ -40,6 +40,7 @@ export default function TagFeeForm({ onSubmit, onClose, feeData, employees = [] 
       employee_id: form.employee_id,
       reason: form.reason,
       amount: form.amount,
+      created_at:form.created_at
     };
 
     onSubmit(payload);

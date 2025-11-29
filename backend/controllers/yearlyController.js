@@ -47,16 +47,18 @@ export const getYearlyReport = async (req, res) => {
       yearlyModel.getLateFeesByYear(year)
     ]);
 
-    console.log("Yearly tag fees:", tagFees.rows);
-    console.log("Yearly late fees:", lateFees.rows);
+    console.log("Yearly services:", services);
+    console.log("Yearly advances:", lateFees);
+    console.log("Yearly tag fees:", tagFees);
+    console.log("Yearly late fees:", lateFees);
 
     res.json({
       scenario,
-      services: services.rows,
-      expenses: expenses.rows,
-      advances: advances.rows,
-      tagFees: tagFees.rows,
-      lateFees: lateFees.rows
+      services: services,
+      expenses: expenses,
+      advances: advances,
+      tagFees: tagFees,
+      lateFees: lateFees
     });
 
   } catch (err) {

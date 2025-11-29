@@ -49,18 +49,18 @@ export const fetchTagFeeById = async (id) => {
 /**
  * Update a tag fee record by ID
  */
-export const UpdateTagFeeById = async ({ id, employee_id, amount, description, created_at }) => {
+export const UpdateTagFeeById = async ({ id, employee_id, amount, reason, created_at }) => {
   const query = `
     UPDATE tag_fee
     SET 
       employee_id = $1,
       amount = $2,
-      description = $3,
+      reason = $3,
       created_at = $4
     WHERE id = $5
     RETURNING *;
   `;
-  const values = [employee_id, amount, description, created_at, id];
+  const values = [employee_id, amount, reason, created_at, id];
   const result = await db.query(query, values);
   return result.rows[0];
 };

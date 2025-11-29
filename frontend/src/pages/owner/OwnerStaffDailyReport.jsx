@@ -1,203 +1,302 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useData } from "../../context/DataContext.jsx";
+import { Bar } from "react-chartjs-2";
+import Chart from "chart.js/auto";
 
 export default function OwnerStaffDailyReport() {
   const {
-    services,
-    users,
-    advances,
-    tagFees,
-    lateFees,
-    clockings,
+    users = [],
+    services = [],
+    serviceMaterials = [],
+    advances = [],
+    tagFees = [],
+    lateFees = [],
+    clockings = [],
+    fetchUsers,
     fetchDailyData,
-    fetchUsers
+    fetchWeeklyData,
+    fetchMonthlyData,
+    fetchYearlyData,
   } = useData();
 
-  const today = new Date().toLocaleDateString("en-CA");
-  const [selectedDate, setSelectedDate] = useState(today);
+  const toYMD = (date) => date.toISOString().split("T")[0];
+  const today = new Date();
 
-  // Fetch data for today on mount
-  useEffect(() => {
-    fetchDailyData(selectedDate);
-  }, []);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(toYMD(today));
+  const [reportLabel, setReportLabel] = useState("");
+  const [week, setWeek] = useState({ start: null, end: null });
+  const [monthYear, setMonthYear] = useState("");
+  const [year, setYear] = useState(new Date().getFullYear());
 
-  const handleDayChange = (e) => {
-    const newDate = e.target.value;
-    setSelectedDate(newDate);
-    fetchDailyData(newDate);
-  };
+  // Only employees/managers
+  const filteredUsers = useMemo(
+    () => users.filter((u) => u.role === "employee" || u.role === "manager"),
+    [users]
+  );
 
-  console.log("💈 Services:", services);
-  console.log("👥 Users (raw):", users);
-  console.log("💸 Advances:", advances);
-  console.log("🏷️ Tag Fees:", tagFees);
-  console.log("⏰ Late Fees:", lateFees);
-  console.log("🕓 Clockings:", clockings);
+  // Map services with materials
+  const servicesWithMaterials = useMemo(() => {
+    return services.map((service) => {
+      const matchedMaterials = serviceMaterials.filter(
+        (m) => m.service_definition_id === service.service_definition_id
+      );
+      return {
+        ...service,
+        materials: matchedMaterials.length ? matchedMaterials : [],
+      };
+    });
+  }, [services, serviceMaterials]);
 
+  // -------------------------
+  // EMPLOYEE TOTALS INCLUDING NUMBER OF CLIENTS
+  // -------------------------
   const employeeTotals = useMemo(() => {
-    if (!users?.length) return [];
-
-    // ✅ Only include employees and managers
-    const filteredUsers = users.filter(
-      (u) => u.role === "employee" || u.role === "manager"
-    );
-
     return filteredUsers.map((user) => {
-      // Salaries (based on ID matches)
-      const totalSalary = services.reduce((sum, s) => {
-        if (s.barber_id === user.id) sum += parseInt(s.barber_amount) || 0;
-        if (s.barber_assistant_id === user.id)
-          sum += parseInt(s.barber_assistant_amount) || 0;
-        if (s.scrubber_assistant_id === user.id)
-          sum += parseInt(s.scrubber_assistant_amount) || 0;
-        if (s.black_shampoo_assistant_id === user.id)
-          sum += parseInt(s.black_shampoo_assistant_amount) || 0;
-        if (s.super_black_assistant_id === user.id)
-          sum += parseInt(s.super_black_assistant_amount) || 0;
-        if (s.black_mask_assistant_id === user.id)
-          sum += parseInt(s.black_mask_assistant_amount) || 0;
-        if (s.women_emp_id === user.id)
-          sum += parseInt(s.women_emp_amt) || 0;
-        if (s.nail_emp_id === user.id)
-          sum += parseInt(s.nail_emp_amt) || 0;
+      const empServices = servicesWithMaterials.filter((s) =>
+        s.performers?.some((p) => p.employee_id === user.id)
+      );
+
+      // SALARY
+      const totalSalary = empServices.reduce((sum, s) => {
+        s.performers.forEach((p) => {
+          if (p.employee_id === user.id) {
+            sum += Number(p.role_amount) || 0;
+          }
+        });
         return sum;
       }, 0);
 
-      // Advances
+      // ADVANCES
       const totalAdvances = advances
         .filter((a) => a.employee_id === user.id)
-        .reduce((sum, a) => sum + (parseInt(a.amount) || 0), 0);
+        .reduce((sum, a) => sum + Number(a.amount), 0);
 
-      // Tag Fees
+      // TAG FEES
       const totalTagFees = tagFees
         .filter((t) => t.employee_id === user.id)
-        .reduce((sum, t) => sum + (parseInt(t.amount) || 0), 0);
+        .reduce((sum, t) => sum + Number(t.amount), 0);
 
-      // Late Fees
+      // LATE FEES
       const totalLateFees = lateFees
         .filter((l) => l.employee_id === user.id)
-        .reduce((sum, l) => sum + (parseInt(l.amount) || 0), 0);
+        .reduce((sum, l) => sum + Number(l.amount), 0);
 
-      // Clocking
-      const todayClock = clockings.find((c) => c.employee_id === user.id);
-      const clockIn = todayClock ? new Date(todayClock.clock_in) : null;
-      const clockOut = todayClock?.clock_out ? new Date(todayClock.clock_out) : null;
+      // CLOCKING
+      const clockIn = clockings.find((c) => c.employee_id === user.id)?.clock_in || null;
+      const clockOut = clockings.find((c) => c.employee_id === user.id)?.clock_out || null;
 
-      // Time difference
-      let totalHours = "-";
-      if (clockIn && clockOut) {
-        const diffMs = clockOut - clockIn;
-        const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-        const diffMins = Math.round((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        totalHours = `${diffHrs} hrs ${diffMins} mins`;
-      }
+      const totalHours =
+        clockIn && clockOut
+          ? ((new Date(clockOut) - new Date(clockIn)) / 36e5).toFixed(2)
+          : "-";
 
-      const netSalary =
-        totalSalary - (totalAdvances + totalTagFees + totalLateFees);
+      const netSalary = totalSalary - totalAdvances - totalTagFees - totalLateFees;
 
-
+      // ✅ NUMBER OF CLIENTS (COUNT SERVICES WITH THIS EMPLOYEE)
+      const clientsCount = empServices.length;
 
       return {
+        id: user.id,
         name: `${user.first_name} ${user.last_name}`,
+        clockIn: clockIn ? new Date(clockIn) : null,
+        clockOut: clockOut ? new Date(clockOut) : null,
+        totalHours,
         totalSalary,
         totalAdvances,
         totalTagFees,
         totalLateFees,
         netSalary,
-        clockIn,
-        clockOut,
-        totalHours,
+
+        // ✅ added field
+        clientsCount,
       };
     });
-  }, [services, advances, tagFees, lateFees, users, clockings]);
+  }, [
+    filteredUsers,
+    servicesWithMaterials,
+    advances,
+    tagFees,
+    lateFees,
+    clockings,
+  ]);
 
-  useEffect(()=>{
-    fetchUsers()
-  }, [])
+  // -------------------------
+  // HANDLERS
+  // -------------------------
+  const handleDayChange = (e) => {
+    setSelectedDate(e.target.value);
+    fetchDailyData(e.target.value);
+    fetchUsers();
+  };
 
-  if (!services.length) {
-    return (
-      <section className="p-6">
-        <h2 className="text-xl font-bold text-center text-gray-700">
-          No Recorded Work Yet
-        </h2>
-        <div className="mt-4 text-center">
-          <label className="font-medium mr-2">Select Date:</label>
+  const handleWeekChange = (e) => {
+    const weekString = e.target.value;
+    if (!weekString) return;
+
+    const [year, week] = weekString.split("-W").map(Number);
+    const firstDayOfYear = new Date(year, 0, 1);
+    const day = firstDayOfYear.getDay();
+    const firstMonday = new Date(firstDayOfYear);
+    const diff = day <= 4 ? day - 1 : day - 8;
+    firstMonday.setDate(firstDayOfYear.getDate() - diff);
+
+    const monday = new Date(firstMonday);
+    monday.setDate(firstMonday.getDate() + (week - 1) * 7);
+
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    setWeek({ start: monday, end: sunday });
+    setReportLabel(
+      `${monday.toLocaleDateString("en-US")} → ${sunday.toLocaleDateString(
+        "en-US"
+      )}`
+    );
+
+    fetchWeeklyData(monday, sunday);
+    fetchUsers();
+  };
+
+  const handleMonthChange = (e) => {
+    const value = e.target.value;
+    if (!value) return;
+
+    const [year, month] = value.split("-").map(Number);
+    setMonthYear(value);
+    setReportLabel(
+      `${new Date(year, month - 1, 1).toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      })}`
+    );
+
+    fetchMonthlyData(year, month);
+    fetchUsers();
+  };
+
+  const handleYearChange = (e) => {
+    const selectedYear = parseInt(e.target.value, 10);
+    setYear(selectedYear);
+    setReportLabel(`Year ${selectedYear}`);
+    fetchYearlyData(selectedYear);
+  };
+
+  const generateYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let y = currentYear; y >= currentYear - 10; y--) {
+      years.push(y);
+    }
+    return years;
+  };
+
+  useEffect(() => {
+    fetchDailyData(selectedDate);
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [services]);
+
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-semibold mb-6">Employees Report</h1>
+
+      {/* PERIOD PICKERS */}
+      <div className="mb-6 flex flex-wrap gap-4 items-end">
+        <div>
+          <label className="block font-medium mb-1">Day:</label>
           <input
             type="date"
             value={selectedDate}
             onChange={handleDayChange}
-            className="border rounded px-2 py-1"
+            className="border rounded p-2"
           />
         </div>
-      </section>
-    );
-  }
 
-  return (
-    <section className="p-6">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">
-        Workers Daily Performance
-      </h2>
+        <div>
+          <label className="block font-medium mb-1">Week:</label>
+          <input type="week" onChange={handleWeekChange} className="border rounded p-2" />
+        </div>
 
-      <div className="mb-4">
-        <label className="font-medium mr-2">Select Date:</label>
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={handleDayChange}
-          className="border rounded px-2 py-1"
-        />
-      </div>
+        <div>
+          <label className="block font-medium mb-1">Month:</label>
+          <input
+            type="month"
+            value={monthYear}
+            onChange={handleMonthChange}
+            className="border rounded p-2"
+          />
+        </div>
 
-      <div className="overflow-x-auto overflow-y-auto max-h-[60vh] border rounded">
-        <table className="min-w-full border-collapse">
-          <thead className="bg-gray-200 sticky top-0">
-            <tr>
-              <th className="border px-4 py-2">#</th>
-              <th className="border px-4 py-2">Employee</th>
-              <th className="border px-4 py-2">Clock In</th>
-              <th className="border px-4 py-2">Clock Out</th>
-              <th className="border px-4 py-2">Hours</th>
-              <th className="border px-4 py-2 text-right">Total Salary</th>
-              <th className="border px-4 py-2 text-right">Advances</th>
-              <th className="border px-4 py-2 text-right">Tag Fees</th>
-              <th className="border px-4 py-2 text-right">Late Fees</th>
-              <th className="border px-4 py-2 text-right">Net Salary</th>
-            </tr>
-          </thead>
-          <tbody>
-            {employeeTotals.map((emp, idx) => (
-              <tr key={idx} className="hover:bg-gray-50">
-                <td className="border px-4 py-2">{idx + 1}</td>
-                <td className="border px-4 py-2">{emp.name}</td>
-                <td className="border px-4 py-2">
-                  {emp.clockIn ? emp.clockIn.toLocaleTimeString() : "-"}
-                </td>
-                <td className="border px-4 py-2">
-                  {emp.clockOut ? emp.clockOut.toLocaleTimeString() : "-"}
-                </td>
-                <td className="border px-4 py-2">{emp.totalHours}</td>
-                <td className="border px-4 py-2 text-right">
-                  {emp.totalSalary.toLocaleString()} UGX
-                </td>
-                <td className="border px-4 py-2 text-right">
-                  {emp.totalAdvances.toLocaleString()} UGX
-                </td>
-                <td className="border px-4 py-2 text-right">
-                  {emp.totalTagFees.toLocaleString()} UGX
-                </td>
-                <td className="border px-4 py-2 text-right">
-                  {emp.totalLateFees.toLocaleString()} UGX
-                </td>
-                <td className="border px-4 py-2 text-right font-semibold">
-                  {emp.netSalary.toLocaleString()} UGX
-                </td>
-              </tr>
+        <div>
+          <label className="block font-medium mb-1">Year:</label>
+          <select onChange={handleYearChange} className="border rounded p-2">
+            <option value="" disabled selected>
+      Select Year
+    </option>
+            {generateYearOptions().map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
             ))}
-          </tbody>
-        </table>
+          </select>
+        </div>
       </div>
-    </section>
+
+      {/* TABLE */}
+      <table className="w-full border-collapse border">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border px-4 py-2">#</th>
+            <th className="border px-4 py-2">Employee</th>
+            <th className="border px-4 py-2 text-right">No of Clients</th>
+            <th className="border px-4 py-2">Clock In</th>
+            <th className="border px-4 py-2">Clock Out</th>
+            <th className="border px-4 py-2">Total Hours</th>
+            <th className="border px-4 py-2 text-right">Salary</th>
+            <th className="border px-4 py-2 text-right">Advances</th>
+            <th className="border px-4 py-2 text-right">Tag Fees</th>
+            <th className="border px-4 py-2 text-right">Late Fees</th>
+            <th className="border px-4 py-2 text-right">Net Salary</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {employeeTotals.map((emp, idx) => (
+            <tr key={idx} className="hover:bg-gray-50">
+              <td className="border px-4 py-2">{idx + 1}</td>
+              <td className="border px-4 py-2">{emp.name}</td>
+              <td className="border px-4 py-2 text-right font-semibold">
+                {emp.clientsCount}
+              </td>
+              <td className="border px-4 py-2">
+                {emp.clockIn ? emp.clockIn.toLocaleTimeString() : "-"}
+              </td>
+              <td className="border px-4 py-2">
+                {emp.clockOut ? emp.clockOut.toLocaleTimeString() : "-"}
+              </td>
+              <td className="border px-4 py-2">{emp.totalHours}</td>
+              <td className="border px-4 py-2 text-right">
+                {emp.totalSalary.toLocaleString()} UGX
+              </td>
+              <td className="border px-4 py-2 text-right">
+                {emp.totalAdvances.toLocaleString()} UGX
+              </td>
+              <td className="border px-4 py-2 text-right">
+                {emp.totalTagFees.toLocaleString()} UGX
+              </td>
+              <td className="border px-4 py-2 text-right">
+                {emp.totalLateFees.toLocaleString()} UGX
+              </td>
+              <td className="border px-4 py-2 text-right font-semibold">
+                {emp.netSalary.toLocaleString()} UGX
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

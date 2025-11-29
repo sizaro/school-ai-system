@@ -33,6 +33,7 @@ export default function ExpenseForm({ onSubmit, onClose, expenseData }) {
       id: form.id || undefined,
       name: form.name.trim(),
       amount: Number(form.amount),
+      created_at:form.created_at,
       description: form.description.trim()
     };
 

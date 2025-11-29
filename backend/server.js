@@ -74,8 +74,12 @@ console.log("🧭 Environment:", process.env.NODE_ENV);
 const sessionConfig = {
   store: new PgSessionStore({
     conObject: {
-      connectionString: process.env.DATABASE_URL,
-      ssl: isProd ? { rejectUnauthorized: false } : false,
+      host: "localhost",
+      port: 5433,
+      user: "postgres",
+      password: "postgres",
+      database: "salon_dev",
+      ssl: false,
     },
     createTableIfMissing: true,
   }),
@@ -85,8 +89,8 @@ const sessionConfig = {
   proxy: true,
   cookie: {
     httpOnly: true,
-    secure: isProd, // ✅ secure only when HTTPS
-    sameSite: isProd ? "None" : "Lax", // ✅ allow cross-site cookies in prod
+    secure: isProd,
+    sameSite: isProd ? "None" : "Lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   },
 };

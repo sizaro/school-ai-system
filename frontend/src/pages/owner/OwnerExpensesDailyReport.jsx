@@ -6,16 +6,29 @@ import ConfirmModal from "../../components/ConfirmModal.jsx";
 
 const OwnerExpensesDailyReport = () => {
   const {
-    expenses,
-    fetchExpenses,
+    expenses = [],
     fetchDailyData,
+    fetchWeeklyData,
+    fetchMonthlyData,
+    fetchYearlyData,
     fetchExpenseById,
     updateExpense,
     deleteExpense
   } = useData();
 
-  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
-  const [selectedDate, setSelectedDate] = useState(today);
+  console.log("expenses in expenses page", expenses)
+
+    const toYMD = (date) => date.toISOString().split("T")[0];
+  
+    const today = new Date();
+    const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
+  
+    const [liveDuration, setLiveDuration] = useState("");
+    const [selectedDate, setSelectedDate] = useState(toYMD(today));
+    const [reportLabel, setReportLabel] = useState("");
+    const [week, setWeek] = useState({ start: null, end: null });
+    const [monthYear, setMonthYear] = useState("");
+    const [year, setYear] = useState(new Date().getFullYear());
   const [showModal, setShowModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
@@ -36,11 +49,6 @@ const OwnerExpensesDailyReport = () => {
     });
   };
   // Handle day change
-  const handleDayChange = (e) => {
-    const newDate = e.target.value;
-    setSelectedDate(newDate);
-    fetchDailyData(newDate);
-  };
 
   // Handle edit button click
   const handleEditClick = async (expenseId) => {
@@ -85,6 +93,81 @@ const OwnerExpensesDailyReport = () => {
     0
   );
 
+  
+    const handleDayChange = (e) => {
+    console.log("handleDayChange called with value:", e.target.value);
+    setSelectedDate(e.target.value);
+    fetchDailyData(e.target.value);
+    fetchUsers();
+  };
+  
+  const handleWeekChange = (e) => {
+    const weekString = e.target.value;
+    console.log("handleWeekChange called with weekString:", weekString);
+  
+    if (!weekString) return;
+  
+    const [year, week] = weekString.split("-W").map(Number);
+  
+    const firstDayOfYear = new Date(year, 0, 1);
+    const day = firstDayOfYear.getDay();
+    const firstMonday = new Date(firstDayOfYear);
+    const diff = day <= 4 ? day - 1 : day - 8;
+    firstMonday.setDate(firstDayOfYear.getDate() - diff);
+  
+    const monday = new Date(firstMonday);
+    monday.setDate(firstMonday.getDate() + (week - 1) * 7);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+  
+    setWeek({ start: monday, end: sunday });
+    setReportLabel(
+      `${monday.toLocaleDateString("en-US")} → ${sunday.toLocaleDateString("en-US")}`
+    );
+    fetchWeeklyData(monday, sunday);
+    fetchUsers();
+  };
+  
+  const handleMonthChange = (e) => {
+    console.log("handleMonthChange called with value:", e.target.value);
+    const value = e.target.value;
+      if (!value) return;
+  
+      const [year, month] = value.split("-").map(Number);
+      setMonthYear(value);
+      setReportLabel(
+        `${new Date(year, month - 1, 1).toLocaleDateString("en-US", {
+          month: "long",
+          year: "numeric",
+        })}`
+      );
+      fetchMonthlyData(year, month);
+      fetchUsers()
+  };
+  
+  const handleYearChange = (e) => {
+    console.log("handleYearChange called with value:", e.target.value);
+    const selectedYear = parseInt(e.target.value, 10);
+      setYear(selectedYear);
+      setReportLabel(`Year ${selectedYear}`);
+      fetchYearlyData(selectedYear)
+  };
+  
+  // ---- Generate year options ----
+    const generateYearOptions = () => {
+      const currentYear = new Date().getFullYear();
+      const years = [];
+      for (let y = currentYear; y >= currentYear - 10; y--) {
+        years.push(y);
+      }
+      return years;
+    };
+  
+    useEffect(() => {
+      fetchDailyData(selectedDate);
+    }, []);
+  
+
   return (
     <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
@@ -92,15 +175,59 @@ const OwnerExpensesDailyReport = () => {
       </h1>
 
       {/* Date Picker */}
-      <div className="mb-4 text-center">
-        <label className="font-medium mr-2">Select Date:</label>
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={handleDayChange}
-          className="border rounded px-2 py-1"
-        />
-      </div>
+      <div className="mb-6 flex flex-wrap gap-4 items-end">
+  {/* Day Picker */}
+  <div>
+    <label className="block font-medium mb-1">Day:</label>
+    <input
+      type="date"
+      value={selectedDate}
+      onChange={handleDayChange}
+      className="border rounded p-2"
+    />
+  </div>
+
+  {/* Week Picker */}
+  <div>
+    <label className="block font-medium mb-1">Week:</label>
+    <input
+      type="week"
+      onChange={handleWeekChange}
+      className="border rounded p-2"
+    />
+  </div>
+
+  {/* Month Picker */}
+  <div>
+    <label className="block font-medium mb-1">Month:</label>
+    <input
+      type="month"
+      value={monthYear}
+      onChange={handleMonthChange}
+      className="border rounded p-2"
+    />
+  </div>
+
+  {/* Year Picker */}
+  <div>
+    <label className="block font-medium mb-1">Year:</label>
+    <select
+      
+      onChange={handleYearChange}
+      className="border rounded p-2"
+    >
+
+      <option value="" disabled selected>
+      Select Year
+    </option>
+      {generateYearOptions().map((y) => (
+        <option key={y} value={y}>
+          {y}
+        </option>
+      ))}
+    </select>
+  </div>
+</div>
 
       {/* Summary */}
       <section className="bg-white shadow-md rounded-lg p-4 mb-6 w-full max-w-4xl">
@@ -176,7 +303,7 @@ const OwnerExpensesDailyReport = () => {
               setShowModal(false);
               setEditingExpense(null);
             }}
-            expenseData={editingExpense} // pass data to prefill
+            expenseData={editingExpense}
           />
         )}
       </Modal>

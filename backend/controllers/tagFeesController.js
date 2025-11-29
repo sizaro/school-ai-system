@@ -59,10 +59,10 @@ export const createTagFee = async (req, res) => {
  */
 export const updateTagFeeById = async (req, res) => {
   try {
-    const { id, employee_id, created_at } = req.body;
+    const { id, employee_id, reason, created_at } = req.body;
     if (!id) return res.status(400).json({ error: "Missing tag fee ID" });
 
-    const updatedTagFee = await UpdateTagFeeById({ id, employee_id, created_at });
+    const updatedTagFee = await UpdateTagFeeById({ id, employee_id, reason, created_at });
 
     if (!updatedTagFee) {
       return res.status(404).json({ error: "Tag fee not found or not updated" });

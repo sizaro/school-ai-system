@@ -52,20 +52,20 @@ export const getMonthlyReport = async (req, res) => {
       monthlyModel.getLateFeesByMonth(rangeStart, rangeEnd)
     ]);
 
-    console.log("monthly services in the controller:", services.rows);
-    console.log("monthly expenses in the controller:", expenses.rows);
-    console.log("monthly advances in the controller:", advances.rows);
-    console.log("monthly tag fees in the controller:", tagFees.rows);
-    console.log("monthly late fees in the controller:", lateFees.rows);
+    console.log("monthly services in the controller:", services);
+    console.log("monthly expenses in the controller:", expenses);
+    console.log("monthly advances in the controller:", advances);
+    console.log("monthly tag fees in the controller:", tagFees);
+    console.log("monthly late fees in the controller:", lateFees);
 
     // ✅ Return all collected data
     res.json({
       scenario, // helpful for debugging
-      services: services.rows,
-      expenses: expenses.rows,
-      advances: advances.rows,
-      tagFees: tagFees.rows,
-      lateFees: lateFees.rows
+      services: services,
+      expenses: expenses,
+      advances: advances,
+      tagFees: tagFees,
+      lateFees: lateFees
     });
   } catch (err) {
     console.error("Error fetching monthly report:", err);

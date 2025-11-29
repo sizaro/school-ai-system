@@ -1,64 +1,51 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useData } from "../../context/DataContext.jsx";
 import Button from "../../components/Button.jsx";
 
-// Helper to convert 24-hour to 12-hour AM/PM
-const formatTime12h = (time24) => {
-  if (!time24) return "N/A";
-  let [hour, minute] = time24.split(":").map(Number);
-  const ampm = hour >= 12 ? "PM" : "AM";
-  if (hour === 0) hour = 12;
-  else if (hour > 12) hour -= 12;
-  return `${hour}:${minute.toString().padStart(2, "0")} ${ampm}`;
-};
-
-// Format date only
-const formatDate = (dateString) => {
-  if (!dateString) return "N/A";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-UG", { timeZone: "Africa/Kampala" });
-};
-
 export default function EmployeeDashboard() {
-  const { services, user, users } = useData();
-  const [activeTab, setActiveTab] = useState("confirmed");
-  const [myServices, setMyServices] = useState([]);
+  const { user, users, services = [], serviceMaterials = [] } = useData();
+  const [activeTab, setActiveTab] = useState("pending");
+  const [myAppointments, setMyAppointments] = useState([]);
 
-  useEffect(() => {
-    if (!services || !user) return;
-
-    const assignedServices = services.filter((svc) => {
-      const involvedIds = [
-        svc.barber_id,
-        svc.barber_assistant_id,
-        svc.scrubber_assistant_id,
-        svc.black_shampoo_assistant_id,
-        svc.super_black_assistant_id,
-        svc.black_mask_assistant_id,
-      ].filter(Boolean);
-
-      // Safe status handling: default to "unknown"
-      const status = (svc.status || "unknown").toLowerCase();
-
-      return involvedIds.includes(user.id) && ["confirmed", "completed", "unknown"].includes(status);
+  // Enrich services with their materials
+  const servicesWithMaterials = useMemo(() => {
+    return services.map((service) => {
+      const matchedMaterials = serviceMaterials.filter(
+        (m) => m.service_definition_id === service.service_definition_id
+      );
+      return { ...service, materials: matchedMaterials.length > 0 ? matchedMaterials : [] };
     });
+  }, [services, serviceMaterials]);
 
-    setMyServices(assignedServices);
-  }, [services, user]);
+  // Filter services where this employee is assigned
+  useEffect(() => {
+    if (!user || servicesWithMaterials.length === 0) return;
 
-  // Tab filter with safe handling
-  const filteredServices = myServices.filter(
-    (svc) => ((svc.status || "unknown").toLowerCase() === activeTab)
+    const assigned = servicesWithMaterials.filter((svc) =>
+      (svc.performers || []).some((p) => p.employee_id === user.id)
+    );
+
+    setMyAppointments(assigned);
+  }, [servicesWithMaterials, user]);
+
+  // Tab filter
+  const filteredByStatus = myAppointments.filter(
+    (a) => a.status === activeTab
   );
 
-  const getEmployeeRole = (svc, employeeId) => {
-    if (svc.barber_id === employeeId) return "Barber";
-    if (svc.barber_assistant_id === employeeId) return "Aesthetician";
-    if (svc.black_mask_assistant_id === employeeId) return "Black Mask";
-    if (svc.scrubber_assistant_id === employeeId) return "Scrubber";
-    if (svc.black_shampoo_assistant_id === employeeId) return "Black Shampoo";
-    if (svc.super_black_assistant_id === employeeId) return "Super Black";
-    return "";
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-UG", { timeZone: "Africa/Kampala" });
+  };
+
+  const formatTime12h = (time24) => {
+    if (!time24) return "N/A";
+    let [hour, minute] = time24.split(":").map(Number);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    if (hour === 0) hour = 12;
+    else if (hour > 12) hour -= 12;
+    return `${hour}:${minute.toString().padStart(2, "0")} ${ampm}`;
   };
 
   const getCustomerName = (customerId) => {
@@ -66,19 +53,39 @@ export default function EmployeeDashboard() {
     return customer ? `${customer.first_name} ${customer.last_name}` : "N/A";
   };
 
+  const getEmployeeRole = (appointment) => {
+    const performer = (appointment.performers || []).find((p) => p.employee_id === user.id);
+    return performer ? performer.role_name : "N/A";
+  };
+
+  const getMaterialsList = (appointment) => {
+    if (!appointment.materials || appointment.materials.length === 0) return "None";
+    return appointment.materials.map((m) => m.name).join(", ");
+  };
+
+  if (!user || !user.id || users.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-screen text-gray-600">
+        Loading your appointments...
+      </div>
+    );
+  }
+
   return (
-    <div className="p-8 space-y-6">
-      <h1 className="text-2xl font-bold">My Appointments</h1>
+    <div className="p-6 max-w-6xl mx-auto space-y-6">
+      <h1 className="text-3xl font-bold mb-6">
+        {user ? `${user.first_name}'s Appointments` : "Your Appointments"}
+      </h1>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-4">
-        {["confirmed", "completed", "unknown"].map((status) => (
+        {["pending", "confirmed"].map((status) => (
           <Button
             key={status}
             className={`px-4 py-2 rounded ${
               activeTab === status
                 ? "bg-blue-500 text-white"
-                : "bg-green-700 text-white-700 hover:bg-gray-200"
+                : "bg-green-500 text-gray-700 hover:bg-green-300"
             }`}
             onClick={() => setActiveTab(status)}
           >
@@ -87,40 +94,46 @@ export default function EmployeeDashboard() {
         ))}
       </div>
 
-      {filteredServices.length === 0 ? (
-        <p className="text-gray-600">No {activeTab} appointments.</p>
+      {filteredByStatus.length === 0 ? (
+        <p className="text-gray-600">No {activeTab} appointments at the moment.</p>
       ) : (
-        <div className="overflow-x-auto bg-white shadow rounded-lg">
-          <table className="min-w-full divide-y divide-gray-200">
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-200 shadow-sm rounded-lg">
             <thead className="bg-gray-100">
               <tr>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">
                   Service
                 </th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">
                   Customer
                 </th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">
+                  Materials
+                </th>
+                <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">
                   Date
                 </th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">
                   Time
                 </th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">
                   Your Role
+                </th>
+                <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">
+                  Status
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredServices.map((svc) => (
-                <tr key={svc.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-2">{svc.name}</td>
-                  <td className="px-4 py-2">{getCustomerName(svc.customer_id)}</td>
-                  <td className="px-4 py-2">{formatDate(svc.appointment_date)}</td>
-                  <td className="px-4 py-2">{formatTime12h(svc.appointment_time)}</td>
-                  <td className="px-4 py-2 text-green-600 font-medium">
-                    {getEmployeeRole(svc, user.id)}
-                  </td>
+            <tbody>
+              {filteredByStatus.map((appointment) => (
+                <tr key={appointment.transaction_id} className="hover:bg-gray-50">
+                  <td className="py-3 px-4 border-b">{appointment.service_name || "N/A"}</td>
+                  <td className="py-3 px-4 border-b">{getCustomerName(appointment.customer_id)}</td>
+                  <td className="py-3 px-4 border-b">{getMaterialsList(appointment)}</td>
+                  <td className="py-3 px-4 border-b">{formatDate(appointment.appointment_date)}</td>
+                  <td className="py-3 px-4 border-b">{formatTime12h(appointment.appointment_time)}</td>
+                  <td className="py-3 px-4 border-b">{getEmployeeRole(appointment)}</td>
+                  <td className="py-3 px-4 border-b capitalize">{appointment.status}</td>
                 </tr>
               ))}
             </tbody>
