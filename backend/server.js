@@ -71,25 +71,28 @@ const PgSessionStore = pgSession(session);
 const isProd = process.env.NODE_ENV === "production";
 
 const sessionStore = new PgSessionStore({
+  // PRODUCTION → use DATABASE_URL + SSL
   ...(isProd
     ? {
-        // 🔥 Production -> Render PostgreSQL
-        conString: process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false },
+        conObject: {
+          connectionString: process.env.DATABASE_URL,
+          ssl: { rejectUnauthorized: false },
+        },
       }
     : {
-        // 🔧 Development -> Local PostgreSQL
+        // DEVELOPMENT → localhost
         conObject: {
           host: "localhost",
-          port: 5433,          // your local port
+          port: 5433,
           user: "postgres",
           password: "postgres",
           database: "salon_dev",
+          ssl: false,
         },
-        ssl: false,
       }),
   createTableIfMissing: true,
 });
+
 
 const sessionConfig = {
   store: sessionStore,
