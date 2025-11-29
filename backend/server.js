@@ -69,20 +69,30 @@ app.use(cookieParser());
 const PgSessionStore = pgSession(session);
 
 const isProd = process.env.NODE_ENV === "production";
-console.log("🧭 Environment:", process.env.NODE_ENV);
+
+const sessionStore = new PgSessionStore({
+  ...(isProd
+    ? {
+        // 🔥 Production -> Render PostgreSQL
+        conString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false },
+      }
+    : {
+        // 🔧 Development -> Local PostgreSQL
+        conObject: {
+          host: "localhost",
+          port: 5433,          // your local port
+          user: "postgres",
+          password: "postgres",
+          database: "salon_dev",
+        },
+        ssl: false,
+      }),
+  createTableIfMissing: true,
+});
 
 const sessionConfig = {
-  store: new PgSessionStore({
-    conObject: {
-      host: "localhost",
-      port: 5433,
-      user: "postgres",
-      password: "postgres",
-      database: "salon_dev",
-      ssl: false,
-    },
-    createTableIfMissing: true,
-  }),
+  store: sessionStore,
   secret: process.env.SESSION_SECRET || "fallback-secret",
   resave: false,
   saveUninitialized: false,
@@ -95,9 +105,9 @@ const sessionConfig = {
   },
 };
 
-
-app.set("trust proxy", 1)
+app.set("trust proxy", 1);
 app.use(session(sessionConfig));
+
 
 // --- Passport ---
 app.use(passport.initialize());
