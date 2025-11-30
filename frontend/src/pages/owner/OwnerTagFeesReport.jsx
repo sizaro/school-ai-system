@@ -4,7 +4,7 @@ import Modal from "../../components/Modal.jsx";
 import TagFeeForm from "../../components/TagFeeForm.jsx";
 import ConfirmModal from "../../components/ConfirmModal.jsx";
 
-const OwnerTagFeesDailyReport = () => {
+const OwnerTagFeesReport = () => {
   const {
     tagFees,
     fetchDailyData,
@@ -338,4 +338,4 @@ console.log("users in late fee report", users)
   );
 };
 
-export default OwnerTagFeesDailyReport;
+export default OwnerTagFeesReport;

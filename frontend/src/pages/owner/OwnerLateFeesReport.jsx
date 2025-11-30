@@ -4,7 +4,7 @@ import Modal from "../../components/Modal.jsx";
 import LateFeeForm from "../../components/LateFeeForm.jsx";
 import ConfirmModal from "../../components/ConfirmModal.jsx";
 
-const OwnerLateFees = () => {
+const OwnerLateFeesReport = () => {
   const {
     lateFees = [],
     users = [],
@@ -288,4 +288,4 @@ console.log("users in late fee report", users)
   );
 };
 
-export default OwnerLateFees;
+export default OwnerLateFeesReport;

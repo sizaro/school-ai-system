@@ -4,7 +4,7 @@ import Modal from "../../components/Modal.jsx";
 import ExpenseForm from "../../components/ExpenseForm.jsx";
 import ConfirmModal from "../../components/ConfirmModal.jsx";
 
-const OwnerExpensesDailyReport = () => {
+const OwnerExpensesReport = () => {
   const {
     expenses = [],
     fetchDailyData,
@@ -319,4 +319,4 @@ const OwnerExpensesDailyReport = () => {
   );
 };
 
-export default OwnerExpensesDailyReport;
+export default OwnerExpensesReport;

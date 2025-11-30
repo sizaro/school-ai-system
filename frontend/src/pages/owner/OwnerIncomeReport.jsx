@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useData } from "../../context/DataContext.jsx";
 import "../../styles/IncomeDailyReport.css";
-import Modal from "../../components/Modal";
+import Modal from "../../components/Modal.jsx";
 import ServiceForm from "../../components/ServiceForm.jsx";
 import ConfirmModal from "../../components/ConfirmModal.jsx";
 
-const OwnerIncomeDailyReport = () => {
+const OwnerIncomeReport = () => {
   const {
     services = [],
     serviceRoles = [],
@@ -588,4 +588,4 @@ console.log("Employees in te income daily report", Employees)
   );
 };
 
-export default OwnerIncomeDailyReport;
+export default OwnerIncomeReport;

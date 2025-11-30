@@ -151,27 +151,43 @@ const EmployeeIncomeDailyReport = () => {
   console.log("employeeServices", employeeServices);
   
   // Section summaries
-  const dynamicSectionSummaries = useMemo(() => {
-    console.log("useMemo: calculating dynamicSectionSummaries...");
-    return sections.map((sec) => {
-      const secServices = employeeServices.filter((s) => s.definition_section_id === sec.id);
-      const gross = secServices.reduce((acc, s) => acc + parseInt(s.full_amount || 0), 0);
-      const salonIncome = secServices.reduce((acc, s) => acc + parseInt(s.salon_amount || 0), 0);
-      const materialsTotal = secServices.reduce(
-        (acc, s) =>
-          acc + (s.materials?.reduce((mAcc, mat) => mAcc + (parseInt(mat.amount) || 0), 0) || 0),
-        0
-      );
-      const employeeSalary = gross - salonIncome - materialsTotal;
-      return {
-        id: sec.id,
-        name: sec.section_name,
-        totals: { gross, salonIncome, materialsTotal, employeeSalary },
-        services: secServices,
-      };
-    });
-  }, [sections, employeeServices]);
   
+  const dynamicSectionSummaries = useMemo(() => {
+  if (!selectedEmployee?.id) return [];
+
+  return sections.map((sec) => {
+    // Filter services for this section
+    const secServices = employeeServices.filter((s) => s.definition_section_id === sec.id);
+
+    // Total gross (sum of full amounts for this employee only)
+    const gross = secServices.reduce((acc, s) => {
+      const employeeRole = s.performers?.find((p) => Number(p.employee_id) === Number(selectedEmployee.id));
+      return acc + (employeeRole?.role_amount ? Number(employeeRole.role_amount) : 0);
+    }, 0);
+
+    // Total salon income (sum of salon_amount for this section)
+    const salonIncome = secServices.reduce((acc, s) => acc + Number(s.salon_amount || 0), 0);
+
+    // Total materials used in these services (sum all materials for the service, or optionally split by employee if needed)
+    const materialsTotal = secServices.reduce(
+      (acc, s) =>
+        acc +
+        (s.materials?.reduce((mAcc, mat) => mAcc + (Number(mat.amount) || 0), 0) || 0),
+      0
+    );
+
+    // Employee salary = only the role_amount for this employee
+    const employeeSalary = gross; // since gross is now already filtered by selected employee's role_amount
+
+    return {
+      id: sec.id,
+      name: sec.section_name,
+      totals: { gross, salonIncome, materialsTotal, employeeSalary },
+      services: secServices,
+    };
+  }).filter((sec) => sec.services.length > 0); // optional: hide sections with no services
+}, [sections, employeeServices, selectedEmployee]);
+
   console.log("dynamicSectionSummaries", dynamicSectionSummaries);
   
   // General summaries
