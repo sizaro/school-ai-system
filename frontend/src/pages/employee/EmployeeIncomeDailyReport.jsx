@@ -405,7 +405,6 @@ const EmployeeIncomeDailyReport = () => {
               <h2 className="text-xl font-semibold text-blue-700 mb-4">Summary</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {[
-                  { label: "Employee Salary", value: netEmployeeSalary },
                   { label: "Total Services", value: totalServicesCount },
                   // { label: "Total late fees", value: totalLateFees },
                   // { label: "Total tag fees", value: totalTagFees },
