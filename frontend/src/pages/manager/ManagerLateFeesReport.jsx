@@ -1,37 +1,39 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useData } from "../../context/DataContext.jsx";
-import AdvanceForm from "../../components/AdvanceForm.jsx";
-import ConfirmModal from "../../components/ConfirmModal.jsx";
 import Modal from "../../components/Modal.jsx";
+import LateFeeForm from "../../components/LateFeeForm.jsx";
+import ConfirmModal from "../../components/ConfirmModal.jsx";
 
-const ManagerAdvances = () => {
+const ManagerLateFeesReport = () => {
   const {
+    lateFees = [],
     users = [],
     fetchUsers,
-    advances = [],
     fetchDailyData,
     fetchWeeklyData,
     fetchMonthlyData,
     fetchYearlyData,
-    fetchAdvanceById,
-    createAdvance,
+    fetchLateFeeById,
+    updateLateFee,
+    deleteLateFee
   } = useData();
 
-    console.log("Users:", users);
-    console.log("advances:", advances);
+  console.log("late fees in report", lateFees)
+console.log("users in late fee report", users)
 
   const toYMD = (date) => date.toISOString().split("T")[0];
   const today = new Date();
   const [selectedDate, setSelectedDate] = useState(toYMD(today));
-  const [reportLabel, setReportLabel] = useState("");
   const [week, setWeek] = useState({ start: null, end: null });
   const [monthYear, setMonthYear] = useState("");
   const [year, setYear] = useState("");
+  const [reportLabel, setReportLabel] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [editingAdvance, setEditingAdvance] = useState(null);
+  const [editingLateFee, setEditingLateFee] = useState(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
-  const [advanceToDelete, setAdvanceToDelete] = useState(null);
+  const [lateFeeToDelete, setLateFeeToDelete] = useState(null);
 
+  // FILTER EMPLOYEES
   const employees = (users || []).filter(
     (user) =>
       user &&
@@ -39,25 +41,26 @@ const ManagerAdvances = () => {
       user.role !== "customer"
   );
 
-  console.log("users in the daily page", users)
+  // MAP EMPLOYEE NAME TO EACH LATE FEE
+  const lateFeesWithNames = useMemo(() => {
+    return lateFees.map((fee) => {
+      const emp = employees.find((u) => u.id === fee.employee_id);
+      return {
+        ...fee,
+        first_name: emp ? `${emp.first_name}` : "—",
+        last_name: emp ? `${emp.last_name}` : "—",
+      };
+    });
+  }, [lateFees, employees]);
 
-
-  const employeeAdvances = useMemo(() => {
-    if (!employees.length) return [];
-    return advances.filter((a) =>
-      employees.some((emp) => emp.id === a.employee_id)
-    );
-  }, [advances, employees]);
-
-  console.log("employeeAdvances:", employeeAdvances);
-
-  // ========================
+  // ===================================
   // HANDLERS
-  // ========================
+  // ===================================
 
   const handleDayChange = (e) => {
-    setSelectedDate(e.target.value);
-    fetchDailyData(e.target.value);
+    const date = e.target.value;
+    setSelectedDate(date);
+    fetchDailyData(date);
     fetchUsers();
   };
 
@@ -75,13 +78,13 @@ const ManagerAdvances = () => {
 
     const monday = new Date(firstMonday);
     monday.setDate(firstMonday.getDate() + (week - 1) * 7);
+
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
 
     setWeek({ start: monday, end: sunday });
-    setReportLabel(
-      `${monday.toLocaleDateString()} → ${sunday.toLocaleDateString()}`
-    );
+
+    setReportLabel(`${monday.toLocaleDateString()} → ${sunday.toLocaleDateString()}`);
 
     fetchWeeklyData(monday, sunday);
     fetchUsers();
@@ -93,12 +96,14 @@ const ManagerAdvances = () => {
 
     const [year, month] = value.split("-").map(Number);
     setMonthYear(value);
+
     setReportLabel(
       new Date(year, month - 1, 1).toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",
       })
     );
+
     fetchMonthlyData(year, month);
     fetchUsers();
   };
@@ -106,51 +111,61 @@ const ManagerAdvances = () => {
   const handleYearChange = (e) => {
     const selectedYear = e.target.value;
     setYear(selectedYear);
+
     if (selectedYear) {
       setReportLabel(`Year ${selectedYear}`);
       fetchYearlyData(parseInt(selectedYear, 10));
+      fetchUsers();
     }
   };
 
   const generateYearOptions = () => {
     const currentYear = new Date().getFullYear();
     const years = [];
-    for (let y = currentYear; y >= currentYear - 10; y--) {
-      years.push(y);
-    }
+    for (let y = currentYear; y >= currentYear - 10; y--) years.push(y);
     return years;
   };
 
-  const handleAdd = () => {
-    setEditingAdvance(null);
+  const handleEdit = async (id) => {
+    const fee = await fetchLateFeeById(id);
+    setEditingLateFee(fee);
     setShowModal(true);
   };
 
-  const handleModalSubmit = async (advanceData) => {
-    if (editingAdvance) {
-      await updateAdvance(editingAdvance.id, advanceData);
-    } else {
-      await createAdvance(advanceData);
+  const handleDelete = (id) => {
+    setLateFeeToDelete(id);
+    setConfirmModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (lateFeeToDelete) {
+      await deleteLateFee(lateFeeToDelete);
+      await fetchDailyData(selectedDate);
+      setLateFeeToDelete(null);
+      setConfirmModalOpen(false);
     }
+  };
+
+  const handleModalSubmit = async (data) => {
+    await updateLateFee(data.id, data);
     setShowModal(false);
-    setEditingAdvance(null);
+    setEditingLateFee(null);
     await fetchDailyData(selectedDate);
   };
 
-  // Initial load
   useEffect(() => {
     fetchDailyData(selectedDate);
   }, []);
 
-  // Initial load
   useEffect(() => {
     fetchUsers();
-  }, [advances]);
+  }, [lateFees]);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* FILTER BAR */}
       <div className="mb-6 flex flex-wrap gap-4 items-end">
+
         <div>
           <label className="block font-medium mb-1">Day:</label>
           <input
@@ -163,11 +178,7 @@ const ManagerAdvances = () => {
 
         <div>
           <label className="block font-medium mb-1">Week:</label>
-          <input
-            type="week"
-            onChange={handleWeekChange}
-            className="border rounded p-2"
-          />
+          <input type="week" onChange={handleWeekChange} className="border rounded p-2" />
         </div>
 
         <div>
@@ -187,12 +198,10 @@ const ManagerAdvances = () => {
             onChange={handleYearChange}
             className="border rounded p-2"
           >
-            <option value="" disabled>
-              Select Year
-            </option>
-            {generateYearOptions().map((y) => (
-              <option key={y} value={y}>
-                {y}
+            <option value="">Select</option>
+            {generateYearOptions().map((yr) => (
+              <option key={yr} value={yr}>
+                {yr}
               </option>
             ))}
           </select>
@@ -200,45 +209,33 @@ const ManagerAdvances = () => {
       </div>
 
       {/* HEADER */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Advances</h1>
-        <button
-          onClick={handleAdd}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow"
-        >
-          Add Advance
-        </button>
-      </div>
+      <h1 className="text-3xl font-bold mb-4">Late Fees</h1>
 
       {/* TABLE */}
       <div className="overflow-x-auto bg-white shadow rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100">
             <tr>
-              <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
-                Employee
-              </th>
-              <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
-                Amount
-              </th>
-              <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
-                Date
-              </th>
-              <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
-                Reason
-              </th>
+              <th className="px-4 py-2 text-left text-sm font-semibold">Employee</th>
+              <th className="px-4 py-2 text-left text-sm font-semibold">Amount</th>
+              <th className="px-4 py-2 text-left text-sm font-semibold">Reason</th>
+              <th className="px-4 py-2 text-left text-sm font-semibold">Time</th>
             </tr>
           </thead>
 
           <tbody className="divide-y divide-gray-200">
-            {employeeAdvances.map((adv) => (
-              <tr key={adv.id} className="hover:bg-gray-50">
-                <td className="px-4 py-2">{adv.last_name || "—"}</td>
-                <td className="px-4 py-2">{adv.amount}</td>
+            {lateFeesWithNames.map((fee) => (
+              <tr key={fee.id} className="hover:bg-gray-50">
+                <td className="px-4 py-2">{fee.last_name}</td>
+                <td className="px-4 py-2">{fee.amount}</td>
+                <td className="px-4 py-2">{fee.reason}</td>
                 <td className="px-4 py-2">
-                  {new Date(adv.created_at).toLocaleDateString()}
+                  {new Date(fee.created_at).toLocaleString("en-UG", {
+                    timeZone: "Africa/Kampala",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </td>
-                <td className="px-4 py-2">{adv.description}</td>
               </tr>
             ))}
           </tbody>
@@ -250,17 +247,28 @@ const ManagerAdvances = () => {
         isOpen={showModal}
         onClose={() => {
           setShowModal(false);
-          setEditingAdvance(null);
+          setEditingLateFee(null);
         }}
       >
-        <AdvanceForm
-          advanceData={editingAdvance}
-          onSubmit={handleModalSubmit}
-          onClose={() => setShowModal(false)}
-        />
+        {editingLateFee && (
+          <LateFeeForm
+            feeData={editingLateFee}
+            employees={employees}
+            onSubmit={handleModalSubmit}
+            onClose={() => setShowModal(false)}
+          />
+        )}
       </Modal>
+
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        message="Are you sure you want to delete this late fee?"
+        confirmMessage="yes"
+        onConfirm={confirmDelete}
+        onClose={() => setConfirmModalOpen(false)}
+      />
     </div>
   );
 };
 
-export default ManagerAdvances;
+export default ManagerLateFeesReport;

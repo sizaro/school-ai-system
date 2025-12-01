@@ -4,10 +4,6 @@ import SidebarFooter from '../common/SidebarFooter';
 
 export default function ManagerSidebar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [incomeOpen, setIncomeOpen] = useState(false);
-  const [expensesOpen, setExpensesOpen] = useState(false);
-  const [workersOpen, setWorkersOpen] = useState(false);
-
   const menuRef = useRef();
   const location = useLocation();
 
@@ -24,12 +20,8 @@ export default function ManagerSidebar() {
         setMenuOpen(false);
       }
     };
-    if (menuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    if (menuOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [menuOpen]);
 
   return (
@@ -43,128 +35,54 @@ export default function ManagerSidebar() {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 h-screen bg-gray-900 text-white fixed top-0 left-0 flex-col shadow-lg pt-16">
         <div className="px-6 font-bold text-xl mb-4">Salon Management</div>
+
         <div className="flex-1 overflow-y-auto px-2">
           <ul className="space-y-1 text-sm">
+
             <li><Link to="/manager/dashboard" className={linkClass('/manager/dashboard')}>Dashboard</Link></li>
-
-            {/* Income */}
-            <li>
-              <div onClick={() => setIncomeOpen(!incomeOpen)} className="px-4 py-2 rounded cursor-pointer hover:bg-gray-700 flex justify-between">
-                <span>Income Reports</span><span>{incomeOpen ? '▾' : '▸'}</span>
-              </div>
-              {incomeOpen && (
-                <ul className="ml-4 space-y-1 mt-1">
-                  <li><Link to="/manager/income/daily" className={linkClass('/manager/income/daily')}>Daily</Link></li>
-                  <li><Link to="/manager/income/weekly" className={linkClass('/manager/income/weekly')}>Weekly</Link></li>
-                  <li><Link to="/manager/income/monthly" className={linkClass('/manager/income/monthly')}>Monthly</Link></li>
-                  <li><Link to="/manager/income/yearly" className={linkClass('/manager/income/yearly')}>Yearly</Link></li>
-                </ul>
-              )}
-            </li>
-
-            {/* Expenses */}
-            <li>
-              <div onClick={() => setExpensesOpen(!expensesOpen)} className="px-4 py-2 rounded cursor-pointer hover:bg-gray-700 flex justify-between">
-                <span>Expenses Reports</span><span>{expensesOpen ? '▾' : '▸'}</span>
-              </div>
-              {expensesOpen && (
-                <ul className="ml-4 space-y-1 mt-1">
-                  <li><Link to="/manager/expenses/daily" className={linkClass('/manager/expenses/daily')}>Daily</Link></li>
-                  <li><Link to="/manager/expenses/weekly" className={linkClass('/manager/expenses/weekly')}>Weekly</Link></li>
-                  <li><Link to="/manager/expenses/monthly" className={linkClass('/manager/expenses/monthly')}>Monthly</Link></li>
-                  <li><Link to="/manager/expenses/yearly" className={linkClass('/manager/expenses/yearly')}>Yearly</Link></li>
-                </ul>
-              )}
-            </li>
-
-            {/* Employees */}
-            <li><Link to="/manager/employees" className={linkClass('/manager/employees')}>Employees</Link></li>
-
-            {/* Advances */}
+            <li><Link to="/manager/income-report" className={linkClass('/manager/income-report')}>Income Reports</Link></li>
+            <li><Link to="/manager/expenses-report" className={linkClass('/manager/expenses-report')}>Expenses Reports</Link></li>
+            <li><Link to="/manager/employees-management" className={linkClass('/manager/employees-management')}>Employee Management</Link></li>
+            <li><Link to="/manager/employee-report" className={linkClass('/manager/employee-report')}>Employee Report</Link></li>
             <li><Link to="/manager/advances" className={linkClass('/manager/advances')}>Employees Advances</Link></li>
+            <li><Link to="/manager/staff-performance" className={linkClass('/manager/staff-performance')}>Staff Performance</Link></li>
+            <li><Link to="/manager/late-fees-report" className={linkClass('/manager/late-fees-report')}>Late Fees Reports</Link></li>
+            <li><Link to="/manager/tag-fees-report" className={linkClass('/manager/tag-fees-report')}>Tag Fees Reports</Link></li>
 
-            {/* Workers */}
-            <li className='mb-[120px]'>
-              <div onClick={() => setWorkersOpen(!workersOpen)} className="px-4 py-2 rounded cursor-pointer hover:bg-gray-700 flex justify-between">
-                <span>Worker Performance</span><span>{workersOpen ? '▾' : '▸'}</span>
-              </div>
-              {workersOpen && (
-                <ul className="ml-4 space-y-1 mt-1">
-                  <li><Link to="/manager/report/daily" className={linkClass('/manager/report/daily')}>Daily</Link></li>
-                  <li><Link to="/manager/report/weekly" className={linkClass('/manager/report/weekly')}>Weekly</Link></li>
-                  <li><Link to="/manager/report/monthly" className={linkClass('/manager/report/monthly')}>Monthly</Link></li>
-                  <li><Link to="/manager/report/yearly" className={linkClass('/manager/report/yearly')}>Yearly</Link></li>
-                </ul>
-              )}
-            </li>
+            <li className='mt-10'><SidebarFooter /></li>
+
           </ul>
         </div>
-        <SidebarFooter />
       </aside>
 
       {/* Mobile Slide-Out Menu */}
       <div
         ref={menuRef}
-        className={`fixed top-0 left-0 h-screen w-full bg-gray-900 text-white z-50 transform transition-transform duration-300 pt-16 px-4 sm:hidden ${
+        className={`fixed top-0 left-0 h-screen w-full bg-gray-900 text-white z-50 transform transition-transform duration-300 pt-16 px-4 md:hidden ${
           menuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <button onClick={() => setMenuOpen(false)} className="absolute top-4 right-4 text-xl focus:outline-none">✕</button>
+        <div className="px-6 font-bold text-xl mt-0">Salon Management</div>
 
-        <div className="h-full overflow-y-auto mt-6">
+        <button onClick={() => setMenuOpen(false)} className="absolute top-4 right-4 text-xl focus:outline-none">
+          ✕
+        </button>
+
+        <div className="h-full overflow-y-auto mt-6 mb-10">
           <ul className="space-y-1 text-sm">
+
             <li><Link to="/manager/dashboard" onClick={() => setMenuOpen(false)} className={linkClass('/manager/dashboard')}>Dashboard</Link></li>
-
-            {/* Income */}
-            <li>
-              <div onClick={() => setIncomeOpen(!incomeOpen)} className="px-4 py-2 rounded cursor-pointer hover:bg-gray-700 flex justify-between">
-                <span>Income Reports</span><span>{incomeOpen ? '▾' : '▸'}</span>
-              </div>
-              {incomeOpen && (
-                <ul className="ml-4 space-y-1 mt-1">
-                  <li><Link to="/manager/income/daily" onClick={() => setMenuOpen(false)} className={linkClass('/manager/income/daily')}>Daily</Link></li>
-                  <li><Link to="/manager/income/weekly" onClick={() => setMenuOpen(false)} className={linkClass('/manager/income/weekly')}>Weekly</Link></li>
-                  <li><Link to="/manager/income/monthly" onClick={() => setMenuOpen(false)} className={linkClass('/manager/income/monthly')}>Monthly</Link></li>
-                  <li><Link to="/manager/income/yearly" onClick={() => setMenuOpen(false)} className={linkClass('/manager/income/yearly')}>Yearly</Link></li>
-                </ul>
-              )}
-            </li>
-
-            {/* Expenses */}
-            <li>
-              <div onClick={() => setExpensesOpen(!expensesOpen)} className="px-4 py-2 rounded cursor-pointer hover:bg-gray-700 flex justify-between">
-                <span>Expenses Reports</span><span>{expensesOpen ? '▾' : '▸'}</span>
-              </div>
-              {expensesOpen && (
-                <ul className="ml-4 space-y-1 mt-1">
-                  <li><Link to="/manager/expenses/daily" onClick={() => setMenuOpen(false)} className={linkClass('/manager/expenses/daily')}>Daily</Link></li>
-                  <li><Link to="/manager/expenses/weekly" onClick={() => setMenuOpen(false)} className={linkClass('/manager/expenses/weekly')}>Weekly</Link></li>
-                  <li><Link to="/manager/expenses/monthly" onClick={() => setMenuOpen(false)} className={linkClass('/manager/expenses/monthly')}>Monthly</Link></li>
-                  <li><Link to="/manager/expenses/yearly" onClick={() => setMenuOpen(false)} className={linkClass('/manager/expenses/yearly')}>Yearly</Link></li>
-                </ul>
-              )}
-            </li>
-
-            {/* Employees */}
-            <li><Link to="/manager/employees" onClick={() => setMenuOpen(false)} className={linkClass('/manager/employees')}>Employees</Link></li>
+            <li><Link to="/manager/income-report" onClick={() => setMenuOpen(false)} className={linkClass('/manager/income-report')}>Income Reports</Link></li>
+            <li><Link to="/manager/expenses-report" onClick={() => setMenuOpen(false)} className={linkClass('/manager/expenses-report')}>Expenses Reports</Link></li>
+            <li><Link to="/manager/employee-report" onClick={() => setMenuOpen(false)} className={linkClass('/manager/employee-report')}>Employee Report</Link></li>
             <li><Link to="/manager/advances" onClick={() => setMenuOpen(false)} className={linkClass('/manager/advances')}>Employees Advances</Link></li>
+            <li><Link to="/manager/staff-performance" onClick={() => setMenuOpen(false)} className={linkClass('/manager/staff-performance')}>Staff Performance</Link></li>
+            <li><Link to="/manager/late-fees-report" onClick={() => setMenuOpen(false)} className={linkClass('/manager/late-fees-report')}>Late Fees Reports</Link></li>
+            <li><Link to="/manager/tag-fees-report" onClick={() => setMenuOpen(false)} className={linkClass('/manager/tag-fees-report')}>Tag Fees Reports</Link></li>
 
-            {/* Workers */}
-            <li className='mb-[120px]'>
-              <div onClick={() => setWorkersOpen(!workersOpen)} className="px-4 py-2 rounded cursor-pointer hover:bg-gray-700 flex justify-between">
-                <span>Staff Performance</span><span>{workersOpen ? '▾' : '▸'}</span>
-              </div>
-              {workersOpen && (
-                <ul className="ml-4 space-y-1 mt-1">
-                  <li><Link to="/manager/report/daily" onClick={() => setMenuOpen(false)} className={linkClass('/manager/report/daily')}>Daily</Link></li>
-                  <li><Link to="/manager/report/weekly" onClick={() => setMenuOpen(false)} className={linkClass('/manager/report/weekly')}>Weekly</Link></li>
-                  <li><Link to="/manager/report/monthly" onClick={() => setMenuOpen(false)} className={linkClass('/manager/report/monthly')}>Monthly</Link></li>
-                  <li><Link to="/manager/report/yearly" onClick={() => setMenuOpen(false)} className={linkClass('/manager/report/yearly')}>Yearly</Link></li>
-                </ul>
-              )}
-            </li>
+            <li className='mt-10'><SidebarFooter /></li>
+
           </ul>
-          <SidebarFooter/>
         </div>
       </div>
     </>

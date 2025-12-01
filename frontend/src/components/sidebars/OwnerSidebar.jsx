@@ -39,6 +39,7 @@ export default function OwnerSidebar() {
             <li><Link to="/owner/dashboard" className={linkClass('/owner/dashboard')}>Dashboard</Link></li>
             <li><Link to="/owner/income-report" className={linkClass('/owner/income-report')}>Income Reports</Link></li>
             <li><Link to="/owner/expenses-report" className={linkClass('/owner/expenses-report')}>Expenses Reports</Link></li>
+            <li><Link to="/owner/employees-management" className={linkClass('/owner/employee-management')}>Employee Management</Link></li>
             <li><Link to="/owner/employee-report" className={linkClass('/owner/employee-report')}>Employee Report</Link></li>
             <li><Link to="/owner/advances" className={linkClass('/owner/advances')}>Employees Advances</Link></li>
             <li><Link to="/owner/staff-performance" className={linkClass('/owner/staff-performance')}>Staff Performance</Link></li>

@@ -6,6 +6,7 @@ import OwnerDashboard from "../../pages/owner/OwnerDashboard.jsx";
 import IncomeReport from "../../pages/owner/OwnerIncomeReport.jsx";
 import ExpensesReport from "../../pages/owner/OwnerExpensesReport.jsx";
 import EmployeeReport from "../../pages/owner/OwnerEmployeeReport.jsx";
+import Employees from "../../pages/owner/OwnerEmployees.jsx";
 import Advances from "../../pages/owner/OwnerAdvances.jsx";
 import StaffPerformance from "../../pages/owner/OwnerStaffReport.jsx"; // Fixed import
 import LateFeesReport from "../../pages/owner/OwnerLateFeesReport.jsx";
@@ -30,6 +31,7 @@ const OwnerLayout = () => {
           {/* Employees & Advances */}
           <Route path="employees" element={<EmployeeReport />} />
           <Route path="advances" element={<Advances />} />
+          <Route path="employees-management" element={<Employees />} />
           <Route path="employee-report" element={<EmployeeReport />} />
 
           {/* Staff Performance */}

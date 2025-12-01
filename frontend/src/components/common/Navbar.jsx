@@ -1,5 +1,5 @@
 // src/components/common/Navbar.jsx
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import Modal from "../../components/Modal.jsx";
 import LoginForm from "../../components/auth/login.jsx";
@@ -12,11 +12,33 @@ export default function Navbar() {
   const [registerOpen, setRegisterOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState(null);
+  const [accountOptions, setAccountOptions] = useState(false);
 
-  const { loginUser, createUser, checkAuth, user } = useData();
+  const { loginUser, createUser, checkAuth } = useData();
   const navigate = useNavigate();
 
-  // ---- LOGIN ----
+  const accountRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (accountRef.current && !accountRef.current.contains(event.target)) {
+        setAccountOptions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (loginOpen || registerOpen) {
+      setAccountOptions(false);
+    }
+  }, [loginOpen, registerOpen]);
+
+  // -------------------
+  // LOGIN
+  // -------------------
   const handleLogin = async ({ email, password }) => {
     setLoading(true);
     setLoginError(null);
@@ -37,14 +59,15 @@ export default function Navbar() {
     }
   };
 
-  // ---- CUSTOMER REGISTRATION ----
+  // -------------------
+  // REGISTER
+  // -------------------
   const handleCustomerRegister = async (formData) => {
     try {
-      await createUser(formData);   // your backend already supports this
+      await createUser(formData);
       setRegisterOpen(false);
-      setLoginOpen(true); // ask them to login afterward
+      setLoginOpen(true);
     } catch (err) {
-      console.error(err);
       alert("Account creation failed");
     }
   };
@@ -70,7 +93,6 @@ export default function Navbar() {
           } absolute sm:static top-16 left-0 w-full sm:w-auto bg-white sm:flex sm:space-x-6 shadow sm:shadow-none`}
         >
           {/* NAV LINKS */}
-
           <NavLink
             to="/"
             className={({ isActive }) =>
@@ -123,34 +145,38 @@ export default function Navbar() {
             Contact
           </NavLink>
 
-          {/* ACCOUNT DROPDOWN */}
-          <div className="relative group">
-  <button className="block bg-blue-600 text-white mx-4 my-2 px-4 py-2 rounded hover:bg-blue-700 transition">
-    Account
-  </button>
+          {/* ----------------------------- */}
+          {/* ACCOUNT DROPDOWN (with outside close) */}
+          {/* ----------------------------- */}
+          <div className="relative" ref={accountRef}>
+            <button
+              onClick={() => setAccountOptions(!accountOptions)}
+              className="block bg-blue-600 text-white mx-4 my-2 px-4 py-2 rounded hover:bg-blue-700 transition"
+            >
+              Account
+            </button>
 
-  {/* Dropdown menu */}
-  <div className="absolute left-0 w-40 bg-white shadow rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-500 z-50">
-    <button
-      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-      onClick={() => setLoginOpen(true)}
-    >
-      Login
-    </button>
-    <button
-      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-      onClick={() => setRegisterOpen(true)}
-    >
-      Create Account
-    </button>
-  </div>
-</div>
-
-
+            {accountOptions && (
+              <div className="absolute left-0 w-40 bg-white shadow rounded">
+                <button
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  onClick={() => setLoginOpen(true)}
+                >
+                  Login
+                </button>
+                <button
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  onClick={() => setRegisterOpen(true)}
+                >
+                  Create Account
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* ---- Login Modal ---- */}
+      {/* LOGIN MODAL */}
       <Modal isOpen={loginOpen} onClose={() => setLoginOpen(false)}>
         <LoginForm
           onSubmit={handleLogin}
@@ -160,7 +186,7 @@ export default function Navbar() {
         />
       </Modal>
 
-      {/* ---- Create Account Modal (CUSTOMER ONLY)*/}
+      {/* REGISTER MODAL */}
       <Modal isOpen={registerOpen} onClose={() => setRegisterOpen(false)}>
         <UserForm
           role="customer"
