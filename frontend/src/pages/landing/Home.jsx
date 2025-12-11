@@ -216,7 +216,7 @@ export default function Home() {
         <img
           src="/images/kids service.jpg"
           alt="Women Hair Tools"
-          className="w-full h-48 object-cover rounded mb-4"
+          className="w-full h-48 md:h-55 object-cover rounded mb-4"
         />
         </div>
         <div>
