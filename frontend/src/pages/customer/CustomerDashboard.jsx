@@ -37,7 +37,7 @@ export default function customerDashboard() {
     () =>
       (users || []).filter(
         (user) =>
-          `${user.first_name} ${user.last_name}`.toLowerCase() !== "saleh ntege" &&
+          user.role !== "owner" &&
           user.role !== "customer"
       ),
     [users]
