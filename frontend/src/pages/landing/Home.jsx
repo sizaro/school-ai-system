@@ -205,30 +205,36 @@ export default function Home() {
 </section>
 
 
-    <section className="py-16 bg-gray-100">
-  <div className="max-w-7xl mx-auto px-6 text-center">
-    <h2 className="text-3xl font-bold mb-6 text-gray-800">Children Hair Cuts</h2>
+    <section className="py-16 bg-white">
+  <div className="max-w-7xl mx-auto px-6">
+     <h2 className="text-3xl font-bold mb-6 text-gray-800">Our Tools & Hygiene</h2>
 
-    <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+    <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-10 items-center">
 
-      {/* Women Hair Tools */}
-      <div className="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition">
+      {/* IMAGE */}
+      <div className="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition duration-300 animate-fadeInLeft">
         <img
           src="/images/kids service.jpg"
-          alt="Women Hair Tools"
-          className="w-full h-48 md:h-70 object-cover rounded mb-4"
+          alt="Kids salon service"
+          className="w-full h-64 object-cover rounded-xl"
         />
-        </div>
-        <div className="flex flex-col justify-ceneter align_center">
-        <p className="text-gray-600 max-w-3xl mx-auto">
-      We take care of the Little ones too, since they are the future of this World <br />
-      We make your children look angelic by our services and our environment is aligned to accomodate any child at any age.    
-    </p>
+      </div>
+
+      {/* TEXT */}
+      <div className="flex flex-col justify-center items-center text-center animate-fadeInRight px-4">
+        <p className="text-gray-700 text-lg leading-relaxed max-w-md">
+          We take care of the little ones too, since they are the future of this world.  
+          Our skilled team creates a calm and friendly environment, ensuring that every child feels 
+          comfortable and enjoys their salon experience. We make your children look angelic with care,
+          patience, and a touch of fun.
+        </p>
       </div>
 
     </div>
+
   </div>
 </section>
+
 
 
       {/* ================= INSIDE SALON ================= */}
