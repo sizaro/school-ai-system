@@ -219,7 +219,7 @@ export default function Home() {
           className="w-full h-48 md:h-70 object-cover rounded mb-4"
         />
         </div>
-        <div>
+        <div className="flex flex-col justify-ceneter align_center">
         <p className="text-gray-600 max-w-3xl mx-auto">
       We take care of the Little ones too, since they are the future of this World <br />
       We make your children look angelic by our services and our environment is aligned to accomodate any child at any age.    
