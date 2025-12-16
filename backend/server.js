@@ -1,4 +1,5 @@
-
+import http from "http";
+import { Server as IOServer } from "socket.io";
 import express from "express";
 import cors from "cors";
 import path from "path";
@@ -134,5 +135,44 @@ app.use("/api/sections", sectionsRoutes)
 
 
 
+// ----------- SOCKET.IO SETUP -----------
 const PORT = process.env.PORT || 5500;
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+
+// create http server from express app
+const server = http.createServer(app);
+
+// configure socket.io
+const io = new IOServer(server, {
+  cors: {
+    origin: process.env.CLIENT_ORIGIN
+      ? [process.env.CLIENT_ORIGIN, "http://localhost:5173"]
+      : allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+  // path: "/socket.io", // default, change only if needed
+});
+
+// attach io to app for controllers to access
+app.set("io", io);
+// optional easy global: global.io (use with caution)
+global.io = io;
+
+io.on("connection", (socket) => {
+  console.log("🟢 Socket connected:", socket.id);
+
+  // you can handle custom events from clients here, e.g. join rooms
+  socket.on("join_room", (room) => {
+    console.log(`Socket ${socket.id} joining room ${room}`);
+    socket.join(room);
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.log("🔴 Socket disconnected:", socket.id, "reason:", reason);
+  });
+});
+
+// start server
+server.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+
+
