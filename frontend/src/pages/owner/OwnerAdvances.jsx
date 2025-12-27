@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useData } from "../../context/DataContext.jsx";
-import AdvanceForm from "../../components/AdvanceForm.jsx";
-import ConfirmModal from "../../components/ConfirmModal.jsx";
+
 import Modal from "../../components/Modal.jsx";
 
 const OwnerAdvances = () => {

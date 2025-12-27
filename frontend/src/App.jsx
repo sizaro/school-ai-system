@@ -1,18 +1,23 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/common/ProtectedRoute.jsx";
 
+// Landing Pages
 import Home from "./pages/landing/Home.jsx";
 import About from "./pages/landing/About.jsx";
-import Services from "./pages/landing/Services.jsx";
 import Contact from "./pages/landing/Contact.jsx";
+import Admissions from "./pages/landing/Admissions.jsx";
+import Academics from "./pages/landing/Academics.jsx";
+import Events from "./pages/landing/Events.jsx";
+import News from "./pages/landing/News.jsx";
+import Alumni from "./pages/landing/Alumni.jsx";
+import CampusLife from "./pages/landing/CampusLife.jsx";
 
 import ResetPassword from "./pages/landing/ResetPassword.jsx";
 
+// Dashboard Layouts
 import OwnerLayout from "./components/layout/OwnerLayout.jsx";
-import ManagerLayout from "./components/layout/ManagerLayout.jsx";
-import EmployeeLayout from "./components/layout/EmployeeLayout.jsx";
-import CustomerLayout from "./components/layout/CustomerLayout.jsx";
 
+import EmployeeLayout from "./components/layout/EmployeeLayout.jsx";
 
 function App() {
   return (
@@ -20,11 +25,16 @@ function App() {
         {/* Public Landing Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
-        <Route path="/services" element={<Services />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/admissions" element={<Admissions />} />
+        <Route path="/academics" element={<Academics />} />
+        <Route path="/events" element={<Events />} />
+        <Route path="/news" element={<News />} />
+        <Route path="/alumni" element={<Alumni />} />
+        <Route path="/campus-life" element={<CampusLife />} />
+
         {/* Reset Password (public) */}
-      <Route path="/reset-password/:token" element={<ResetPassword />} />
-        
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         {/* Owner Routes */}
         <Route
@@ -36,32 +46,12 @@ function App() {
           }
         />
 
-        {/*  Manager Routes */}
-        <Route
-          path="/manager/*"
-          element={
-            <ProtectedRoute role="manager">
-              <ManagerLayout />
-            </ProtectedRoute>
-          }
-        />
-
         {/* Employee Routes */}
         <Route
           path="/employee/*"
           element={
             <ProtectedRoute role="employee">
               <EmployeeLayout />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Customer Routes */}
-        <Route
-          path="/customer/*"
-          element={
-            <ProtectedRoute role="customer">
-              <CustomerLayout />
             </ProtectedRoute>
           }
         />

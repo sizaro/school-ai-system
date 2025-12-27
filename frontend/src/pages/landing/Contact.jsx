@@ -7,30 +7,78 @@ export default function Contact() {
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-1 py-16 px-6 max-w-4xl mx-auto text-center">
-        <h1 className="text-4xl font-bold text-gray-800 mb-6">Get in Touch</h1>
-        <p className="text-gray-700 mb-8">
-          Have questions or want to book an appointment? Reach out to us!
-        </p>
 
-        <form className="bg-white shadow-md rounded-xl p-8 text-left space-y-4">
-          <div>
-            <label className="block text-gray-700 mb-2">Full Name</label>
-            <input type="text" className="w-full border rounded p-2" placeholder="Your name" required />
+      {/* Hero Section */}
+      <header className="relative w-full h-[50vh] overflow-hidden">
+        <img
+          src="/images/contact_hero.jpg"
+          alt="Contact School"
+          className="w-full h-full object-cover brightness-75"
+        />
+        <div className="absolute inset-0 flex flex-col justify-center items-center text-center text-white px-4">
+          <h1 className="text-3xl md:text-5xl font-bold mb-2">Contact Our School</h1>
+          <p className="max-w-xl mb-4 text-lg md:text-xl">
+            We’re here to answer your questions and guide you through enrollment, events, or general inquiries.
+          </p>
+        </div>
+      </header>
+
+      <main className="flex-1 py-16 px-6 max-w-4xl mx-auto space-y-12 text-center">
+        <section>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Reach Us Easily</h2>
+          <p className="text-gray-700 mb-6">
+            For inquiries, admissions, or any school-related information, you can contact us through multiple channels. We respond promptly and are happy to assist you.
+          </p>
+
+          <div className="flex flex-col sm:flex-row justify-center gap-6">
+            <a
+              href="tel:+256700000000"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-700 transition"
+            >
+              Call Us
+            </a>
+            <a
+              href="mailto:info@ourschool.ac.ug"
+              className="bg-green-600 text-white px-6 py-3 rounded-lg shadow hover:bg-green-700 transition"
+            >
+              Email
+            </a>
+            <a
+              href="https://wa.me/256700000000"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-green-500 text-white px-6 py-3 rounded-lg shadow hover:bg-green-600 transition"
+            >
+              WhatsApp
+            </a>
+            <a
+              href="https://facebook.com/ourschool"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-blue-800 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-900 transition"
+            >
+              Facebook
+            </a>
           </div>
-          <div>
-            <label className="block text-gray-700 mb-2">Email</label>
-            <input type="email" className="w-full border rounded p-2" placeholder="you@example.com" required />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-2">Message</label>
-            <textarea className="w-full border rounded p-2" rows="5" placeholder="How can we help?" required></textarea>
-          </div>
-          <button className="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 transition">
-            Send Message
-          </button>
-        </form>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-gray-800">Visit Us</h2>
+          <p className="text-gray-700">
+            Our school campus is open for visits during office hours. Come and meet our staff, explore our classrooms, and see our vibrant learning environment.
+          </p>
+          <p className="text-gray-700 font-semibold">Address:</p>
+          <p className="text-gray-700">123 School Lane, Kampala, Uganda</p>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-gray-800">Quick Info</h2>
+          <p className="text-gray-700">Office Hours: Mon – Fri, 8:00 AM – 5:00 PM</p>
+          <p className="text-gray-700">Phone: +256 700 000 000</p>
+          <p className="text-gray-700">Email: info@ourschool.ac.ug</p>
+        </section>
       </main>
+
       <Footer />
     </div>
   );
