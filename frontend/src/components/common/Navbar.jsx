@@ -25,7 +25,7 @@ export default function Navbar() {
   const accountRef = useRef(null);
   const newsRef = useRef(null);
 
-  // Close dropdowns when clicking outside
+  /* ================= CLICK OUTSIDE HANDLER ================= */
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (accountRef.current && !accountRef.current.contains(event.target)) {
@@ -35,11 +35,12 @@ export default function Navbar() {
         setNewsOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Close dropdowns when modals open
+  /* ================= CLOSE DROPDOWNS WHEN MODALS OPEN ================= */
   useEffect(() => {
     if (loginOpen || registerOpen) {
       setAccountOpen(false);
@@ -47,11 +48,12 @@ export default function Navbar() {
     }
   }, [loginOpen, registerOpen]);
 
+  /* ================= AUTH HANDLERS ================= */
   const handleLogin = async ({ email, password }) => {
     setLoading(true);
     setLoginError(null);
     try {
-      const res = await loginUser({ email, password });
+      await loginUser({ email, password });
       await checkAuth();
       setLoginOpen(false);
       navigate("/dashboard");
@@ -76,6 +78,7 @@ export default function Navbar() {
     setLoading(true);
     const res = await forgotPassword(email);
     setLoading(false);
+
     if (res.success) {
       setToast({ message: `Reset link sent to ${email}`, type: "success" });
       setTimeout(() => {
@@ -92,119 +95,152 @@ export default function Navbar() {
   const handleForgotPassword = () => setAuthForm("forgot");
   const handleBackToLogin = () => setAuthForm("login");
 
-  // Toggle helpers so only one dropdown opens at a time
-  const toggleAccount = () => {
-    setAccountOpen(!accountOpen);
-    if (!accountOpen) setNewsOpen(false);
+  /* ================= DROPDOWN TOGGLES ================= */
+  const toggleAccount = (e) => {
+    e.stopPropagation();
+    setAccountOpen((prev) => !prev);
+    setNewsOpen(false);
   };
-  const toggleNews = () => {
-    setNewsOpen(!newsOpen);
-    if (!newsOpen) setAccountOpen(false);
+
+  const toggleNews = (e) => {
+    e.stopPropagation();
+    setNewsOpen((prev) => !prev);
+    setAccountOpen(false);
   };
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-        <NavLink to="/" className="md:text-2xl text-l font-bold text-blue-700">
+        <NavLink to="/" className="md:text-2xl text-lg font-bold text-blue-700">
           Your School Name
         </NavLink>
 
-        {/* Hamburger Mobile */}
-        <button className="sm:hidden text-blue-700 text-2xl" onClick={() => setMenuOpen(!menuOpen)}>☰</button>
+        {/* ================= MOBILE HAMBURGER ================= */}
+        <button
+          className="sm:hidden text-blue-700 text-2xl"
+          onClick={(e) => {
+            e.stopPropagation();
+            setMenuOpen(!menuOpen);
+          }}
+        >
+          ☰
+        </button>
 
-        {/* Nav Links */}
-        <div className={`${menuOpen ? "block" : "hidden"} absolute sm:static top-13 left-0 w-full sm:w-auto bg-white sm:flex sm:space-x-6 shadow sm:shadow-none`}>
-          <NavLink to="/" className={({ isActive }) =>
-            `block px-2 py-2 rounded-md font-medium transition border-b-2 ${
-              isActive ? "border-blue-500" : "border-transparent hover:border-blue-500"
-            } text-gray-700 hover:text-blue-600`
-          }>Home</NavLink>
+        {/* ================= NAV LINKS ================= */}
+        <div
+          className={`${menuOpen ? "block" : "hidden"} absolute sm:static top-14 left-0 w-full sm:w-auto bg-white sm:flex sm:space-x-6 shadow sm:shadow-none z-40`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {[
+            ["/", "Home"],
+            ["/about", "About"],
+            ["/admissions", "Admissions"],
+            ["/academics", "Academics"],
+            ["/fees", "Fees"],
+            ["/gallery", "Gallery"],
+            ["/alumni", "Alumni"],
+            ["/contact", "Contact"],
+          ].map(([path, label]) => (
+            <NavLink
+              key={path}
+              to={path}
+              className={({ isActive }) =>
+                `block px-2 py-2 rounded-md font-medium transition border-b-2 ${
+                  isActive
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-700 hover:border-blue-500 hover:text-blue-600"
+                }`
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
 
-          <NavLink to="/about" className={({ isActive }) =>
-            `block px-2 py-2 rounded-md font-medium transition border-b-2 ${
-              isActive ? "border-blue-500" : "border-transparent hover:border-blue-500"
-            } text-gray-700 hover:text-blue-600`
-          }>About</NavLink>
-
-          <NavLink to="/admissions" className={({ isActive }) =>
-            `block px-2 py-2 rounded-md font-medium transition border-b-2 ${
-              isActive ? "border-blue-500" : "border-transparent hover:border-blue-500"
-            } text-gray-700 hover:text-blue-600`
-          }>Admissions</NavLink>
-
-          <NavLink to="/academics" className={({ isActive }) =>
-            `block px-2 py-2 rounded-md font-medium transition border-b-2 ${
-              isActive ? "border-blue-500" : "border-transparent hover:border-blue-500"
-            } text-gray-700 hover:text-blue-600`
-          }>Academics</NavLink>
-
-          <NavLink to="/fees" className={({ isActive }) =>
-            `block px-2 py-2 rounded-md font-medium transition border-b-2 ${
-              isActive ? "border-blue-500" : "border-transparent hover:border-blue-500"
-            } text-gray-700 hover:text-blue-600`
-          }>Fees</NavLink>
-
-          {/* News & Events Dropdown */}
+          {/* ================= NEWS & EVENTS DROPDOWN ================= */}
           <div className="relative" ref={newsRef}>
             <button
-              className="block px-2 py-2 rounded-md font-medium transition text-gray-700 hover:text-blue-600"
               onClick={toggleNews}
+              className="block px-2 py-2 font-medium text-gray-700 hover:text-blue-600"
             >
               News & Events ▼
             </button>
+
             {newsOpen && (
-              <div className="absolute left-0 w-40 bg-white shadow rounded mt-1 origin-top scale-95 opacity-0 animate-scaleIn">
-                <NavLink to="/news" className="block px-4 py-2 hover:bg-gray-100">News</NavLink>
-                <NavLink to="/events" className="block px-4 py-2 hover:bg-gray-100">Events</NavLink>
+              <div className="absolute left-0 mt-1 w-40 bg-white shadow-lg rounded z-50">
+                <NavLink to="/news" className="block px-4 py-2 hover:bg-gray-100">
+                  News
+                </NavLink>
+                <NavLink to="/events" className="block px-4 py-2 hover:bg-gray-100">
+                  Events
+                </NavLink>
               </div>
             )}
           </div>
 
-          <NavLink to="/gallery" className={({ isActive }) =>
-            `block px-2 py-2 rounded-md font-medium transition border-b-2 ${
-              isActive ? "border-blue-500" : "border-transparent hover:border-blue-500"
-            } text-gray-700 hover:text-blue-600`
-          }>Gallery</NavLink>
+          {/* ================= ACCOUNT DROPDOWN ================= */}
+          <div className="relative w-44 right-0 ml-4" ref={accountRef}>
+            <button
+              onClick={toggleAccount}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+            >
+              Account
+            </button>
 
-          <NavLink to="/alumni" className={({ isActive }) =>
-            `block px-2 py-2 rounded-md font-medium transition border-b-2 ${
-              isActive ? "border-blue-500" : "border-transparent hover:border-blue-500"
-            } text-gray-700 hover:text-blue-600`
-          }>Alumni</NavLink>
-
-          <NavLink to="/contact" className={({ isActive }) =>
-            `block px-2 py-2 rounded-md font-medium transition border-b-2 ${
-              isActive ? "border-blue-500" : "border-transparent hover:border-blue-500"
-            } text-gray-700 hover:text-blue-600`
-          }>Contact</NavLink>
-
-          {/* Account Dropdown */}
-          <div className="relative ml-4" ref={accountRef}>
-            <button onClick={toggleAccount} className="block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Account</button>
             {accountOpen && (
-              <div className="absolute left-0 w-44 bg-white shadow rounded mt-1 origin-top scale-95 opacity-0 animate-scaleIn">
-                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => setLoginOpen(true)}>Sign In</button>
-                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => setRegisterOpen(true)}>Create Account</button>
+              <div className="absolute left-0 mt-1 w-44 bg-white shadow-lg rounded z-50">
+                <button
+                  className="block w-44 text-left px-4 py-2 hover:bg-gray-100"
+                  onClick={() => setLoginOpen(true)}
+                >
+                  Sign In
+                </button>
+                <button
+                  className="block w-44 text-left px-4 py-2 hover:bg-gray-100"
+                  onClick={() => setRegisterOpen(true)}
+                >
+                  Create Account
+                </button>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Modals */}
+      {/* ================= MODALS ================= */}
       <Modal isOpen={loginOpen} onClose={() => setLoginOpen(false)}>
         {authForm === "login" ? (
-          <LoginForm onSubmit={handleLogin} onCancel={() => setLoginOpen(false)} loading={loading} error={loginError} onForgotPassword={handleForgotPassword} />
+          <LoginForm
+            onSubmit={handleLogin}
+            onCancel={() => setLoginOpen(false)}
+            loading={loading}
+            error={loginError}
+            onForgotPassword={handleForgotPassword}
+          />
         ) : (
-          <ForgotPasswordForm onSubmit={handleForgotPasswordSubmit} onCancel={handleBackToLogin} loading={loading} message={null} error={null} />
+          <ForgotPasswordForm
+            onSubmit={handleForgotPasswordSubmit}
+            onCancel={handleBackToLogin}
+            loading={loading}
+          />
         )}
       </Modal>
 
       <Modal isOpen={registerOpen} onClose={() => setRegisterOpen(false)}>
-        <UserForm role="student" onSubmit={handleRegister} onClose={() => setRegisterOpen(false)} />
+        <UserForm
+          role="student"
+          onSubmit={handleRegister}
+          onClose={() => setRegisterOpen(false)}
+        />
       </Modal>
 
-      {toast.message && <ToastModal message={toast.message} type={toast.type} duration={5000} onClose={() => setToast({ message: "", type: toast.type })} />}
+      {toast.message && (
+        <ToastModal
+          message={toast.message}
+          type={toast.type}
+          duration={5000}
+          onClose={() => setToast({ message: "", type: toast.type })}
+        />
+      )}
     </nav>
   );
 }
