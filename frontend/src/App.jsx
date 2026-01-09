@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/common/ProtectedRoute.jsx";
 
-// Landing Pages
+/* ================= PUBLIC LANDING PAGES ================= */
 import Home from "./pages/landing/Home.jsx";
 import About from "./pages/landing/About.jsx";
 import Contact from "./pages/landing/Contact.jsx";
@@ -11,47 +11,83 @@ import Events from "./pages/landing/Events.jsx";
 import News from "./pages/landing/News.jsx";
 import Alumni from "./pages/landing/Alumni.jsx";
 import CampusLife from "./pages/landing/CampusLife.jsx";
+import Tuition from "./pages/landing/Tuition.jsx";
 
 import ResetPassword from "./pages/landing/ResetPassword.jsx";
 
-// Dashboard Layouts
-import OwnerLayout from "./components/layout/OwnerLayout.jsx";
-
-import EmployeeLayout from "./components/layout/EmployeeLayout.jsx";
+/* ================= DASHBOARD LAYOUTS (TO CREATE) ================= */
+import DirectorLayout from "./components/layout/DirectorLayout.jsx";
+import HeadmasterLayout from "./components/layout/HeadmasterLayout.jsx";
+import TeacherLayout from "./components/layout/TeacherLayout.jsx";
+import BursarLayout from "./components/layout/BursarLayout.jsx";
+import StudentLayout from "./components/layout/StudentLayout.jsx";
 
 function App() {
   return (
       <Routes>
-        {/* Public Landing Routes */}
+        {/* ================= PUBLIC ROUTES ================= */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/admissions" element={<Admissions />} />
         <Route path="/academics" element={<Academics />} />
+        <Route path="/tuition" element={<Tuition />} />
         <Route path="/events" element={<Events />} />
         <Route path="/news" element={<News />} />
         <Route path="/alumni" element={<Alumni />} />
-        <Route path="/campus-life" element={<CampusLife />} />
+        <Route path="/school-life" element={<CampusLife />} />
 
-        {/* Reset Password (public) */}
+        {/* ================= RESET PASSWORD ================= */}
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-        {/* Owner Routes */}
+        {/* ================= PROTECTED ROLE ROUTES ================= */}
+
+        {/* DIRECTOR */}
         <Route
-          path="/owner/*"
+          path="/director/*"
           element={
-            <ProtectedRoute role="owner">
-              <OwnerLayout />
+            <ProtectedRoute role="director">
+              <DirectorLayout />
             </ProtectedRoute>
           }
         />
 
-        {/* Employee Routes */}
+        {/* HEADMASTER */}
         <Route
-          path="/employee/*"
+          path="/headmaster/*"
           element={
-            <ProtectedRoute role="employee">
-              <EmployeeLayout />
+            <ProtectedRoute role="headmaster">
+              <HeadmasterLayout />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* TEACHER */}
+        <Route
+          path="/teacher/*"
+          element={
+            <ProtectedRoute role="teacher">
+              <TeacherLayout />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* BURSAR */}
+        <Route
+          path="/bursar/*"
+          element={
+            <ProtectedRoute role="bursar">
+              <BursarLayout />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* STUDENT */}
+        <Route
+          path="/student/*"
+          element={
+            <ProtectedRoute role="student">
+              <StudentLayout />
             </ProtectedRoute>
           }
         />

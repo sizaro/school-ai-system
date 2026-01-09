@@ -9,7 +9,7 @@ export default function Contact() {
       <Navbar />
 
       {/* Hero Section */}
-      <header className="relative w-full h-[50vh] overflow-hidden">
+      <header className="relative w-full h-[50vh] overflow-hidden bg-blue-700">
         <img
           src="/images/contact_hero.jpg"
           alt="Contact School"

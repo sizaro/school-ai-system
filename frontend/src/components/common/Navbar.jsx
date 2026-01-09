@@ -49,20 +49,30 @@ export default function Navbar() {
   }, [loginOpen, registerOpen]);
 
   /* ================= AUTH HANDLERS ================= */
+  
+  // -------------------
+  // LOGIN
+  // -------------------
   const handleLogin = async ({ email, password }) => {
     setLoading(true);
     setLoginError(null);
     try {
-      await loginUser({ email, password });
+      const res = await loginUser({ email, password });
       await checkAuth();
       setLoginOpen(false);
-      navigate("/dashboard");
+
+      if (res.role === "director") navigate("/director");
+      else if (res.role === "headmaster") navigate("/headmaster");
+      else if (res.role === "bursar") navigate("/bursar");
+      else if (res.role === "student") navigate("/student");
+      else navigate("/");
     } catch (err) {
       setLoginError(err?.response?.data?.message || "Sign in failed");
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleRegister = async (formData) => {
     try {
@@ -111,9 +121,23 @@ export default function Navbar() {
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-        <NavLink to="/" className="md:text-2xl text-lg font-bold text-blue-700">
-          Your School Name
-        </NavLink>
+        
+         <NavLink
+    to="/"
+    className="flex items-center gap-3"
+  >
+    {/* SCHOOL LOGO */}
+    <img
+      src="/logo.png"        // 🔹 put logo in /public/logo.png
+      alt="School Logo"
+      className="h-10 w-10 object-contain"
+    />
+
+    {/* SCHOOL NAME */}
+    <span className="md:text-1xl text-lg font-bold text-blue-700 leading-tight">
+      Your School Name
+    </span>
+  </NavLink>
 
         {/* ================= MOBILE HAMBURGER ================= */}
         <button
@@ -136,8 +160,8 @@ export default function Navbar() {
             ["/about", "About"],
             ["/admissions", "Admissions"],
             ["/academics", "Academics"],
-            ["/fees", "Fees"],
-            ["/gallery", "Gallery"],
+            ["/tuition", "school Fees"],
+            ["/school-life", "School Life"],
             ["/alumni", "Alumni"],
             ["/contact", "Contact"],
           ].map(([path, label]) => (
