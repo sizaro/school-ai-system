@@ -40,30 +40,37 @@ export default function Home() {
 
       {/* ================= HERO SECTION ================= */}
       <header className="relative w-full h-[80vh] overflow-hidden">
-        <img
-          src="/images/hero1.jpg"
-          alt="School Hero"
-          className="w-full h-full object-cover brightness-75"
-        />
-        <div
-          className="absolute inset-0 flex flex-col justify-center items-center text-center text-white px-4"
-          style={{ textShadow: "2px 2px 4px rgba(0, 0, 0, 0.7)" }}
-        >
-          <h1 className="text-2xl md:text-6xl font-bold mb-2">Your School Name</h1>
-          <h3 className="md:text-3xl font-semibold mb-4 text-2xl">
-            Excellence in Education & Growth
-          </h3>
-          <p className="mb-4 max-w-md mx-auto">
-            Providing quality education and a nurturing environment for students from all walks of life.
-          </p>
-          <a
-            href="/admissions"
-            className="mt-4 bg-blue-600 px-6 py-3 rounded-lg shadow-lg font-semibold hover:bg-blue-700 transition"
-          >
-            Apply Now
-          </a>
-        </div>
-      </header>
+  <img
+    src="/images/hero1.jpg"
+    alt="School Hero"
+    className="w-full h-full object-cover brightness-75"
+  />
+
+  <div
+    className="absolute inset-0 flex items-center relative"
+    style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.7)" }}
+  >
+    {/* TEXT CONTAINER */}
+    <div className="max-w-2xl ml-8 md:ml-20 px-4 text-bottom text-white absolute bottom-3">
+
+      <h3 className="text-2xl md:text-3xl font-semibold mb-4">
+        Excellence in Education & Growth
+      </h3>
+
+      <p className="mb-6 text-base md:text-lg">
+        Providing quality education and a nurturing environment for students from all walks of life.
+      </p>
+
+      <a
+        href="/admissions"
+        className="inline-block bg-blue-600 px-6 py-3 rounded-lg shadow-lg font-semibold hover:bg-blue-700 transition"
+      >
+        Apply Now
+      </a>
+    </div>
+  </div>
+</header>
+
 
       {/* ================= FEATURED PROGRAMS ================= */}
       <section className="py-16 px-6 max-w-7xl mx-auto text-center">
