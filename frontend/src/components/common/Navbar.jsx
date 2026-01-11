@@ -63,6 +63,7 @@ export default function Navbar() {
       else if (res.role === "headmaster") navigate("/headmaster");
       else if (res.role === "bursar") navigate("/bursar");
       else if (res.role === "student") navigate("/student");
+      else if (res.role === "teacher") navigate("/teacher");
       else navigate("/");
     } catch (err) {
       setLoginError(err?.response?.data?.message || "Sign in failed");
