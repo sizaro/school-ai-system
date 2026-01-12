@@ -36,7 +36,7 @@ const pendingCount = pendingAppointments.length;
 
   const navigate = useNavigate();
 
-  const SOCKET_API_URL = import.meta.env.VITE_API_URL || "";
+  const SOCKET_API_URL = import.meta.env.VITE_API_URL || "https://medanfoafricacommunityschool.onrender.com";
   const API_URL = import.meta.env.VITE_API_URL || "/api";
 
   const socket = io(SOCKET_API_URL.replace("/api", ""), {
