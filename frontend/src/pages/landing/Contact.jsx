@@ -33,19 +33,19 @@ export default function Contact() {
 
           <div className="flex flex-col sm:flex-row justify-center gap-6 flex-wrap">
             <a
-              href="tel:+256700000000"
+              href="tel:+256701185352"
               className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-700 transition"
             >
               Call Us
             </a>
             <a
-              href="mailto:info@medanfo.ac.ug"
+              href="mailto:medanfoafricacommunityschool@gmail.com"
               className="bg-green-600 text-white px-6 py-3 rounded-lg shadow hover:bg-green-700 transition"
             >
               Email
             </a>
             <a
-              href="https://wa.me/256700000000"
+              href="https://wa.me/256701185352"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-green-500 text-white px-6 py-3 rounded-lg shadow hover:bg-green-600 transition"
@@ -61,7 +61,7 @@ export default function Contact() {
               Facebook
             </a>
             <a
-              href="https://www.linkedin.com/school/medanfo-africa-community-school"
+              href="https://www.linkedin.com/in/medanfoafrica-communityschool-297a273a4"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-blue-700 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-800 transition"
@@ -69,7 +69,7 @@ export default function Contact() {
               LinkedIn
             </a>
             <a
-              href="https://www.youtube.com/channel/YourSchoolChannel"
+              href="https://www.youtube.com/channel/UCuSy9xarr6YS2DhXFSBRbOg"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-red-600 text-white px-6 py-3 rounded-lg shadow hover:bg-red-700 transition"
@@ -86,13 +86,13 @@ export default function Contact() {
             Our school campus is open for visits during office hours. Come and meet our staff, explore our classrooms, and see our vibrant learning environment.
           </p>
           <p className="text-gray-700 font-semibold">Address:</p>
-          <p className="text-gray-700">123 School Lane, Kampala, Uganda</p>
+          <p className="text-gray-700">Kigandalo, Mayuge, Uganda</p>
 
           {/* Google Map iframe placeholder */}
           <div className="w-full h-80 mt-4">
             <iframe
               title="School Location"
-              src="https://www.google.com/maps/embed?pb=!1m18!..." // Replace with real Google Maps embed after claiming place
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d127670.82947794585!2d33.51897811671351!3d0.4154779895334756!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x177e5a6f37df502d%3A0xb1645a32edd325b7!2sKigandalo!5e0!3m2!1sen!2sug!4v1768768436692!5m2!1sen!2sug"
               width="100%"
               height="100%"
               style={{ border: 0 }}
@@ -118,8 +118,8 @@ export default function Contact() {
         <section className="space-y-4">
           <h2 className="text-2xl font-bold text-gray-800">Quick Info</h2>
           <p className="text-gray-700">Office Hours: Mon – Fri, 8:00 AM – 5:00 PM</p>
-          <p className="text-gray-700">Phone: +256 700 000 000</p>
-          <p className="text-gray-700">Email: info@medanfo.ac.ug</p>
+          <p className="text-gray-700">Phone: +256 701 185 352</p>
+          <p className="text-gray-700">Email: medanfoafricacommunityschool@gmail.com</p>
         </section>
 
       </main>

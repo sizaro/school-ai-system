@@ -5,6 +5,10 @@ import { useData } from "../../context/DataContext";
 
 const ProtectedRoute = ({ children, role }) => {
   const { user, loading } = useData();
+   useEffect(()=>{
+    checkAuth();
+  }, [])
+
 
   console.log("🔐 [ProtectedRoute] Checking user from context...");
   console.log("📦 Context user:", user);

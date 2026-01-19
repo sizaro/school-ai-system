@@ -32,13 +32,13 @@ export default function Footer() {
         <div>
           <h3 className="text-white font-semibold mb-2">Contact</h3>
           <div className="space-y-2 text-gray-400 text-sm">
-            <p>Email: <a href="mailto:info@medanfo.ac.ug" className="hover:text-white">info@medanfo.ac.ug</a></p>
-            <p>Phone: <a href="tel:+256700000000" className="hover:text-white">+256 700 000 000</a></p>
-            <p>WhatsApp: <a href="https://wa.me/256700000000" target="_blank" rel="noopener noreferrer" className="hover:text-white">+256 700 000 000</a></p>
+            <p>Email: <a href="mailto:medanfoafricacommunityschool@gmail.com" className="hover:text-white">medanfoafricacommunityschool@gmail.com</a></p>
+            <p>Phone: <a href="tel:+256701185352" className="hover:text-white">+256 701 185 352</a></p>
+            <p>WhatsApp: <a href="https://web.whatsapp.com/send?phone=256701185352" target="_blank" rel="noopener noreferrer" className="hover:text-white">+256 701 185 352</a></p>
           </div>
 
           <h3 className="text-white font-semibold mb-2 mt-4">Follow Us</h3>
-          <div className="flex space-x-4 mt-2">
+          <div className="flex space-x-4 mt-2 md:flex-row flex-col">
             <a 
               href="https://www.facebook.com/MedanfoAfricaCommunitySchool" 
               target="_blank" 
@@ -48,7 +48,7 @@ export default function Footer() {
               Facebook
             </a>
             <a 
-              href="https://www.linkedin.com/school/medanfo-africa-community-school" 
+              href="https://www.linkedin.com/in/medanfoafrica-communityschool-297a273a4" 
               target="_blank" 
               rel="noopener noreferrer"
               className="hover:text-white"
@@ -56,7 +56,7 @@ export default function Footer() {
               LinkedIn
             </a>
             <a 
-              href="https://www.youtube.com/channel/YourSchoolChannel" 
+              href="https://www.youtube.com/channel/UCuSy9xarr6YS2DhXFSBRbOg" 
               target="_blank" 
               rel="noopener noreferrer"
               className="hover:text-white"

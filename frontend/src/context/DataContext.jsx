@@ -220,10 +220,6 @@ const resetPassword = async (payload) => {
     }
   };
 
-  useEffect(()=>{
-    checkAuth();
-  }, [])
-
 
 
   useEffect(() => {

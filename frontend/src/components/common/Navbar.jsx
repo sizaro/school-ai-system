@@ -202,7 +202,7 @@ export default function Navbar() {
             </button>
 
             {accountOpen && (
-              <div className="absolute bg-white shadow rounded mt-1 w-44">
+              <div className="absolute bg-white shadow rounded mt-1 w-35">
                 <button
                   className="block w-full text-left px-4 py-2"
                   onClick={() => setLoginOpen(true)}
