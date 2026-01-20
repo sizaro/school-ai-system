@@ -1,11 +1,11 @@
 // src/components/ProtectedRoute.jsx
-import React, {useEffect} from "react";
+import React from "react";
 import { Navigate } from "react-router-dom";
 import { useData } from "../../context/DataContext";
 import { useEffect } from "react";
 
 const ProtectedRoute = ({ children, role }) => {
-  const { user, loading } = useData();
+  const { user, loading, checkAuth } = useData();
    useEffect(()=>{
     checkAuth();
   }, [])
