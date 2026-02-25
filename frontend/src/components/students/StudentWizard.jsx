@@ -4,10 +4,11 @@ import StepStudentInfo from "./steps/StepStudentInfo";
 import StepGuardianInfo from "./steps/StepGuardianInfo";
 import StepMedicalReview from "./steps/StepMedicalReview";
 import StepPayment from "./steps/StepPayment";
+import { useData } from "../../context/DataContext";
 
 export default function StudentWizard({ isOpen, onClose, student = null }) {
   const [step, setStep] = useState(1);
-
+  const { registerStudent } = useData();
   const [formData, setFormData] = useState({
     student: {
       firstName: "",
@@ -59,16 +60,17 @@ export default function StudentWizard({ isOpen, onClose, student = null }) {
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
 
-  const handleSubmit = () => {
-    if (student) {
-      console.log("Updating student:", formData);
-    } else {
-      console.log("Creating student:", formData);
-    }
+  const handleSubmit = async () => {
+    console.log("student registration being sent to backend", formData)
+  const result = await registerStudent(formData);
 
+  if (result.success) {
     onClose();
     setStep(1);
-  };
+  } else {
+    alert(result.message);
+  }
+};
 
   return (
     <Drawer isOpen={isOpen} onClose={onClose}>

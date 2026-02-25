@@ -170,6 +170,51 @@ const resetPassword = async (payload) => {
 };
 
 
+
+
+const registerStudent = async (data) => {
+  try {
+    const formData = new FormData();
+
+    // Student fields
+    Object.entries(data.student).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        formData.append(`student[${key}]`, value);
+      }
+    });
+
+    // Guardian
+    Object.entries(data.guardian).forEach(([key, value]) => {
+      formData.append(`guardian[${key}]`, value);
+    });
+
+    // Medical
+    Object.entries(data.medical).forEach(([key, value]) => {
+      formData.append(`medical[${key}]`, value);
+    });
+
+    // Payment
+    Object.entries(data.payment).forEach(([key, value]) => {
+      formData.append(`payment[${key}]`, value);
+    });
+
+    const res = await axios.post(`${API_URL}/students/register`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return { success: true, data: res.data };
+  } catch (err) {
+    console.error("Error registering student:", err);
+    return {
+      success: false,
+      message: err.response?.data?.message || "Server error",
+    };
+  }
+};
+
+
   useEffect(() => {
   // Listen for new appointments
   socket.on("appointment_created", (payload) => {
@@ -198,7 +243,8 @@ const resetPassword = async (payload) => {
         checkAuth,
         logoutUser,
         forgotPassword,
-        resetPassword
+        resetPassword,
+        registerStudent
       }}
     >
       {children}
