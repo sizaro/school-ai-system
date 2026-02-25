@@ -10,6 +10,7 @@ import session from "express-session";
 import passport from "passport";
 import pgSession from "connect-pg-simple";
 import "./config/passport.js";
+// import uploadRoutes from "./routes/uploadRoutes.js";
 
 dotenv.config();
 
@@ -116,6 +117,7 @@ app.use("/uploads/images", express.static(path.join(__dirname, "/uploads/images"
 
 app.use("/api/users", usersRoutes);
 app.use("/api/auth", authRoutes);
+// app.use("/api", uploadRoutes);
 
 
 

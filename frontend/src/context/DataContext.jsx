@@ -9,29 +9,9 @@ const DataContext = createContext();
 
 
 export const DataProvider = ({ children }) => {
-  const [services, setServices] = useState([]);
   const [users, setUsers] = useState([]);
-  const [expenses, setExpenses] = useState([]);
-  const [advances, setAdvances] = useState([]);
-  const [clockings, setClockings] = useState([]);
-  const [lateFees, setLateFees] = useState([]);
-  const [tagFees, setTagFees] = useState([]);
-  const [sessions, setSessions] = useState([]);
-  const [loading, setLoading] = useState(false); // Only used for fetchUsers
+  const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
-  const [sections, setSections] = useState([]);
-  const [serviceDefinitions, setServiceDefinitions] = useState([]);
-  const [serviceRoles, setServiceRoles] = useState([]);
-  const [serviceMaterials, setServiceMaterials] = useState([]);
-const [transactions, setTransactions] = useState([]);
-
-const pendingAppointments = useMemo(() => {
-  return transactions.filter(s => s.status === "pending");
-}, [transactions]);
-
-
-const pendingCount = pendingAppointments.length;
 
 
   const navigate = useNavigate();
@@ -44,6 +24,19 @@ const pendingCount = pendingAppointments.length;
   transports: ["websocket"],
   secure: true
 });
+
+
+const uploadMultipleFiles = async (formData) => {
+  try {
+    const res = await axios.post(`${API_URL}/flexible-upload`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return { success: true, files: res.data.files };
+  } catch (err) {
+    console.error("Error uploading files:", err);
+    return { success: false, message: err.response?.data?.message || "Server error" };
+  }
+};
 
 
 
@@ -176,51 +169,6 @@ const resetPassword = async (payload) => {
   }
 };
 
-  // ---------- Send Form ----------
-  const sendFormData = async (formIdentifier, formData) => {
-    try {
-      let res;
-      switch (formIdentifier) {
-        case "createService":
-          res = await axios.post(`${API_URL}/services`, formData);
-          await fetchAllData();
-          break;
-        case "createAdvance":
-          res = await axios.post(`${API_URL}/advances`, formData);
-          await fetchAllData();
-          break;
-        case "createExpense":
-          res = await axios.post(`${API_URL}/expenses`, formData);
-          await fetchAllData();
-          break;
-        case "createClocking":
-          res = await axios.post(`${API_URL}/clockings`, formData,);
-          await fetchAllData();
-          break;
-        case "updateClocking":
-          res = await axios.put(`${API_URL}/clockings`, formData);
-          await fetchAllData();
-          break;
-        case "openSalon":
-        case "closeSalon":
-          res =
-            formIdentifier === "openSalon"
-              ? await axios.post(`${API_URL}/sessions`, formData,  { withCredentials: true })
-              : await axios.put(`${API_URL}/sessions`, formData,  { withCredentials: true });
-          await fetchSessions();
-          break;
-        default:
-          throw new Error("Unknown form identifier: " + formIdentifier);
-      }
-
-      return res.data;
-    } catch (err) {
-      console.error(`Error in sendFormData for ${formIdentifier}:`, err);
-      throw err;
-    }
-  };
-
-
 
   useEffect(() => {
   // Listen for new appointments
@@ -240,9 +188,7 @@ const resetPassword = async (payload) => {
       value={{
         user,
         users,
-        pendingAppointments,
-        pendingCount,
-        sendFormData,
+        uploadMultipleFiles,
         fetchUsers,
         fetchUserById,
         createUser,
