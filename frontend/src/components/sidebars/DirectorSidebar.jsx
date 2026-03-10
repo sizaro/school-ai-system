@@ -27,7 +27,7 @@ export default function DirectorSidebar() {
 
   return (
     <>
-      {/* ================= MOBILE HEADER ================= */}
+      {/* MOBILE HEADER */}
       <div className="md:hidden bg-blue-900 p-4 flex justify-between items-center text-white fixed top-0 left-0 right-0 z-50">
         <span className="font-bold text-lg">Director Panel</span>
         <button
@@ -38,12 +38,13 @@ export default function DirectorSidebar() {
         </button>
       </div>
 
-      {/* ================= DESKTOP SIDEBAR ================= */}
+      {/* DESKTOP SIDEBAR */}
       <aside className="hidden md:flex w-64 h-screen bg-blue-900 text-white fixed top-0 left-0 flex-col shadow-lg pt-16">
         <div className="px-6 font-bold text-xl mb-4">Director Panel</div>
 
         <div className="flex-1 overflow-y-auto px-2">
           <ul className="space-y-1 text-sm">
+
             <li>
               <Link
                 to="/director/dashboard"
@@ -52,39 +53,25 @@ export default function DirectorSidebar() {
                 Dashboard
               </Link>
             </li>
+
             <li>
               <Link
-                to="/director/overview"
-                className={linkClass("/director/overview")}
+                to="/director/students"
+                className={linkClass("/director/students")}
               >
-                School Overview
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/director/staff"
-                className={linkClass("/director/staff")}
-              >
-                Staff Management
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/director/reports"
-                className={linkClass("/director/reports")}
-              >
-                Reports
+                Students
               </Link>
             </li>
 
             <li className="mt-10">
               <SidebarFooter />
             </li>
+
           </ul>
         </div>
       </aside>
 
-      {/* ================= MOBILE SLIDE MENU ================= */}
+      {/* MOBILE MENU */}
       <div
         ref={menuRef}
         className={`fixed top-0 left-0 h-screen w-full bg-blue-900 text-white z-50 transform transition-transform duration-300 pt-16 px-4 md:hidden ${
@@ -92,6 +79,7 @@ export default function DirectorSidebar() {
         }`}
       >
         <div className="px-6 font-bold text-xl">Director Panel</div>
+
         <button
           onClick={() => setMenuOpen(false)}
           className="absolute top-4 right-4 text-xl focus:outline-none"
@@ -101,6 +89,7 @@ export default function DirectorSidebar() {
 
         <div className="h-full overflow-y-auto mt-6 mb-10">
           <ul className="space-y-1 text-sm">
+
             <li>
               <Link
                 to="/director/dashboard"
@@ -110,37 +99,21 @@ export default function DirectorSidebar() {
                 Dashboard
               </Link>
             </li>
+
             <li>
               <Link
-                to="/director/overview"
+                to="/director/students"
                 onClick={() => setMenuOpen(false)}
-                className={linkClass("/director/overview")}
+                className={linkClass("/director/students")}
               >
-                School Overview
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/director/staff"
-                onClick={() => setMenuOpen(false)}
-                className={linkClass("/director/staff")}
-              >
-                Staff Management
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/director/reports"
-                onClick={() => setMenuOpen(false)}
-                className={linkClass("/director/reports")}
-              >
-                Reports
+                Students
               </Link>
             </li>
 
             <li className="mt-10">
               <SidebarFooter />
             </li>
+
           </ul>
         </div>
       </div>

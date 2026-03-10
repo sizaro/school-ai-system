@@ -12,6 +12,7 @@ export const DataProvider = ({ children }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [students, setStudents] = useState([]);
 
 
   const navigate = useNavigate();
@@ -203,7 +204,7 @@ const registerStudent = async (data) => {
         "Content-Type": "multipart/form-data",
       },
     });
-
+    await fetchStudents();
     return { success: true, data: res.data };
   } catch (err) {
     console.error("Error registering student:", err);
@@ -214,7 +215,17 @@ const registerStudent = async (data) => {
   }
 };
 
-
+const fetchStudents = async () => {
+  try {
+    const res = await axios.get(`${API_URL}/students`);
+    setStudents(res.data); 
+    console.log("Fetched students:", res.data); // 🔥 check the structure
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching students:", err);
+    throw err;
+  }
+};
   useEffect(() => {
   // Listen for new appointments
   socket.on("appointment_created", (payload) => {
@@ -233,6 +244,7 @@ const registerStudent = async (data) => {
       value={{
         user,
         users,
+        students,
         uploadMultipleFiles,
         fetchUsers,
         fetchUserById,
@@ -244,7 +256,8 @@ const registerStudent = async (data) => {
         logoutUser,
         forgotPassword,
         resetPassword,
-        registerStudent
+        registerStudent,
+        fetchStudents
       }}
     >
       {children}

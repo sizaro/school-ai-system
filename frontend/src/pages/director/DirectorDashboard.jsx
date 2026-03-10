@@ -1,16 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import FlexibleUpload from "../../components/forms/FlexibleUpload";
 import StudentWizard from "../../components/students/StudentWizard";
+import { useData } from "../../context/DataContext";
 
 export default function DirectorDashboard() {
+
   const [isWizardOpen, setIsWizardOpen] = useState(false);
 
-  // 🔥 MOCKED STUDENTS (temporary)
-  const [students] = useState([
-    { id: 1, name: "Amina K.", class: "P.3" },
-    { id: 2, name: "Daniel O.", class: "S.1" },
-    { id: 3, name: "Grace N.", class: "P.6" },
-  ]);
+  //get students + fetchStudents from context
+  const { students, fetchStudents } = useData();
+
+  //fetch students when dashboard loads
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  //recent students (last 5)
+  const recentStudents = students.slice(0, 5);
 
   return (
     <div className="p-6 space-y-8">
@@ -42,9 +48,11 @@ export default function DirectorDashboard() {
       {/* ================= STUDENT COUNT ================= */}
       <div className="bg-white rounded-xl shadow p-5">
         <h2 className="text-lg font-semibold">Students</h2>
+
         <p className="text-3xl font-bold text-blue-600 mt-2">
-          {students.length}
+          {students?.length || 0}
         </p>
+
         <p className="text-sm text-gray-500">
           Total registered students
         </p>
@@ -57,29 +65,39 @@ export default function DirectorDashboard() {
         </h2>
 
         <ul className="space-y-3 text-sm">
-          {students.map((student) => (
+
+          {recentStudents.map((student) => (
+
             <li
-              key={student.id}
+              key={student.student_id}
               className="flex justify-between border-b pb-2 last:border-none"
             >
               <span>
-                <span className="font-medium">{student.name}</span>{" "}
-                <span className="text-gray-500">({student.class})</span>
+                <span className="font-medium">
+                  {student.first_name} {student.last_name}
+                </span>{" "}
+                <span className="text-gray-500">
+                  ({student.class_level})
+                </span>
               </span>
             </li>
+
           ))}
+
         </ul>
       </div>
 
-      {/* ================= FILE UPLOAD (KEEP IT) ================= */}
+      {/* ================= FILE UPLOAD ================= */}
       <div className="bg-white rounded-xl shadow p-5">
         <h2 className="text-lg font-semibold mb-4">
           Upload Media (Video / PDF / Word)
         </h2>
+
         <FlexibleUpload />
+
       </div>
 
-      {/* ================= STUDENT WIZARD DRAWER ================= */}
+      {/* ================= STUDENT WIZARD ================= */}
       <StudentWizard
         isOpen={isWizardOpen}
         onClose={() => setIsWizardOpen(false)}

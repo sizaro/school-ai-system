@@ -1,15 +1,23 @@
-import express from 'express';
+import express from "express";
+import upload from "../middleware/upload.js";
+
 const router = express.Router();
-const {
+
+import {
   registerStudent,
   updateStudent,
   getStudents,
   getStudentById,
-} = require("../controllers/studentController");
+} from "../controllers/studentsController.js";
 
-router.post("/register", registerStudent);
+router.post(
+  "/register",
+  upload.single("student[photo]"),
+  registerStudent
+);
+
 router.put("/:id", updateStudent);
 router.get("/", getStudents);
 router.get("/:id", getStudentById);
 
-module.exports = router;
+export default router;

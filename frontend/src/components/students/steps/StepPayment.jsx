@@ -1,9 +1,18 @@
 import React from "react";
 
-export default function StepPayment({ formData }) {
+export default function StepPayment({ formData, setFormData }) {
   const student = formData.student;
   const guardian = formData.guardian;
   const medical = formData.medical;
+  const payment = formData.payment;
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      payment: { ...prev.payment, [name]: value },
+    }));
+  };
 
   return (
     <div className="space-y-6">
@@ -18,15 +27,28 @@ export default function StepPayment({ formData }) {
           <input
             name="registrationFee"
             type="number"
+            value={payment.registrationFee}
+            onChange={handleChange}
             placeholder="Registration Fee (UGX)"
             className="border rounded-lg p-2"
             required
+          />
+
+          <input
+            name="receiptNumber"
+            type="text"
+            value={payment.receiptNumber}
+            onChange={handleChange}
+            placeholder="Receipt Number"
+            className="border rounded-lg p-2"
           />
         </div>
 
         <input
           type="date"
           name="paymentDate"
+          value={payment.paymentDate}
+          onChange={handleChange}
           className="border rounded-lg p-2 w-full mt-4"
           required
         />
@@ -39,6 +61,16 @@ export default function StepPayment({ formData }) {
         </h3>
 
         <div className="border rounded-lg p-4 space-y-2 text-sm">
+          {student.photoPreview && (
+            <div className="mt-3 flex justify-center items-center">
+              <strong>{student.firstName}</strong>
+              <img
+                src={student.photoPreview}
+                alt="Student"
+                className="w-10 h-8 object-fit rounded-lg mt-2"
+              />
+            </div>
+          )}
           <p>
             <strong>Student:</strong>{" "}
             {student.firstName} {student.lastName}
@@ -72,16 +104,20 @@ export default function StepPayment({ formData }) {
             {medical.allergies || "None"}
           </p>
 
-          {student.photoPreview && (
-            <div className="mt-3">
-              <strong>Photo:</strong>
-              <img
-                src={student.photoPreview}
-                alt="Student"
-                className="w-full h-56 object-cover rounded-lg mt-2"
-              />
-            </div>
-          )}
+          <p>
+            <strong>Registration Fee:</strong>{" "}
+            {payment.registrationFee || "N/A"}
+          </p>
+
+          <p>
+            <strong>Receipt Number:</strong>{" "}
+            {payment.receiptNumber || "N/A"}
+          </p>
+
+          <p>
+            <strong>Payment Date:</strong>{" "}
+            {payment.paymentDate || "N/A"}
+          </p>
         </div>
       </div>
 

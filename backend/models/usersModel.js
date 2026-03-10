@@ -5,10 +5,9 @@ import db from './database.js';
  */
 export const fetchAllUsers = async () => {
   const query = `
-    SELECT u.*,
-           (u.created_at AT TIME ZONE 'Africa/Kampala') AS user_time
-    FROM users u
-    ORDER BY u.id ASC;
+    SELECT *
+    FROM users
+    ORDER BY id ASC;
   `;
   const result = await db.query(query);
   return result.rows;
@@ -27,118 +26,57 @@ export const fetchUserById = async (id) => {
  * Save new user
  */
 export const saveUser = async ({
-  first_name,
-  middle_name,
-  last_name,
   email,
   password,
-  birthdate,
-  contact,
-  next_of_kin,
-  next_of_kin_contact,
   role,
-  specialty,
-  status,
-  bio,
-  image_url
 }) => {
   const query = `
-    INSERT INTO users 
-      (
-        first_name, middle_name, last_name, email, password, 
-        birthdate, contact, next_of_kin, next_of_kin_contact, 
-        role, specialty, status, bio, image_url, created_at
-      ) 
-    VALUES 
-      ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,NOW())
+    INSERT INTO users (email, password, role, created_at)
+    VALUES ($1, $2, $3, NOW())
     RETURNING *;
   `;
 
   const values = [
-    first_name || null,
-    middle_name || null,
-    last_name || null,
-    email || null,
-    password || null,
-    birthdate || null,
-    contact || null,
-    next_of_kin || null,
-    next_of_kin_contact || null,
-    role || 'customer',
-    specialty || null,
-    status || 'active',
-    bio || null,
-    image_url
+    email,
+    password,
+    role || 'student'
   ];
 
   const result = await db.query(query, values);
   return result.rows[0];
 };
-export const UpdateUserById = async (data) => {
-  let {
-    id,
-    first_name,
-    middle_name,
-    last_name,
-    email,
-    password,
-    birthdate,
-    contact,
-    next_of_kin,
-    next_of_kin_contact,
-    role,
-    specialty,
-    status,
-    bio,
-    image_url,
-  } = data;
 
-  // Ensure ID is a valid integer
+/**
+ * Update user by ID
+ */
+export const UpdateUserById = async (data) => {
+  let { id, email, password, role } = data;
+
   id = parseInt(id, 10);
   if (isNaN(id)) {
-    throw new Error("Invalid user ID (NaN or undefined)");
+    throw new Error("Invalid user ID");
   }
 
-  // Base fields to update
-  const fields = [
-    "first_name = $1",
-    "middle_name = $2",
-    "last_name = $3",
-    "email = $4",
-    "password = $5",
-    "birthdate = $6",
-    "contact = $7",
-    "next_of_kin = $8",
-    "next_of_kin_contact = $9",
-    "role = $10",
-    "specialty = $11",
-    "status = $12",
-    "bio = $13",
-  ];
+  const fields = [];
+  const values = [];
 
-  const values = [
-    first_name || null,
-    middle_name || null,
-    last_name || null,
-    email || null,
-    password || null,
-    birthdate || null,
-    contact || null,
-    next_of_kin || null,
-    next_of_kin_contact || null,
-    role || "customer",
-    specialty || null,
-    status || "active",
-    bio || null,
-  ];
-
-  // Only update image_url if it’s explicitly provided
-  if (image_url !== undefined && image_url !== "") {
-    fields.push(`image_url = $${fields.length + 1}`);
-    values.push(image_url);
+  if (email !== undefined) {
+    fields.push(`email = $${fields.length + 1}`);
+    values.push(email);
   }
 
-  // Add id for WHERE clause
+  if (password !== undefined) {
+    fields.push(`password = $${fields.length + 1}`);
+    values.push(password);
+  }
+
+  if (role !== undefined) {
+    fields.push(`role = $${fields.length + 1}`);
+    values.push(role);
+  }
+
+  if (!fields.length) return;
+
   values.push(id);
 
   const query = `
@@ -148,16 +86,12 @@ export const UpdateUserById = async (data) => {
     RETURNING *;
   `;
 
-  console.log("Final SQL:", query);
-  console.log("Values:", values);
-
   const result = await db.query(query, values);
   return result.rows[0];
 };
 
-
 /**
- * Delete user by ID
+ * Delete user
  */
 export const DeleteUserById = async (id) => {
   const query = `DELETE FROM users WHERE id = $1 RETURNING *;`;
@@ -165,25 +99,24 @@ export const DeleteUserById = async (id) => {
   return result.rows[0];
 };
 
+/**
+ * Find user by email
+ */
 export const findUserByEmail = async (email) => {
-  const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-  return result.rows[0];
-};
-
-export const findUserById = async (id) => {
   const result = await db.query(
-    "SELECT id, first_name, last_name, email, role FROM users WHERE id=$1",
-    [id]
+    "SELECT * FROM users WHERE email = $1",
+    [email]
   );
   return result.rows[0];
 };
 
-export default {
-  fetchAllUsers,
-  fetchUserById,
-  saveUser,
-  UpdateUserById,
-  DeleteUserById,
-  findUserByEmail,
-  findUserById
+/**
+ * Find user by ID (login/session)
+ */
+export const findUserById = async (id) => {
+  const result = await db.query(
+    "SELECT id, email, role FROM users WHERE id = $1",
+    [id]
+  );
+  return result.rows[0];
 };

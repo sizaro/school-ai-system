@@ -109,14 +109,16 @@ export default function StudentWizard({ isOpen, onClose, student = null }) {
           )}
 
           {step === 3 && (
-            <StepMedicalReview
-              formData={formData}
-            />
-          )}
+          <StepMedicalReview
+            formData={formData}
+            setFormData={setFormData}
+          />
+        )}
 
           {step === 4 && (
             <StepPayment
               formData={formData}
+              setFormData={setFormData}
             />
           )}
         </div>

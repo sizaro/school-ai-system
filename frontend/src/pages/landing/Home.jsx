@@ -41,7 +41,7 @@ export default function Home() {
       {/* ================= HERO SECTION ================= */}
       <header className="relative w-full h-[80vh] overflow-hidden">
   <img
-    src="/images/hero1.jpg"
+    src="/images/hero1.jpeg"
     alt="School Hero"
     className="w-full h-full object-cover brightness-75"
   />
