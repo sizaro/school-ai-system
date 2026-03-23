@@ -136,89 +136,110 @@ export default function Navbar() {
         </button>
 
         {/* NAV LINKS */}
-        <div
-          className={`${menuOpen ? "block" : "hidden"} absolute md:static top-24 left-0 w-full md:w-auto bg-white md:flex md:items-center md:gap-4 shadow md:shadow-none z-40`}
+        {/* NAV LINKS */}
+<div
+  className={`${menuOpen ? "block" : "hidden"} absolute md:static top-24 left-0 w-full md:w-auto bg-white md:flex md:items-center md:gap-4 shadow md:shadow-none z-40`}
+>
+
+  {/* MAIN LINKS */}
+  {[
+    ["/", "Home"],
+    ["/about", "About"],
+    ["/admissions", "Admissions"],
+    ["/academics", "Academics"],
+    ["/contact", "Contact"],
+  ].map(([path, label]) => (
+    <NavLink
+      key={path}
+      to={path}
+      className={navLinkClass}
+    >
+      {label}
+    </NavLink>
+  ))}
+
+  {/* MORE DROPDOWN */}
+  <div className="relative" ref={moreRef}>
+
+    <button
+      onClick={toggleMore}
+      className="px-3 py-2 text-gray-700 hover:text-blue-600"
+    >
+      More ▼
+    </button>
+
+    {moreOpen && (
+      <div className="absolute bg-white shadow-lg rounded-md mt-1 w-48">
+
+        <NavLink
+          to="/tuition"
+          className="block px-4 py-2 hover:bg-gray-100"
         >
-          {/* ALWAYS VISIBLE */}
-          {[
-            ["/", "Home"],
-            ["/about", "About"],
-            ["/admissions", "Admissions"],
-            ["/academics", "Academics"],
-          ].map(([path, label]) => (
-            <NavLink
-              key={path}
-              to={path}
-              className="block px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600"
-            >
-              {label}
-            </NavLink>
-          ))}
+          School Fees
+        </NavLink>
 
-          {/* LG ONLY LINKS */}
-          <div className="hidden lg:flex gap-4">
-            <NavLink to="/tuition">School Fees</NavLink>
-            <NavLink to="/school-life">School Life</NavLink>
-            <NavLink to="/alumni">Alumni</NavLink>
-            <NavLink to="/contact">Contact</NavLink>
+        <NavLink
+          to="/school-life"
+          className="block px-4 py-2 hover:bg-gray-100"
+        >
+          School Life
+        </NavLink>
 
-            {/* NEWS */}
-            <div className="relative" ref={newsRef}>
-              <button onClick={toggleNews}>News & Events ▼</button>
-              {newsOpen && (
-                <div className="absolute bg-white shadow rounded mt-1">
-                  <NavLink to="/news" className="block px-4 py-2">News</NavLink>
-                  <NavLink to="/events" className="block px-4 py-2">Events</NavLink>
-                </div>
-              )}
-            </div>
-          </div>
+        <NavLink
+          to="/alumni"
+          className="block px-4 py-2 hover:bg-gray-100"
+        >
+          Alumni
+        </NavLink>
 
-          {/* MD ONLY MORE */}
-          <div className="hidden md:block lg:hidden relative" ref={moreRef}>
-            <button onClick={toggleMore} className="px-3 py-2">
-              More ▼
-            </button>
+        <NavLink
+          to="/news"
+          className="block px-4 py-2 hover:bg-gray-100"
+        >
+          News
+        </NavLink>
 
-            {moreOpen && (
-              <div className="absolute bg-white shadow rounded mt-1 w-48">
-                <NavLink to="/tuition">School Fees</NavLink>
-                <NavLink to="/school-life" className="block px-4 py-2">School Life</NavLink>
-                <NavLink to="/alumni" className="block px-4 py-2">Alumni</NavLink>
-                <NavLink to="/contact" className="block px-4 py-2">Contact</NavLink>
-                <NavLink to="/news" className="block px-4 py-2">News</NavLink>
-                <NavLink to="/events" className="block px-4 py-2">Events</NavLink>
-              </div>
-            )}
-          </div>
+        <NavLink
+          to="/events"
+          className="block px-4 py-2 hover:bg-gray-100"
+        >
+          Events
+        </NavLink>
 
-          {/* ACCOUNT */}
-          <div className="relative ml-4" ref={accountRef}>
-            <button
-              onClick={toggleAccount}
-              className="bg-blue-600 text-white px-4 py-2 rounded"
-            >
-              Account
-            </button>
+      </div>
+    )}
 
-            {accountOpen && (
-              <div className="absolute bg-white shadow rounded mt-1 w-35">
-                <button
-                  className="block w-full text-left px-4 py-2"
-                  onClick={() => setLoginOpen(true)}
-                >
-                  Sign In
-                </button>
-                <button
-                  className="block w-full text-left px-4 py-2"
-                  onClick={() => setRegisterOpen(true)}
-                >
-                  Create Account
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+  </div>
+
+  {/* ACCOUNT */}
+  <div className="relative ml-4" ref={accountRef}>
+    <button
+      onClick={toggleAccount}
+      className="bg-blue-600 text-white px-4 py-2 rounded"
+    >
+      Account
+    </button>
+
+    {accountOpen && (
+      <div className="absolute bg-white shadow rounded mt-1 w-36">
+        <button
+          className="block w-full text-left px-4 py-2"
+          onClick={() => setLoginOpen(true)}
+        >
+          Sign In
+        </button>
+
+        <button
+          className="block w-full text-left px-4 py-2"
+          onClick={() => setRegisterOpen(true)}
+        >
+          Create Account
+        </button>
+      </div>
+    )}
+  </div>
+
+</div>
       </div>
 
       {/* MODALS */}

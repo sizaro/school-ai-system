@@ -8,6 +8,7 @@ import {
   updateStudent,
   getStudents,
   getStudentById,
+  deleteStudent,
 } from "../controllers/studentsController.js";
 
 router.post(
@@ -19,5 +20,6 @@ router.post(
 router.put("/:id", updateStudent);
 router.get("/", getStudents);
 router.get("/:id", getStudentById);
+router.delete("/:id", deleteStudent);
 
 export default router;

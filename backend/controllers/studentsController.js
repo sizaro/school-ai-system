@@ -6,6 +6,7 @@ import {
   updateStudentById,
   fetchAllStudents,
   fetchStudentById,
+  deleteStudentById,
 } from "../models/studentsModel.js";
 
 /**
@@ -89,5 +90,19 @@ export const getStudentById = async (req, res) => {
     res.json(row);
   } catch (err) {
     res.status(500).json({ error: "Failed" });
+  }
+};
+
+
+export const deleteStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await deleteStudentById(id);
+
+    res.json({ success: true, message: "Student deleted" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Delete failed" });
   }
 };

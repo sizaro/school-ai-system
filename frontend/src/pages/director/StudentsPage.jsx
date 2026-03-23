@@ -187,10 +187,6 @@ export default function StudentsPage() {
                     View
                   </button>
 
-                  <button className="text-green-600 hover:underline">
-                    Edit
-                  </button>
-
                   <button className="text-red-600 hover:underline">
                     Delete
                   </button>

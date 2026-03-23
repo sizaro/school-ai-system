@@ -240,14 +240,88 @@ export const fetchAllStudents = async () => {
 /**
  * FETCH STUDENT BY ID
  */
+
 export const fetchStudentById = async (id) => {
   const query = `
-    SELECT s.*, u.email
+    SELECT 
+      -- STUDENT
+      s.id AS student_id,
+      s.first_name,
+      s.last_name,
+      s.gender,
+      s.date_of_birth,
+      s.photo_url,
+      s.created_at,
+
+      -- USER
+      u.email,
+
+      -- MEDICAL
+      m.blood_group,
+      m.medical_conditions,
+      m.allergies,
+
+      -- GUARDIAN
+      g.first_name AS guardian_first_name,
+      g.last_name AS guardian_last_name,
+      g.phone AS guardian_phone,
+
+      -- ADMISSION
+      a.class_level,
+      a.stream,
+      a.admission_date,
+
+      -- PAYMENT
+      p.amount,
+      p.payment_date
+
     FROM students s
+
     LEFT JOIN users u ON s.user_id = u.id
+    LEFT JOIN medical m ON m.user_id = u.id
+    LEFT JOIN student_guardians sg ON sg.student_id = s.id
+    LEFT JOIN guardians g ON g.id = sg.guardian_id
+    LEFT JOIN admissions a ON a.student_id = s.id
+    LEFT JOIN payments p ON p.student_id = s.id
+
     WHERE s.id = $1;
   `;
 
   const result = await db.query(query, [id]);
+
   return result.rows[0];
+};
+
+
+/**
+ * DELETE STUDENT (SAFE DELETE WITH RELATIONS)
+ */
+export const deleteStudentById = async (id) => {
+  try {
+    await db.query("BEGIN");
+
+    // delete dependent records first (VERY IMPORTANT)
+    await db.query("DELETE FROM payments WHERE student_id = $1", [id]);
+    await db.query("DELETE FROM admissions WHERE student_id = $1", [id]);
+
+    await db.query(
+      "DELETE FROM student_guardians WHERE student_id = $1",
+      [id]
+    );
+
+    await db.query(
+      "DELETE FROM medical WHERE user_id = (SELECT user_id FROM students WHERE id = $1)",
+      [id]
+    );
+
+    // finally delete student
+    await db.query("DELETE FROM students WHERE id = $1", [id]);
+
+    await db.query("COMMIT");
+
+    return { success: true };
+  } catch (err) {
+    await db.query("ROLLBACK");
+    throw err;
+  }
 };

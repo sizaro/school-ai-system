@@ -13,6 +13,7 @@ export const DataProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [students, setStudents] = useState([]);
+  const [studentProfile, setStudentProfile] = useState(null);
 
 
   const navigate = useNavigate();
@@ -226,6 +227,32 @@ const fetchStudents = async () => {
     throw err;
   }
 };
+
+const fetchStudentById = async (id) => {
+  try {
+    const res = await axios.get(`${API_URL}/students/${id}`);
+    setStudentProfile(res.data);
+    console.log("Student profile:", res.data); // 👈 for debugging
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching student:", err);
+    throw err;
+  }
+};
+
+
+
+const deleteStudent = async (id) => {
+  try {
+    await axios.delete(`${API_URL}/students/${id}`);
+    await fetchStudents(); // refresh list
+  } catch (err) {
+    console.error("Error deleting student:", err);
+    throw err;
+  }
+};
+
+
   useEffect(() => {
   // Listen for new appointments
   socket.on("appointment_created", (payload) => {
@@ -245,6 +272,7 @@ const fetchStudents = async () => {
         user,
         users,
         students,
+        studentProfile,
         uploadMultipleFiles,
         fetchUsers,
         fetchUserById,
@@ -257,7 +285,9 @@ const fetchStudents = async () => {
         forgotPassword,
         resetPassword,
         registerStudent,
-        fetchStudents
+        fetchStudents,
+        fetchStudentById,
+        deleteStudent,
       }}
     >
       {children}
