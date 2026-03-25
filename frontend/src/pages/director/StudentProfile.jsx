@@ -1,124 +1,105 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import { useData } from "../../context/DataContext";
+import SectionCard from "../../components/common/SectionCard";
+import EditStudentModal from "../../components/students/EditStudentModal";
+import EditGuardianModal from "../../components/students/EditGuardianModal";
+import EditMedicalModal from "../../components/students/EditMedicalModal";
+import EditAdmissionModal from "../../components/students/EditAdmissionModal";
 
-export default function StudentProfile() {
-  const { id } = useParams();
+export default function StudentProfile({ studentId }) {
+  const { fetchStudentById } = useData();
 
-  const { studentProfile, fetchStudentById } = useData();
-
+  const [studentProfile, setStudentProfile] = useState(null);
   const [activeSection, setActiveSection] = useState(null);
 
+  // Fetch student data when page loads
   useEffect(() => {
-    fetchStudentById(id);
-  }, [id]);
+    const loadStudent = async () => {
+      const data = await fetchStudentById(studentId);
+      setStudentProfile(data);
+    };
+    loadStudent();
+  }, [studentId]);
 
   if (!studentProfile) return <p>Loading...</p>;
 
   return (
-    <div className="space-y-6">
-
-      {/* HEADER */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">
-          {studentProfile.first_name} {studentProfile.last_name}
-        </h1>
-      </div>
+    <div className="space-y-6 p-6">
+      <h1 className="text-2xl font-bold text-gray-800">Student Profile</h1>
 
       {/* ================= STUDENT INFO ================= */}
-      <Section
-        title="Student Information"
+      <SectionCard
+        title="Student Info"
         onEdit={() => setActiveSection("student")}
       >
-        <p>Email: {studentProfile.email}</p>
+        <p>Name: {studentProfile.first_name} {studentProfile.last_name}</p>
         <p>Gender: {studentProfile.gender}</p>
         <p>DOB: {studentProfile.date_of_birth}</p>
-      </Section>
+      </SectionCard>
 
-      {/* ================= GUARDIAN ================= */}
-      <Section
-        title="Guardian"
+      {/* ================= GUARDIAN INFO ================= */}
+      <SectionCard
+        title="Guardian Info"
         onEdit={() => setActiveSection("guardian")}
       >
-        <p>
-          {studentProfile.guardian_first_name}{" "}
-          {studentProfile.guardian_last_name}
-        </p>
-        <p>{studentProfile.guardian_phone}</p>
-      </Section>
+        <p>Name: {studentProfile.guardian_first_name} {studentProfile.guardian_last_name}</p>
+        <p>Phone: {studentProfile.guardian_phone}</p>
+        <p>Relationship: {studentProfile.relationship}</p>
+      </SectionCard>
 
-      {/* ================= ADMISSION ================= */}
-      <Section
-        title="Admission"
+      {/* ================= MEDICAL INFO ================= */}
+      <SectionCard
+        title="Medical Info"
+        onEdit={() => setActiveSection("medical")}
+      >
+        <p>Blood Group: {studentProfile.blood_group}</p>
+        <p>Medical Conditions: {studentProfile.medical_conditions}</p>
+        <p>Allergies: {studentProfile.allergies}</p>
+      </SectionCard>
+
+      {/* ================= ADMISSION INFO ================= */}
+      <SectionCard
+        title="Admission Info"
         onEdit={() => setActiveSection("admission")}
       >
         <p>Class: {studentProfile.class_level}</p>
         <p>Stream: {studentProfile.stream}</p>
-        <p>Date: {studentProfile.admission_date}</p>
-      </Section>
+        <p>Admission Date: {studentProfile.admission_date}</p>
+        <p>Registration Fee: {studentProfile.registration_fee}</p>
+      </SectionCard>
 
-      {/* ================= MEDICAL ================= */}
-      <Section
-        title="Medical"
-        onEdit={() => setActiveSection("medical")}
-      >
-        <p>Blood Group: {studentProfile.blood_group}</p>
-        <p>Conditions: {studentProfile.medical_conditions}</p>
-        <p>Allergies: {studentProfile.allergies}</p>
-      </Section>
-
-      {/* ================= PAYMENT ================= */}
-      <Section
-        title="Payment"
-        onEdit={() => setActiveSection("payment")}
-      >
-        <p>Amount: {studentProfile.amount}</p>
-        <p>Date: {studentProfile.payment_date}</p>
-      </Section>
-
-      {/*FUTURE: MODALS PER SECTION */}
-      {activeSection && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-          <div className="bg-white p-6 rounded shadow w-96">
-            <h2 className="text-lg font-bold mb-4">
-              Edit {activeSection}
-            </h2>
-
-            <p className="text-sm text-gray-500">
-              (Form coming next...)
-            </p>
-
-            <button
-              onClick={() => setActiveSection(null)}
-              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
-            >
-              Close
-            </button>
-          </div>
-        </div>
+      {/* ================= MODALS ================= */}
+      {activeSection === "student" && (
+        <EditStudentModal
+          student={studentProfile}
+          onClose={() => setActiveSection(null)}
+          onUpdated={setStudentProfile}
+        />
       )}
 
-    </div>
-  );
-}
+      {activeSection === "guardian" && (
+        <EditGuardianModal
+          student={studentProfile}
+          onClose={() => setActiveSection(null)}
+          onUpdated={setStudentProfile}
+        />
+      )}
 
-/**
- * REUSABLE SECTION COMPONENT
- */
-function Section({ title, children, onEdit }) {
-  return (
-    <div className="bg-white p-4 rounded shadow">
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="font-semibold">{title}</h2>
-        <button
-          onClick={onEdit}
-          className="text-blue-600 text-sm hover:underline"
-        >
-          Edit
-        </button>
-      </div>
+      {activeSection === "medical" && (
+        <EditMedicalModal
+          student={studentProfile}
+          onClose={() => setActiveSection(null)}
+          onUpdated={setStudentProfile}
+        />
+      )}
 
-      {children}
+      {activeSection === "admission" && (
+        <EditAdmissionModal
+          student={studentProfile}
+          onClose={() => setActiveSection(null)}
+          onUpdated={setStudentProfile}
+        />
+      )}
     </div>
   );
 }

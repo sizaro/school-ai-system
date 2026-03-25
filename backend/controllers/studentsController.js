@@ -7,6 +7,9 @@ import {
   fetchAllStudents,
   fetchStudentById,
   deleteStudentById,
+  updateGuardianByStudentId,
+  updateMedicalByStudentId,
+  updateAdmissionByStudentId,
 } from "../models/studentsModel.js";
 
 /**
@@ -104,5 +107,58 @@ export const deleteStudent = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Delete failed" });
+  }
+};
+
+
+
+// ===============================
+// UPDATE GUARDIAN
+// ===============================
+export const updateGuardian = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { guardian } = req.body;
+
+    const updated = await updateGuardianByStudentId(id, guardian);
+
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    console.error("Guardian update error:", err);
+    res.status(500).json({ error: "Guardian update failed" });
+  }
+};
+
+// ===============================
+// UPDATE MEDICAL
+// ===============================
+export const updateMedical = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { medical } = req.body;
+
+    const updated = await updateMedicalByStudentId(id, medical);
+
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    console.error("Medical update error:", err);
+    res.status(500).json({ error: "Medical update failed" });
+  }
+};
+
+// ===============================
+// UPDATE ADMISSION
+// ===============================
+export const updateAdmission = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { admission } = req.body;
+
+    const updated = await updateAdmissionByStudentId(id, admission);
+
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    console.error("Admission update error:", err);
+    res.status(500).json({ error: "Admission update failed" });
   }
 };

@@ -325,3 +325,85 @@ export const deleteStudentById = async (id) => {
     throw err;
   }
 };
+
+
+// ===============================
+// UPDATE GUARDIAN BY STUDENT ID
+// ===============================
+export const updateGuardianByStudentId = async (studentId, data) => {
+  const query = `
+    UPDATE guardians SET
+      first_name = $1,
+      last_name = $2,
+      phone = $3
+    WHERE id = (
+      SELECT guardian_id
+      FROM student_guardians
+      WHERE student_id = $4 AND is_primary = true
+      LIMIT 1
+    )
+    RETURNING *;
+  `;
+
+  const values = [
+    data.firstName,
+    data.lastName,
+    data.phone,
+    studentId,
+  ];
+
+  const result = await db.query(query, values);
+  return result.rows[0];
+};
+
+// ===============================
+// UPDATE MEDICAL BY STUDENT ID
+// ===============================
+export const updateMedicalByStudentId = async (studentId, data) => {
+  const query = `
+    UPDATE medical SET
+      blood_group = $1,
+      medical_conditions = $2,
+      allergies = $3
+    WHERE user_id = (
+      SELECT user_id FROM students WHERE id = $4
+    )
+    RETURNING *;
+  `;
+
+  const values = [
+    data.bloodGroup,
+    data.medicalConditions,
+    data.allergies,
+    studentId,
+  ];
+
+  const result = await db.query(query, values);
+  return result.rows[0];
+};
+
+// ===============================
+// UPDATE ADMISSION BY STUDENT ID
+// ===============================
+export const updateAdmissionByStudentId = async (studentId, data) => {
+  const query = `
+    UPDATE admissions SET
+      class_level = $1,
+      stream = $2,
+      admission_date = $3,
+      registration_fee = $4
+    WHERE student_id = $5
+    RETURNING *;
+  `;
+
+  const values = [
+    data.classLevel,
+    data.stream,
+    data.admissionDate,
+    data.registrationFee,
+    studentId,
+  ];
+
+  const result = await db.query(query, values);
+  return result.rows[0];
+};

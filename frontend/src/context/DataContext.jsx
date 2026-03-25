@@ -252,6 +252,29 @@ const deleteStudent = async (id) => {
   }
 };
 
+const updateStudent = async (studentId, data) => {
+  await axios.put(`${API_URL}/students/${studentId}`, data);
+  const updated = await fetchStudentById(studentId);
+  setStudentProfile(updated);
+};
+
+const updateGuardian = async (studentId, data) => {
+  await axios.put(`${API_URL}/students/${studentId}/guardian`, data);
+  const updated = await fetchStudentById(studentId);
+  setStudentProfile(updated);
+};
+
+const updateMedical = async (studentId, data) => {
+  await axios.put(`${API_URL}/students/${studentId}/medical`, data);
+  const updated = await fetchStudentById(studentId);
+  setStudentProfile(updated);
+};
+
+const updateAdmission = async (studentId, data) => {
+  await axios.put(`${API_URL}/students/${studentId}/admission`, data);
+  const updated = await fetchStudentById(studentId);
+  setStudentProfile(updated);
+};
 
   useEffect(() => {
   // Listen for new appointments
