@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { useData } from "../../context/DataContext";
+import { useNavigate } from "react-router-dom";
+
 
 export default function StudentsPage() {
 
   const { students, fetchStudents } = useData();
+  const navigate = useNavigate();
 
   const [search, setSearch] = useState("");
   const [classFilter, setClassFilter] = useState("");
@@ -11,6 +14,8 @@ export default function StudentsPage() {
   useEffect(() => {
     fetchStudents();
   }, []);
+
+  console.log("students in page", students)
 
   // 🔥 Filter students
   const filteredStudents = students.filter((student) => {
@@ -183,11 +188,21 @@ export default function StudentsPage() {
 
                 <td className="p-3 space-x-2">
 
-                  <button className="text-blue-600 hover:underline">
+                  <button
+                    className="text-blue-600 hover:underline"
+                    onClick={() => navigate(`/director/students/${student.student_id}`)}
+                  >
                     View
                   </button>
 
-                  <button className="text-red-600 hover:underline">
+                  <button
+                    className="text-red-600 hover:underline"
+                    onClick={async () => {
+                      if (confirm("Are you sure you want to delete this student?")) {
+                        await deleteStudent(student.student_id);
+                      }
+                    }}
+                  >
                     Delete
                   </button>
 

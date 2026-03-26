@@ -1,9 +1,11 @@
 import { Routes, Route } from "react-router-dom";
 import DirectorSidebar from "../sidebars/DirectorSidebar.jsx";
 
+
 // Pages
 import DirectorDashboard from "../../pages/director/DirectorDashboard.jsx";
 import StudentsPage from "../../pages/director/StudentsPage.jsx";
+import StudentProfile from "../../pages/director/StudentProfile.jsx";
 
 const DirectorLayout = () => {
   return (
@@ -58,6 +60,7 @@ const DirectorLayout = () => {
         <Route index element={<DirectorDashboard />} />
         <Route path="dashboard" element={<DirectorDashboard />} />
         <Route path="students" element={<StudentsPage />} />
+        <Route path="students/:id" element={<StudentProfile />} />
       </Routes>
     </main>
     </div>

@@ -261,7 +261,7 @@ export const fetchStudentById = async (id) => {
       m.medical_conditions,
       m.allergies,
 
-      -- GUARDIAN
+      -- GUARDIAN (only primary)
       g.first_name AS guardian_first_name,
       g.last_name AS guardian_last_name,
       g.phone AS guardian_phone,
@@ -271,18 +271,33 @@ export const fetchStudentById = async (id) => {
       a.stream,
       a.admission_date,
 
-      -- PAYMENT
+      -- LATEST PAYMENT
       p.amount,
       p.payment_date
 
     FROM students s
 
+    -- USER linked via user_id
     LEFT JOIN users u ON s.user_id = u.id
-    LEFT JOIN medical m ON m.user_id = u.id
-    LEFT JOIN student_guardians sg ON sg.student_id = s.id
+
+    -- MEDICAL linked via user_id from students table
+    LEFT JOIN medical m ON m.user_id = s.user_id
+
+    -- STUDENT GUARDIAN
+    LEFT JOIN student_guardians sg ON sg.student_id = s.id AND sg.is_primary = true
     LEFT JOIN guardians g ON g.id = sg.guardian_id
+
+    -- ADMISSION
     LEFT JOIN admissions a ON a.student_id = s.id
-    LEFT JOIN payments p ON p.student_id = s.id
+
+    -- LATEST PAYMENT (if any)
+    LEFT JOIN LATERAL (
+      SELECT amount, payment_date
+      FROM payments
+      WHERE student_id = s.id
+      ORDER BY payment_date DESC
+      LIMIT 1
+    ) p ON true
 
     WHERE s.id = $1;
   `;

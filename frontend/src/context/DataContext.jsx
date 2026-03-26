@@ -230,9 +230,10 @@ const fetchStudents = async () => {
 
 const fetchStudentById = async (id) => {
   try {
+    console.log("Student profile Id :", id);
     const res = await axios.get(`${API_URL}/students/${id}`);
     setStudentProfile(res.data);
-    console.log("Student profile:", res.data); // 👈 for debugging
+    console.log("Student profile:", res.data);
     return res.data;
   } catch (err) {
     console.error("Error fetching student:", err);

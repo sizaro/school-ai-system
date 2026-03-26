@@ -15,8 +15,8 @@ export default function EditAdmissionModal({ student, onClose, onUpdated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await updateAdmission(student.id, formData, student.id);
-    const updated = await updateAdmission(student.id, formData, student.id);
+    await updateAdmission(student.id, formData);
+    const updated = await updateAdmission(student.id, formData);
     onUpdated(updated);
     onClose();
   };
