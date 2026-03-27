@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import { useData } from "../../context/DataContext";
 
-export default function EditPhotoModal({ student, onClose, positionRef }) {
+export default function EditPhotoModal({ student, onClose, positionRef, onView }) {
   const { updateStudentPhoto } = useData(); // function from context
   const menuRef = useRef();
   const [option, setOption] = useState(""); // current option selected
@@ -23,8 +23,9 @@ export default function EditPhotoModal({ student, onClose, positionRef }) {
   }, [onClose, positionRef]);
 
   const handleView = () => {
-    if (student.photo_url) window.open(student.photo_url, "_blank");
-  };
+  onClose();
+  onView();
+};
 
   const handleUpload = async (e) => {
     const selectedFile = e.target.files[0];

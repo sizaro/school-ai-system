@@ -15,6 +15,7 @@ export default function StudentProfile() {
   const [studentProfile, setStudentProfile] = useState(null);
   const [activeSection, setActiveSection] = useState(null);
   const [showPhotoMenu, setShowPhotoMenu] = useState(false);
+  const [viewPhoto, setViewPhoto] = useState(false);
   const imageRef = useRef();
 
   useEffect(() => {
@@ -39,13 +40,17 @@ export default function StudentProfile() {
       <h1 className="text-2xl font-bold text-gray-800">Student Profile</h1>
 
       {/* ================= STUDENT PHOTO ================= */}
-       <div className="relative w-24 h-24">
+       <div className="relative w-54 h-34">
       <img
-        ref={imageRef}
-        src={studentProfile.photo_url || "/images/default-student.png"}
-        alt="Student"
-        className="w-24 h-24 rounded-full object-cover border-2 border-blue-500"
-      />
+  ref={imageRef}
+  src={
+    studentProfile.photo_url
+      ? `http://localhost:5500${studentProfile.photo_url}`
+      : "/images/default-student.png"
+  }
+  alt="Student"
+  className="w-54 h-28 rounded-full object-cover border-2 border-blue-500"
+/>
 
       <button
         onClick={() => setShowPhotoMenu(!showPhotoMenu)}
@@ -55,13 +60,31 @@ export default function StudentProfile() {
       </button>
 
       {showPhotoMenu && (
-        <EditPhotoModal
-          student={studentProfile}
-          onClose={() => setShowPhotoMenu(false)}
-          positionRef={imageRef}
-        />
-      )}
+  <EditPhotoModal
+    student={studentProfile}
+    onClose={() => setShowPhotoMenu(false)}
+    positionRef={imageRef}
+    onView={() => setViewPhoto(true)}
+  />
+)}
     </div>
+    {viewPhoto && (
+  <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+    <div className="relative">
+      <img
+        src={`http://localhost:5500${studentProfile.photo_url}`}
+        alt="Full"
+        className="max-h-[90vh] max-w-[90vw] rounded shadow-lg"
+      />
+      <button
+        onClick={() => setViewPhoto(false)}
+        className="absolute top-2 right-2 bg-white px-2 py-1 rounded"
+      >
+        ✖
+      </button>
+    </div>
+  </div>
+)}
 
       {/* ================= STUDENT INFO SECTIONS ================= */}
       <SectionCard
