@@ -4,10 +4,10 @@ import { useData } from "../../context/DataContext";
 export default function EditPhotoModal({ student, onClose, positionRef, onView }) {
   const { updateStudentPhoto } = useData(); // function from context
   const menuRef = useRef();
-  const [option, setOption] = useState(""); // current option selected
-  const [file, setFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
-  // Close if click outside the menu
+  // Close if click outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -23,34 +23,56 @@ export default function EditPhotoModal({ student, onClose, positionRef, onView }
   }, [onClose, positionRef]);
 
   const handleView = () => {
-  onClose();
-  onView();
-};
-
-  const handleUpload = async (e) => {
-    const selectedFile = e.target.files[0];
-    if (!selectedFile) return;
-    // For demo: assuming updateStudentPhoto accepts a file and updates the URL
-    const updated = await updateStudentPhoto(student.student_id, selectedFile);
-    console.log("Photo updated:", updated);
     onClose();
+    onView();
   };
 
-  const handleTake = () => {
-    console.log("Open camera functionality here");
-    onClose();
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    console.log("Selected file:", file);
+    if (file) setSelectedFile(file);
+  };
+
+  const handleSave = async () => {
+    if (!selectedFile) return;
+    setUploading(true);
+    try {
+      // Backend expects FormData
+      const formData = new FormData();
+      formData.append("photo", selectedFile);
+      const updated = await updateStudentPhoto(student.student_id, formData);
+      console.log("Photo updated:", updated);
+      setSelectedFile(null);
+      onClose();
+    } catch (err) {
+      console.error("Upload failed:", err);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleRemove = async () => {
-    await updateStudentPhoto(student.student_id, null); // null to remove photo
-    console.log("Photo removed");
+    setUploading(true);
+    try {
+      await updateStudentPhoto(student.student_id, null); // remove photo
+      console.log("Photo removed");
+      onClose();
+    } catch (err) {
+      console.error("Remove failed:", err);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleTakePhoto = () => {
+    console.log("Open camera functionality here");
     onClose();
   };
 
   return (
     <div
       ref={menuRef}
-      className="absolute top-full left-0 mt-1 w-44 bg-white border rounded shadow z-50"
+      className="absolute top-full left-0 mt-1 w-56 bg-white border rounded shadow z-50 p-2"
     >
       <button
         className="w-full text-left px-4 py-2 hover:bg-gray-100"
@@ -59,26 +81,41 @@ export default function EditPhotoModal({ student, onClose, positionRef, onView }
         View Photo
       </button>
 
-      {/* Upload Input hidden but triggers modal */}
-      <label className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
+      <label className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer mt-1 block">
         Upload Photo
         <input
           type="file"
           className="hidden"
-          onChange={handleUpload}
+          onChange={handleFileChange}
           accept="image/*"
         />
       </label>
 
+      {selectedFile && (
+        <div className="px-4 py-2 text-sm">
+          Selected: {selectedFile.name}
+        </div>
+      )}
+
+      {selectedFile && (
+        <button
+          onClick={handleSave}
+          disabled={uploading}
+          className="w-full text-left px-4 py-2 mt-1 bg-blue-100 hover:bg-blue-200 rounded"
+        >
+          {uploading ? "Uploading..." : "Save"}
+        </button>
+      )}
+
       <button
-        className="w-full text-left px-4 py-2 hover:bg-gray-100"
-        onClick={handleTake}
+        className="w-full text-left px-4 py-2 hover:bg-gray-100 mt-1"
+        onClick={handleTakePhoto}
       >
         Take Photo
       </button>
 
       <button
-        className="w-full text-left px-4 py-2 hover:bg-red-100 text-red-600"
+        className="w-full text-left px-4 py-2 hover:bg-red-100 text-red-600 mt-1"
         onClick={handleRemove}
       >
         Remove Photo

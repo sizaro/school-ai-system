@@ -66,7 +66,7 @@ const uploadMultipleFiles = async (formData) => {
   const createUser = async (userData) => {
     try {
       const res = await axios.post(`${API_URL}/users`, userData);
-      await fetchUsers(); // ✅ fetchUsers handles loading
+      await fetchUsers();
       return res.data;
     } catch (err) {
       console.error(`error creating ${userData.role}`, err);

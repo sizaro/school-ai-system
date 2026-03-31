@@ -10,7 +10,7 @@ import session from "express-session";
 import passport from "passport";
 import pgSession from "connect-pg-simple";
 import "./config/passport.js";
-import path from "path";
+// import path from "path";
 // import uploadRoutes from "./routes/uploadRoutes.js";
 
 dotenv.config();

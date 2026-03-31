@@ -32,5 +32,15 @@ router.delete("/:id", deleteStudent);
 router.put("/:id/guardian", updateGuardian);
 router.put("/:id/medical", updateMedical);
 router.put("/:id/admission", updateAdmission);
+router.put(
+  "/:id/photo",
+  upload.single("photo"),
+  updateStudentPhoto
+);
+
+router.delete(
+  "/:id/photo",
+  removeStudentPhoto
+);
 
 export default router;
