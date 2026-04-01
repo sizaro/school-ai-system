@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import { useData } from "../../context/DataContext";
 
 export default function EditPhotoModal({ student, onClose, positionRef, onView }) {
-  const { updateStudentPhoto } = useData(); // function from context
+  const { updateStudentPhoto } = useData();
   const menuRef = useRef();
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -29,7 +29,7 @@ export default function EditPhotoModal({ student, onClose, positionRef, onView }
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    console.log("Selected file:", file);
+    console.log("Selected file:", file.name);
     if (file) setSelectedFile(file);
   };
 
@@ -37,7 +37,7 @@ export default function EditPhotoModal({ student, onClose, positionRef, onView }
     if (!selectedFile) return;
     setUploading(true);
     try {
-      // Backend expects FormData
+
       const formData = new FormData();
       formData.append("photo", selectedFile);
       const updated = await updateStudentPhoto(student.student_id, formData);

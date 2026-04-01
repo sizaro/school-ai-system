@@ -422,3 +422,26 @@ export const updateAdmissionByStudentId = async (studentId, data) => {
   const result = await db.query(query, values);
   return result.rows[0];
 };
+
+export const updateStudentPhotoModel = async (id, image_url) => {
+  const result = await db.query(
+    `
+    UPDATE students
+    SET image_url = $1
+    WHERE student_id = $2
+    RETURNING *
+    `,
+    [image_url, id]
+  );
+
+  return result.rows[0];
+};
+
+export const getStudentByIdModel = async (id) => {
+  const result = await db.query(
+    "SELECT * FROM students WHERE student_id = $1",
+    [id]
+  );
+
+  return result.rows[0];
+};

@@ -277,6 +277,21 @@ const updateAdmission = async (studentId, data) => {
   setStudentProfile(updated);
 };
 
+const updateStudentPhoto = async (id, formData) => {
+  console.log("🔥 Calling updateStudentPhoto:", id, formData.get("photo"));
+
+  try {
+    const response = await axios.put(`${API_URL}/students/${id}/photo`, formData);
+    console.log("🔥 Axios response:", response.data);
+
+    await fetchStudentById(id);
+
+    return response.data;
+  } catch (error) {
+    console.error("🔥 Error updating student photo:", error);
+    throw error;
+  }
+};
   useEffect(() => {
   // Listen for new appointments
   socket.on("appointment_created", (payload) => {
@@ -312,6 +327,7 @@ const updateAdmission = async (studentId, data) => {
         fetchStudents,
         fetchStudentById,
         deleteStudent,
+        updateStudentPhoto,
       }}
     >
       {children}

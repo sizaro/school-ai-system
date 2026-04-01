@@ -13,6 +13,8 @@ import {
   updateGuardian,
   updateMedical,
   updateAdmission,
+  updateStudentPhoto,
+  removeStudentPhoto,
 
 } from "../controllers/studentsController.js";
 

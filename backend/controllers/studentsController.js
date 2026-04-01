@@ -10,6 +10,8 @@ import {
   updateGuardianByStudentId,
   updateMedicalByStudentId,
   updateAdmissionByStudentId,
+  updateStudentPhotoModel,
+  getStudentByIdModel,
 } from "../models/studentsModel.js";
 
 /**
@@ -160,5 +162,65 @@ export const updateAdmission = async (req, res) => {
   } catch (err) {
     console.error("Admission update error:", err);
     res.status(500).json({ error: "Admission update failed" });
+  }
+};
+
+export const updateStudentPhoto = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const existingStudent = await getStudentByIdModel(id);
+    if (!existingStudent) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    let image_url = existingStudent.image_url;
+
+    // ✅ If new file uploaded
+    if (req.file?.filename) {
+      // delete old image if exists
+      if (existingStudent.image_url) {
+        const oldPath = path.join(process.cwd(), existingStudent.image_url);
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath);
+        }
+      }
+
+      // save new path
+      image_url = `/uploads/images/${req.file.filename}`;
+    }
+
+    const updatedStudent = await updateStudentPhotoModel(id, image_url);
+
+    res.json(updatedStudent);
+  } catch (err) {
+    console.error("Error updating student photo:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const removeStudentPhoto = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const existingStudent = await getStudentByIdModel(id);
+    if (!existingStudent) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // delete file if exists
+    if (existingStudent.image_url) {
+      const oldPath = path.join(process.cwd(), existingStudent.image_url);
+      if (fs.existsSync(oldPath)) {
+        fs.unlinkSync(oldPath);
+      }
+    }
+
+    const updatedStudent = await updateStudentPhotoModel(id, null);
+
+    res.json(updatedStudent);
+  } catch (err) {
+    console.error("Error removing student photo:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
