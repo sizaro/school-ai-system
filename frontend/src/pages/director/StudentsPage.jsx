@@ -18,19 +18,19 @@ export default function StudentsPage() {
   console.log("students in page", students)
 
   // 🔥 Filter students
-  const filteredStudents = students.filter((student) => {
+// 🔥 Filter students
+const filteredStudents = students.filter((student) => {
+  const fullName = `${student.first_name} ${student.last_name}`.toLowerCase();
+  const matchesSearch = fullName.includes(search.toLowerCase());
 
-    const fullName =
-      `${student.first_name} ${student.last_name}`.toLowerCase();
+  // Normalize class string to avoid issues with dots or spaces
+  const normalize = (str) => str?.toLowerCase().replace(/\s|\./g, "");
 
-    const matchesSearch = fullName.includes(search.toLowerCase());
+  const matchesClass =
+    classFilter === "" || normalize(student.class_level) === normalize(classFilter);
 
-    const matchesClass =
-      classFilter === "" || student.class_level === classFilter;
-
-    return matchesSearch && matchesClass;
-
-  });
+  return matchesSearch && matchesClass;
+});
 
   // 🔥 Statistics
   const totalStudents = students.length;
