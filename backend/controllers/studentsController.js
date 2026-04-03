@@ -12,6 +12,7 @@ import {
   updateAdmissionByStudentId,
   updateStudentPhotoModel,
   getStudentByIdModel,
+  updatePaymentByStudentId
 } from "../models/studentsModel.js";
 
 /**
@@ -121,6 +122,7 @@ export const updateGuardian = async (req, res) => {
   try {
     const { id } = req.params;
     const { guardian } = req.body;
+        console.log("guardian into the controller", guardian)
 
     const updated = await updateGuardianByStudentId(id, guardian);
 
@@ -155,7 +157,7 @@ export const updateAdmission = async (req, res) => {
   try {
     const { id } = req.params;
     const { admission } = req.body;
-
+console.log("admission into the controller", admission)
     const updated = await updateAdmissionByStudentId(id, admission);
 
     res.json({ success: true, data: updated });
@@ -222,5 +224,40 @@ export const removeStudentPhoto = async (req, res) => {
   } catch (err) {
     console.error("Error removing student photo:", err);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const updateStudentInfo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { student } = req.body;
+
+    const updated = await updateStudentById(id, {
+      firstName: student.firstName,
+      lastName: student.lastName,
+      gender: student.gender,
+      dateOfBirth: student.dateOfBirth,
+    });
+
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    console.error("Student info update error:", err);
+    res.status(500).json({ error: "Student info update failed" });
+  }
+};
+
+
+export const updatePayment = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const { payment } = req.body
+
+    console.log("payment inside controller", payment)
+
+    const updatedPayment = await updatePaymentByStudentId(studentId, payment);
+    res.json(updatedPayment);
+  } catch (err) {
+    console.error("Payment update error:", err);
+    res.status(500).json({ error: err.message });
   }
 };

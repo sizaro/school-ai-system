@@ -12,7 +12,7 @@ export default function EditGuardianModal({ student, onClose }) {
   });
 
   const handleSubmit = async () => {
-    await updateGuardian(student.guardian_id, form);
+    await updateGuardian(student.student_id, {guardian: form,});
     onClose();
   };
 

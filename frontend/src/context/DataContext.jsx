@@ -253,8 +253,8 @@ const deleteStudent = async (id) => {
   }
 };
 
-const updateStudent = async (studentId, data) => {
-  await axios.put(`${API_URL}/students/${studentId}`, data);
+const updateStudentInfo = async (studentId, data) => {
+  await axios.put(`${API_URL}/students/${studentId}/info`, data);
   const updated = await fetchStudentById(studentId);
   setStudentProfile(updated);
 };
@@ -292,6 +292,30 @@ const updateStudentPhoto = async (id, formData) => {
     throw error;
   }
 };
+
+const removeStudentPhoto = async (id) => {
+  console.log("🔥 Calling removeStudentPhoto:", id);
+
+  try {
+    const response = await axios.delete(`${API_URL}/students/${id}/photo`);
+    console.log("🔥 Delete response:", response.data);
+
+    await fetchStudentById(id);
+
+    return response.data;
+  } catch (error) {
+    console.error("🔥 Error removing student photo:", error);
+    throw error;
+  }
+};
+
+const updatePayment = async (studentId, data) => {
+  await axios.put(`${API_URL}/students/${studentId}/payment`, data);
+  const updated = await fetchStudentById(studentId);
+  setStudentProfile(updated);
+};
+
+
   useEffect(() => {
   // Listen for new appointments
   socket.on("appointment_created", (payload) => {
@@ -328,6 +352,12 @@ const updateStudentPhoto = async (id, formData) => {
         fetchStudentById,
         deleteStudent,
         updateStudentPhoto,
+        removeStudentPhoto,
+        updateStudentInfo,
+        updateAdmission,
+        updateGuardian,
+        updateMedical,
+        updatePayment,
       }}
     >
       {children}

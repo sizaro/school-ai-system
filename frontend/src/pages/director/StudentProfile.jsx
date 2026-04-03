@@ -7,6 +7,7 @@ import EditGuardianModal from "../../components/students/EditGuardianModal";
 import EditMedicalModal from "../../components/students/EditMedicalModal";
 import EditAdmissionModal from "../../components/students/EditAdmissionModal";
 import EditPhotoModal from "../../components/students/EditPhotoModal";
+import EditPaymentModal from "../../components/students/EditPaymentModal";
 
 export default function StudentProfile() {
   const { id } = useParams();
@@ -121,7 +122,13 @@ export default function StudentProfile() {
         <p>Class: {studentProfile.class_level}</p>
         <p>Stream: {studentProfile.stream}</p>
         <p>Admission Date: {new Date(studentProfile.admission_date).toLocaleDateString()}</p>
-        <p>Registration Fee: {studentProfile.registration_fee}</p>
+      </SectionCard>
+
+      <SectionCard
+        title="Payments"
+        onEdit={() => setActiveSection("payment")}
+      >
+         <p>No payments recorded.</p>
       </SectionCard>
 
       {/* ================= MODALS ================= */}

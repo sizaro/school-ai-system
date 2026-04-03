@@ -265,22 +265,22 @@ export const fetchStudentById = async (id) => {
       g.first_name AS guardian_first_name,
       g.last_name AS guardian_last_name,
       g.phone AS guardian_phone,
+      sg.relationship,
 
       -- ADMISSION
       a.class_level,
       a.stream,
       a.admission_date,
 
-      -- LATEST PAYMENT
-      p.amount,
-      p.payment_date
+      -- ALL PAYMENTS as JSON array
+      COALESCE(pay.payments, '[]') AS payments
 
     FROM students s
 
     -- USER linked via user_id
     LEFT JOIN users u ON s.user_id = u.id
 
-    -- MEDICAL linked via user_id from students table
+    -- MEDICAL linked via user_id
     LEFT JOIN medical m ON m.user_id = s.user_id
 
     -- STUDENT GUARDIAN
@@ -290,14 +290,19 @@ export const fetchStudentById = async (id) => {
     -- ADMISSION
     LEFT JOIN admissions a ON a.student_id = s.id
 
-    -- LATEST PAYMENT (if any)
+    -- PAYMENTS aggregated
     LEFT JOIN LATERAL (
-      SELECT amount, payment_date
+      SELECT json_agg(
+               json_build_object(
+                 'id', id,
+                 'amount', amount,
+                 'receipt_number', receipt_number,
+                 'payment_date', payment_date
+               )
+             ) AS payments
       FROM payments
       WHERE student_id = s.id
-      ORDER BY payment_date DESC
-      LIMIT 1
-    ) p ON true
+    ) pay ON true
 
     WHERE s.id = $1;
   `;
@@ -406,8 +411,7 @@ export const updateAdmissionByStudentId = async (studentId, data) => {
       class_level = $1,
       stream = $2,
       admission_date = $3,
-      registration_fee = $4
-    WHERE student_id = $5
+    WHERE student_id = $4
     RETURNING *;
   `;
 
@@ -415,7 +419,6 @@ export const updateAdmissionByStudentId = async (studentId, data) => {
     data.classLevel,
     data.stream,
     data.admissionDate,
-    data.registrationFee,
     studentId,
   ];
 
@@ -427,20 +430,35 @@ export const updateStudentPhotoModel = async (id, image_url) => {
   const result = await db.query(
     `
     UPDATE students
-    SET image_url = $1
-    WHERE student_id = $2
+    SET photo_url = $1
+    WHERE id = $2
     RETURNING *
     `,
     [image_url, id]
   );
 
   return result.rows[0];
+  
 };
 
 export const getStudentByIdModel = async (id) => {
   const result = await db.query(
-    "SELECT * FROM students WHERE student_id = $1",
+    "SELECT * FROM students WHERE id = $1",
     [id]
+  );
+
+  return result.rows[0];
+};
+
+export const updatePaymentByStudentId = async (studentId, payment) => {
+  const { amount, receiptNumber, paymentDate } = payment;
+
+  const result = await db.query(
+    `UPDATE payments
+     SET amount = $1, receipt_number = $2, payment_date = $3
+     WHERE student_id = $4
+     RETURNING *`,
+    [amount, receiptNumber, paymentDate, studentId]
   );
 
   return result.rows[0];

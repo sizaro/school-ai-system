@@ -15,9 +15,7 @@ export default function EditMedicalModal({ student, onClose, onUpdated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await updateMedical(student.user_id, formData, student.id);
-    const updated = await updateMedical(student.user_id, formData, student.id);
-    onUpdated(updated);
+    await updateMedical(student.student_id, {medical:formData})
     onClose();
   };
 
