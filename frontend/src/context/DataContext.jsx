@@ -98,6 +98,24 @@ const uploadMultipleFiles = async (formData) => {
   };
 
   // ---------- Auth ----------
+  const loginUser = async (credentials) => {
+    try {
+      const res = await axios.post(`${API_URL}/auth/login`, credentials, {
+        withCredentials: true,
+      });
+      const { user } = res.data;
+      setUser(user);
+
+      if (!user) {
+        throw new Error("Invalid login response — user missing");
+      }
+
+      return user;
+    } catch (err) {
+      console.error("Error during loginUser:", err);
+      throw err;
+    }
+  };
 
   const checkAuth = async () => {
     try {
