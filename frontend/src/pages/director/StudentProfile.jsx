@@ -32,7 +32,7 @@ export default function StudentProfile() {
     };
 
     loadStudent();
-  }, [id, fetchStudentById]);
+  }, [id]);
 
   const handleTabChange = (newTab) => setSearchParams({ tab: newTab });
 

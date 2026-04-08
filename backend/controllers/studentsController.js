@@ -15,7 +15,8 @@ import {
   updatePaymentByStudentId,
   addPaymentByStudentId,
   updateTuitionPaymentByStudentId,
-  deleteTuitionPaymentByStudentId
+  deleteTuitionPaymentByStudentId,
+  getPaymentById,
 } from "../models/studentsModel.js";
 
 /**
@@ -307,42 +308,86 @@ export const addPayment = async (req, res) => {
 // ===============================
 // UPDATE TUITION PAYMENT
 // ===============================
+
 export const updateTuitionPayment = async (req, res) => {
   try {
     const studentId = req.params.id;
-    const { amount, payment_method, payment_date } = req.body;
 
-    // 1️⃣ Fetch existing tuition payment for this student
-    const existingPayment = await getTuitionPaymentByStudentId(studentId);
+    console.log("📥 UPDATE TUITION REQUEST");
+    console.log("Params studentId:", studentId);
+    console.log("Body:", req.body);
+    console.log("File:", req.file);
+
+    const { id, student_id, recorded_by, amount, payment_method, payment_date } = req.body;
+
+    if (!id) {
+      console.warn("❌ Missing payment ID");
+      return res.status(400).json({ error: "Payment ID is required" });
+    }
+
+    const paymentId = parseInt(id)
+    const AmountValue = parseFloat(amount)
+    // ✅ 1. Get specific payment
+    const existingPayment = await getPaymentById(id);
+
+    console.log("📄 Existing payment:", existingPayment);
+
     if (!existingPayment) {
-      return res.status(404).json({ error: "Tuition payment not found" });
+      return res.status(404).json({ error: "Payment not found" });
     }
 
     let receipt_url = existingPayment.receipt_url;
 
-    // 2️⃣ If a new file uploaded, delete old and save new
+    // ✅ 2. Replace receipt if new uploaded
     if (req.file?.filename) {
+      console.log("📎 New receipt uploaded:", req.file.filename);
+
       if (existingPayment.receipt_url) {
         const oldPath = path.join(process.cwd(), existingPayment.receipt_url);
-        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        console.log("🗑 Deleting old receipt:", oldPath);
+
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath);
+        }
       }
+
       receipt_url = `/uploads/receipts/${req.file.filename}`;
     }
 
-    // 3️⃣ Update DB
-    const updatedPayment = await updateTuitionPaymentById(existingPayment.id, {
+    console.log("📝 Updating with:", {
+      id,
+      student_id,
+      recorded_by,
       amount,
       payment_method,
       payment_date,
       receipt_url,
     });
 
+    // ✅ 3. Update DB (IMPORTANT: use payment ID, not studentId)
+    const updatedPayment = await updateTuitionPaymentByStudentId({
+      id: paymentId,
+      student_id,
+      recorded_by,
+      amount: AmountValue, 
+      payment_method,
+      payment_date,
+      receipt_url,
+    });
+
+    console.log("✅ Updated payment result:", updatedPayment);
+
     res.json(updatedPayment);
   } catch (err) {
-    console.error("Update tuition payment error:", err);
+    console.error("❌ Update tuition payment error:", err);
     res.status(500).json({ error: err.message });
   }
 };
+
+
+
+
+
 
 // ===============================
 // DELETE TUITION PAYMENT

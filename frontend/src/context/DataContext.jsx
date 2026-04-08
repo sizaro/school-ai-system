@@ -21,11 +21,11 @@ export const DataProvider = ({ children }) => {
   const SOCKET_API_URL = import.meta.env.VITE_API_URL || "https://medanfoafricacommunityschool.onrender.com";
   const API_URL = import.meta.env.VITE_API_URL || "/api";
 
-  const socket = io(SOCKET_API_URL.replace("/api", ""), {
-    withCredentials: true,
-  transports: ["websocket"],
-  secure: true
-});
+//   const socket = io(SOCKET_API_URL.replace("/api", ""), {
+//     withCredentials: true,
+//   transports: ["websocket"],
+//   secure: true
+// });
 
 
 const uploadMultipleFiles = async (formData) => {
@@ -230,7 +230,7 @@ const fetchStudents = async () => {
 
 const fetchStudentById = async (id) => {
   try {
-    console.log("Student profile Id :", id);
+    console.log("fetching Student profile Id :", id);
     const res = await axios.get(`${API_URL}/students/${id}`);
     setStudentProfile(res.data);
     console.log("Student profile:", res.data);
@@ -322,11 +322,18 @@ const addPayment = async (studentId, formData) => {
   setStudentProfile(updated);
 };
 
-// Update a tuition payment
+
 const updateTuitionPayment = async (studentId, formData) => {
-  await axios.put(`${API_URL}/students/${studentId}/payment/tuition`, formData);
-  const updated = await fetchStudentById(studentId);
+  console.log("Now using update tuition function")
+  const res = await axios.put(`${API_URL}/students/${studentId}/payment/tuition`,
+    formData,
+  );
+
+  console.log("Data returned after updating Tuition", res.data)
+ const updated = await fetchStudentById(studentId);
   setStudentProfile(updated);
+
+  return res.data;
 };
 
 // Delete a tuition payment
@@ -337,17 +344,17 @@ const deleteTuitionPayment = async (studentId, formData) => {
 };
 
 
-  useEffect(() => {
-  // Listen for new appointments
-  socket.on("appointment_created", (payload) => {
-    console.log("Appointment received via socket:", payload);
-    fetchServiceTransactionsApp();
-  });
+//   useEffect(() => {
+//   // Listen for new appointments
+//   socket.on("appointment_created", (payload) => {
+//     console.log("Appointment received via socket:", payload);
+//     fetchServiceTransactionsApp();
+//   });
 
-  return () => {
-    socket.off("appointment_created");
-  };
-}, []);
+//   return () => {
+//     socket.off("appointment_created");
+//   };
+// }, []);
 
   // ---------- Export ----------
   return (

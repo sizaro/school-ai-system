@@ -38,7 +38,20 @@ export default function Finances({ studentId }) {
   };
 
   // ================== UPDATE PAYMENT ==================
-  const handleUpdate = async (updatedPayment) => {
+  // const handleUpdate = async (updatedPayment) => {
+  //   try {
+  //     await updateTuitionPayment(studentId, updatedPayment);
+  //     setPayments((prev) =>
+  //       prev.map((p) => (p.id === updatedPayment.id ? updatedPayment : p))
+  //     );
+  //     setActivePayment(null);
+  //   } catch (err) {
+  //     console.error("Error updating payment:", err);
+  //   }
+  // };
+
+
+  const onUpdated = async () => {
     try {
       await updateTuitionPayment(studentId, updatedPayment);
       setPayments((prev) =>
@@ -156,7 +169,6 @@ export default function Finances({ studentId }) {
           payment={activePayment}
           studentId={studentId}
           onClose={() => setActivePayment(null)}
-          onUpdated={(updatedPayment) => handleUpdate(updatedPayment)}
         />
       )}
     </div>

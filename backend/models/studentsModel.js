@@ -479,6 +479,16 @@ export const updatePaymentByStudentId = async (studentId, payment) => {
 // ===============================
 // ADD PAYMENT (GENERAL)
 // ===============================
+
+
+export const getPaymentById = async (paymentId) => {
+  const result = await db.query(
+    `SELECT * FROM finances WHERE id = $1`,
+    [paymentId]
+  );
+
+  return result.rows[0];
+};
 export const addPaymentByStudentId = async (studentId, formData) => {
   try {
     const { type, amount, payment_date, recorded_by, receipt_number, receipt_url, payment_method, status, notes } = formData;
@@ -514,9 +524,10 @@ export const addPaymentByStudentId = async (studentId, formData) => {
 // ===============================
 // UPDATE TUITION PAYMENT
 // ===============================
-export const updateTuitionPaymentByStudentId = async (studentId, formData) => {
+export const updateTuitionPaymentByStudentId = async (formData) => {
   try {
-    const { id, type, amount, payment_date, recorded_by, receipt_number, receipt_url, payment_method, status, notes } = formData;
+    const { id, student_id, type, amount, payment_date, recorded_by, receipt_number, receipt_url, payment_method, status, notes } = formData;
+    console.log("inside data in the tution update model", id, amount,payment_date, payment_method)
 
     const query = `
       UPDATE finances
@@ -544,7 +555,7 @@ export const updateTuitionPaymentByStudentId = async (studentId, formData) => {
       status || null,
       notes || null,
       id,
-      studentId,
+      student_id,
     ];
 
     const { rows } = await db.query(query, values);
