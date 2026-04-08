@@ -74,7 +74,6 @@ export default function Finances({ studentId }) {
           <table className="w-full border mt-2">
             <thead>
               <tr className="bg-gray-100 text-left">
-                <th className="p-2 border">Receipt</th>
                 <th className="p-2 border">Date</th>
                 <th className="p-2 border">Amount</th>
                 <th className="p-2 border">Method</th>
@@ -86,7 +85,6 @@ export default function Finances({ studentId }) {
             <tbody>
               {payments.map((p) => (
                 <tr key={p.id}>
-                  <td className="p-2 border">{p.receipt_number}</td>
                   <td className="p-2 border">
                     {new Date(p.payment_date).toLocaleDateString()}
                   </td>
