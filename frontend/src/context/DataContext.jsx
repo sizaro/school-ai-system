@@ -98,24 +98,6 @@ const uploadMultipleFiles = async (formData) => {
   };
 
   // ---------- Auth ----------
-  const loginUser = async (credentials) => {
-    try {
-      const res = await axios.post(`${API_URL}/auth/login`, credentials, {
-        withCredentials: true,
-      });
-      const { user } = res.data;
-      setUser(user);
-
-      if (!user) {
-        throw new Error("Invalid login response — user missing");
-      }
-
-      return user;
-    } catch (err) {
-      console.error("Error during loginUser:", err);
-      throw err;
-    }
-  };
 
   const checkAuth = async () => {
     try {
@@ -315,6 +297,27 @@ const updatePayment = async (studentId, data) => {
   setStudentProfile(updated);
 };
 
+// Add a payment (general)
+const addPayment = async (studentId, formData) => {
+  await axios.post(`${API_URL}/students/${studentId}/payment`, formData);
+  const updated = await fetchStudentById(studentId);
+  setStudentProfile(updated);
+};
+
+// Update a tuition payment
+const updateTuitionPayment = async (studentId, formData) => {
+  await axios.put(`${API_URL}/students/${studentId}/payment/tuition`, formData);
+  const updated = await fetchStudentById(studentId);
+  setStudentProfile(updated);
+};
+
+// Delete a tuition payment
+const deleteTuitionPayment = async (studentId, formData) => {
+  await axios.delete(`${API_URL}/students/${studentId}/payment/tuition`, { data: formData });
+  const updated = await fetchStudentById(studentId);
+  setStudentProfile(updated);
+};
+
 
   useEffect(() => {
   // Listen for new appointments
@@ -358,6 +361,9 @@ const updatePayment = async (studentId, data) => {
         updateGuardian,
         updateMedical,
         updatePayment,
+        addPayment,
+        updateTuitionPayment,
+        deleteTuitionPayment,
       }}
     >
       {children}

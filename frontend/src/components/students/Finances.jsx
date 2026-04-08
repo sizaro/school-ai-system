@@ -4,7 +4,7 @@ import EditTuitionModal from "../../components/students/EditTuitionModal";
 import { useData } from "../../context/DataContext";
 
 export default function Finances({ studentId }) {
-  const { studentProfile, addPayment, updateTuitionPayment, deleteTuitionPayment } = useData();
+  const { studentProfile, updateTuitionPayment, deleteTuitionPayment } = useData();
 
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,8 +17,8 @@ export default function Finances({ studentId }) {
     if (!studentId) return;
 
     setLoading(true);
-    if (studentProfile && studentProfile.payments) {
-      setPayments(studentProfile.payments);
+    if (studentProfile && studentProfile.finances) {
+      setPayments(studentProfile.finances);
     }
     setLoading(false);
   }, [studentProfile, studentId]);

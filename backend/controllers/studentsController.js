@@ -271,12 +271,33 @@ export const updatePayment = async (req, res) => {
 export const addPayment = async (req, res) => {
   try {
     const studentId = req.params.id;
-    const formData = req.body; // paymentId, type, amount, etc.
+    const {
+      amount,
+      type,
+      payment_method,
+      payment_date,
+      recorded_by,
+    } = req.body;
 
-    // Call the dedicated model function
-    const updatedPayment = await addPaymentByStudentId(studentId, formData);
+    if (!recorded_by) {
+      return res.status(400).json({ error: "recorded_by is required" });
+    }
 
-    res.json(updatedPayment);
+    let receipt_url = null;
+    if (req.file) {
+      receipt_url = `/uploads/receipts/${req.file.filename}`;
+    }
+
+    const newPayment = await addPaymentByStudentId(studentId, {
+      amount,
+      type,
+      payment_method,
+      payment_date,
+      receipt_url,
+      recorded_by,
+    });
+
+    res.json(newPayment);
   } catch (err) {
     console.error("Add payment error:", err);
     res.status(500).json({ error: err.message });

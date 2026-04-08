@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useData } from "../../context/DataContext";
 
 export default function AddPaymentModal({ studentId, onClose, onCreated }) {
-  const { addPayment } = useData();
+  const { addPayment, user } = useData();
 
   const [form, setForm] = useState({
     amount: "",
@@ -25,27 +25,29 @@ export default function AddPaymentModal({ studentId, onClose, onCreated }) {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+  e.preventDefault();
+  setLoading(true);
+  setError("");
 
-    try {
-      const data = new FormData();
-      data.append("amount", form.amount);
-      data.append("type", form.type);
-      data.append("payment_method", form.payment_method);
-      data.append("payment_date", form.payment_date);
-      if (form.receipt) data.append("receipt", form.receipt);
+  try {
+    const data = new FormData();
+    data.append("amount", form.amount);
+    data.append("type", form.type);
+    data.append("payment_method", form.payment_method);
+    data.append("payment_date", form.payment_date);
+    data.append("recorded_by", user.id);
 
-      await addPayment(studentId, data);
-      onCreated(); // close modal
-    } catch (err) {
-      console.error("Add payment error:", err);
-      setError("Failed to add payment. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (form.receipt) data.append("receipt", form.receipt);
+
+    await addPayment(studentId, data);
+    onCreated();
+  } catch (err) {
+    console.error("Add payment error:", err);
+    setError("Failed to add payment. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
