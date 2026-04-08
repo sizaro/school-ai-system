@@ -8,6 +8,7 @@ import db from "./database.js";
 // ===============================
 // SAVE STUDENT (CREATE STUDENT WITH FINANCES)
 // ===============================
+
 export const saveStudent = async (payload) => {
   try {
     console.log("==== Incoming Student Payload ====");
@@ -16,22 +17,14 @@ export const saveStudent = async (payload) => {
 
     await db.query("BEGIN");
 
-    const {
-      student,
-      guardian,
-      medical,
-      payment,       // payment object includes registration fee, type, receipt info, etc.
-      hashedPassword,
-      image_url,
-      creatorId,
-    } = payload;
+    const { student, guardian, medical, payment, hashedPassword, image_url } = payload;
 
-    // 1️⃣ Create default email
+    // 1️⃣ Default email
     let email = `${student.firstName}.${student.lastName}${Date.now()}@medanfocs.com`
       .toLowerCase()
       .replace(/\s+/g, "");
 
-    // 2️⃣ Create user
+    // 2️⃣ Insert user
     const userResult = await db.query(
       `INSERT INTO users (email, password, role, created_at)
        VALUES ($1,$2,$3,NOW())
@@ -40,7 +33,7 @@ export const saveStudent = async (payload) => {
     );
     const userId = userResult.rows[0].id;
 
-    // 3️⃣ Student
+    // 3️⃣ Insert student
     const studentResult = await db.query(
       `INSERT INTO students
        (user_id, first_name, last_name, gender, date_of_birth, photo_url, created_by)
@@ -53,30 +46,30 @@ export const saveStudent = async (payload) => {
         student.gender,
         student.dateOfBirth,
         image_url,
-        creatorId,
+        payment.recorded_by,
       ]
     );
     const studentId = studentResult.rows[0].id;
 
-    // 4️⃣ Guardian
+    // 4️⃣ Insert guardian
     const guardianResult = await db.query(
       `INSERT INTO guardians
        (first_name, last_name, phone, created_by)
        VALUES ($1,$2,$3,$4)
        RETURNING id`,
-      [guardian.firstName, guardian.lastName, guardian.phone, creatorId]
+      [guardian.firstName, guardian.lastName, guardian.phone, payment.recorded_by]
     );
     const guardianId = guardianResult.rows[0].id;
 
-    // 5️⃣ Link student to guardian
+    // 5️⃣ Link student & guardian
     await db.query(
       `INSERT INTO student_guardians
        (student_id, guardian_id, relationship, is_primary, created_by)
        VALUES ($1,$2,$3,$4,$5)`,
-      [studentId, guardianId, guardian.relationshipToStudent, true, creatorId]
+      [studentId, guardianId, guardian.relationshipToStudent, true, payment.recorded_by]
     );
 
-    // 6️⃣ Medical
+    // 6️⃣ Insert medical
     await db.query(
       `INSERT INTO medical
        (user_id, blood_group, medical_conditions, allergies, created_by)
@@ -86,11 +79,11 @@ export const saveStudent = async (payload) => {
         medical.bloodGroup,
         medical.medicalConditions,
         medical.allergies,
-        creatorId,
+        payment.recorded_by,
       ]
     );
 
-    // 7️⃣ Admission
+    // 7️⃣ Insert admission
     await db.query(
       `INSERT INTO admissions
        (student_id, class_level, stream, admission_date, registration_fee, receipt_number, created_by)
@@ -102,11 +95,11 @@ export const saveStudent = async (payload) => {
         student.admissionDate,
         payment.registrationFee,
         payment.receiptNumber,
-        creatorId,
+        payment.recorded_by,
       ]
     );
 
-    // 8️⃣ FINANCE (formerly payment)
+    // 8️⃣ Insert into finances
     await db.query(
       `INSERT INTO finances
        (student_id, type, amount, payment_date, recorded_by, receipt_number, receipt_url, payment_method, status, notes)
@@ -116,7 +109,7 @@ export const saveStudent = async (payload) => {
         payment.type || "registration",
         payment.registrationFee,
         payment.paymentDate,
-        creatorId,
+        payment.recorded_by, 
         payment.receiptNumber || null,
         payment.receiptUrl || null,
         payment.paymentMethod || null,

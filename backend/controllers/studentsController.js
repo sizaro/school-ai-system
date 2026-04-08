@@ -27,24 +27,31 @@ export const registerStudent = async (req, res) => {
   try {
     const { student, guardian, medical, payment } = req.body;
 
+    // 1️⃣ CreatorId for fallback if needed
     const creatorId = req.user?.id || 1;
 
-    // hash password
+    // 2️⃣ Hash temporary password
     const hashedPassword = await bcrypt.hash("Temp1234!", 10);
 
-    // handle photo
+    // 3️⃣ Handle uploaded photo
     const image_url = req.file
       ? `/uploads/images/${req.file.filename}`
       : null;
 
+    // 4️⃣ Make sure recorded_by comes from frontend payment object
+    const paymentData = {
+      ...payment,
+      recorded_by: payment.recorded_by || creatorId, // important!
+    };
+
+    // 5️⃣ Save all student data
     const result = await saveStudent({
       student,
       guardian,
       medical,
-      payment,
+      payment: paymentData,
       hashedPassword,
       image_url,
-      creatorId,
     });
 
     res.status(201).json(result);

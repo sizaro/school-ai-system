@@ -8,7 +8,8 @@ import { useData } from "../../context/DataContext";
 
 export default function StudentWizard({ isOpen, onClose, student = null }) {
   const [step, setStep] = useState(1);
-  const { registerStudent } = useData();
+  const { registerStudent, user } = useData(); // ✅ FIXED
+
   const [formData, setFormData] = useState({
     student: {
       firstName: "",
@@ -47,8 +48,26 @@ export default function StudentWizard({ isOpen, onClose, student = null }) {
       registrationFee: "",
       receiptNumber: "",
       paymentDate: "",
+      paymentMethod: "",
+      notes: "",
+      status: "",
+      receiptUrl: "",
+      recorded_by: null,
     },
   });
+
+  // ✅ Set recorded_by when user loads
+  useEffect(() => {
+    if (user?.id) {
+      setFormData((prev) => ({
+        ...prev,
+        payment: {
+          ...prev.payment,
+          recorded_by: user.id,
+        },
+      }));
+    }
+  }, [user]);
 
   // Edit mode prefill
   useEffect(() => {
@@ -61,16 +80,25 @@ export default function StudentWizard({ isOpen, onClose, student = null }) {
   const prevStep = () => setStep((prev) => prev - 1);
 
   const handleSubmit = async () => {
-    console.log("student registration being sent to backend", formData)
-  const result = await registerStudent(formData);
+    const payload = {
+      ...formData,
+      payment: {
+        ...formData.payment,
+        recorded_by: user?.id, // ✅ GUARANTEED
+      },
+    };
 
-  if (result.success) {
-    onClose();
-    setStep(1);
-  } else {
-    alert(result.message);
-  }
-};
+    console.log("🚀 Sending student payload:", payload);
+
+    const result = await registerStudent(payload);
+
+    if (result.success) {
+      onClose();
+      setStep(1);
+    } else {
+      alert(result.message);
+    }
+  };
 
   return (
     <Drawer isOpen={isOpen} onClose={onClose}>
@@ -94,33 +122,10 @@ export default function StudentWizard({ isOpen, onClose, student = null }) {
 
         {/* STEP CONTENT */}
         <div className="flex-1 overflow-y-auto">
-          {step === 1 && (
-            <StepStudentInfo
-              formData={formData}
-              setFormData={setFormData}
-            />
-          )}
-
-          {step === 2 && (
-            <StepGuardianInfo
-              formData={formData}
-              setFormData={setFormData}
-            />
-          )}
-
-          {step === 3 && (
-          <StepMedicalReview
-            formData={formData}
-            setFormData={setFormData}
-          />
-        )}
-
-          {step === 4 && (
-            <StepPayment
-              formData={formData}
-              setFormData={setFormData}
-            />
-          )}
+          {step === 1 && <StepStudentInfo formData={formData} setFormData={setFormData} />}
+          {step === 2 && <StepGuardianInfo formData={formData} setFormData={setFormData} />}
+          {step === 3 && <StepMedicalReview formData={formData} setFormData={setFormData} />}
+          {step === 4 && <StepPayment formData={formData} setFormData={setFormData} />}
         </div>
 
         {/* FOOTER */}
