@@ -12,7 +12,10 @@ import {
   updateAdmissionByStudentId,
   updateStudentPhotoModel,
   getStudentByIdModel,
-  updatePaymentByStudentId
+  updatePaymentByStudentId,
+  addPaymentByStudentId,
+  updateTuitionPaymentByStudentId,
+  deleteTuitionPaymentByStudentId
 } from "../models/studentsModel.js";
 
 /**
@@ -258,6 +261,81 @@ export const updatePayment = async (req, res) => {
     res.json(updatedPayment);
   } catch (err) {
     console.error("Payment update error:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ===============================
+// ADD PAYMENT (GENERAL)
+// ===============================
+export const addPayment = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const formData = req.body; // paymentId, type, amount, etc.
+
+    // Call the dedicated model function
+    const updatedPayment = await addPaymentByStudentId(studentId, formData);
+
+    res.json(updatedPayment);
+  } catch (err) {
+    console.error("Add payment error:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ===============================
+// UPDATE TUITION PAYMENT
+// ===============================
+export const updateTuitionPayment = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const { amount, payment_method, payment_date } = req.body;
+
+    // 1️⃣ Fetch existing tuition payment for this student
+    const existingPayment = await getTuitionPaymentByStudentId(studentId);
+    if (!existingPayment) {
+      return res.status(404).json({ error: "Tuition payment not found" });
+    }
+
+    let receipt_url = existingPayment.receipt_url;
+
+    // 2️⃣ If a new file uploaded, delete old and save new
+    if (req.file?.filename) {
+      if (existingPayment.receipt_url) {
+        const oldPath = path.join(process.cwd(), existingPayment.receipt_url);
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      }
+      receipt_url = `/uploads/receipts/${req.file.filename}`;
+    }
+
+    // 3️⃣ Update DB
+    const updatedPayment = await updateTuitionPaymentById(existingPayment.id, {
+      amount,
+      payment_method,
+      payment_date,
+      receipt_url,
+    });
+
+    res.json(updatedPayment);
+  } catch (err) {
+    console.error("Update tuition payment error:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ===============================
+// DELETE TUITION PAYMENT
+// ===============================
+export const deleteTuitionPayment = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const formData = req.body; // contains payment id to delete
+
+    const deletedPayment = await deleteTuitionPaymentByStudentId(studentId, formData);
+
+    res.json(deletedPayment);
+  } catch (err) {
+    console.error("Delete tuition payment error:", err);
     res.status(500).json({ error: err.message });
   }
 };

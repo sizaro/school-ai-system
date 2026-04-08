@@ -1,34 +1,33 @@
+
 import db from "./database.js";
 
 /**
  * FULL STUDENT REGISTRATION (TRANSACTION INSIDE MODEL)
  */
+
+// ===============================
+// SAVE STUDENT (CREATE STUDENT WITH FINANCES)
+// ===============================
 export const saveStudent = async (payload) => {
   try {
     console.log("==== Incoming Student Payload ====");
-    console.log(JSON.stringify(payload, null, 2)); // pretty print the payload
+    console.log(JSON.stringify(payload, null, 2));
     console.log("================================");
+
     await db.query("BEGIN");
 
     const {
       student,
       guardian,
       medical,
-      payment,
+      payment,       // payment object includes registration fee, type, receipt info, etc.
       hashedPassword,
       image_url,
       creatorId,
     } = payload;
 
-    // =========================
     // 1️⃣ Create default email
-    // =========================
-    let email = `${student.firstName}.${student.lastName}@medanfocs.com`
-      .toLowerCase()
-      .replace(/\s+/g, ""); // remove spaces
-
-    // Optional: add timestamp to ensure uniqueness
-    email = `${student.firstName}.${student.lastName}${Date.now()}@medanfocs.com`
+    let email = `${student.firstName}.${student.lastName}${Date.now()}@medanfocs.com`
       .toLowerCase()
       .replace(/\s+/g, "");
 
@@ -39,7 +38,6 @@ export const saveStudent = async (payload) => {
        RETURNING id`,
       [email, hashedPassword, "student"]
     );
-
     const userId = userResult.rows[0].id;
 
     // 3️⃣ Student
@@ -58,7 +56,6 @@ export const saveStudent = async (payload) => {
         creatorId,
       ]
     );
-
     const studentId = studentResult.rows[0].id;
 
     // 4️⃣ Guardian
@@ -69,7 +66,6 @@ export const saveStudent = async (payload) => {
        RETURNING id`,
       [guardian.firstName, guardian.lastName, guardian.phone, creatorId]
     );
-
     const guardianId = guardianResult.rows[0].id;
 
     // 5️⃣ Link student to guardian
@@ -110,17 +106,22 @@ export const saveStudent = async (payload) => {
       ]
     );
 
-    // 8️⃣ Payment
+    // 8️⃣ FINANCE (formerly payment)
     await db.query(
-      `INSERT INTO payments
-       (student_id, amount, receipt_number, payment_date, recorded_by)
-       VALUES ($1,$2,$3,$4,$5)`,
+      `INSERT INTO finances
+       (student_id, type, amount, payment_date, recorded_by, receipt_number, receipt_url, payment_method, status, notes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
       [
         studentId,
+        payment.type || "registration",
         payment.registrationFee,
-        payment.receiptNumber,
         payment.paymentDate,
         creatorId,
+        payment.receiptNumber || null,
+        payment.receiptUrl || null,
+        payment.paymentMethod || null,
+        payment.status || null,
+        payment.notes || null,
       ]
     );
 
@@ -133,6 +134,10 @@ export const saveStudent = async (payload) => {
     throw error;
   }
 };
+
+
+
+
 
 /**
  * UPDATE STUDENT
@@ -162,11 +167,11 @@ export const updateStudentById = async (id, data) => {
   return result.rows[0];
 };
 
-/**
- * FETCH ALL STUDENTS
- */
-export const fetchAllStudents = async () => {
 
+// ===============================
+// FETCH ALL STUDENTS (with finances)
+// ===============================
+export const fetchAllStudents = async () => {
   const query = `
     SELECT 
       -- STUDENT
@@ -202,10 +207,8 @@ export const fetchAllStudents = async () => {
       a.registration_fee,
       a.receipt_number,
 
-      -- PAYMENT
-      p.amount AS payment_amount,
-      p.receipt_number AS payment_receipt,
-      p.payment_date
+      -- FINANCES aggregated as JSON array
+      COALESCE(f.finances, '[]') AS finances
 
     FROM students s
 
@@ -224,23 +227,36 @@ export const fetchAllStudents = async () => {
     LEFT JOIN admissions a
       ON a.student_id = s.id
 
-    LEFT JOIN payments p
-      ON p.student_id = s.id
+    -- FINANCES aggregated
+    LEFT JOIN LATERAL (
+      SELECT json_agg(
+               json_build_object(
+                 'id', id,
+                 'type', type,
+                 'amount', amount,
+                 'payment_date', payment_date,
+                 'recorded_by', recorded_by,
+                 'receipt_number', receipt_number,
+                 'receipt_url', receipt_url,
+                 'payment_method', payment_method,
+                 'status', status,
+                 'notes', notes
+               )
+             ) AS finances
+      FROM finances
+      WHERE student_id = s.id
+    ) f ON true
 
     ORDER BY s.id DESC;
   `;
 
   const result = await db.query(query);
-
-  console.log("Students with full details:", result.rows);
-
   return result.rows;
 };
 
-/**
- * FETCH STUDENT BY ID
- */
-
+// ===============================
+// FETCH STUDENT BY ID (with finances)
+// ===============================
 export const fetchStudentById = async (id) => {
   const query = `
     SELECT 
@@ -272,43 +288,38 @@ export const fetchStudentById = async (id) => {
       a.stream,
       a.admission_date,
 
-      -- ALL PAYMENTS as JSON array
-      COALESCE(pay.payments, '[]') AS payments
+      -- FINANCES aggregated as JSON array
+      COALESCE(f.finances, '[]') AS finances
 
     FROM students s
-
-    -- USER linked via user_id
     LEFT JOIN users u ON s.user_id = u.id
-
-    -- MEDICAL linked via user_id
     LEFT JOIN medical m ON m.user_id = s.user_id
-
-    -- STUDENT GUARDIAN
     LEFT JOIN student_guardians sg ON sg.student_id = s.id AND sg.is_primary = true
     LEFT JOIN guardians g ON g.id = sg.guardian_id
-
-    -- ADMISSION
     LEFT JOIN admissions a ON a.student_id = s.id
 
-    -- PAYMENTS aggregated
     LEFT JOIN LATERAL (
       SELECT json_agg(
                json_build_object(
                  'id', id,
+                 'type', type,
                  'amount', amount,
+                 'payment_date', payment_date,
+                 'recorded_by', recorded_by,
                  'receipt_number', receipt_number,
-                 'payment_date', payment_date
+                 'receipt_url', receipt_url,
+                 'payment_method', payment_method,
+                 'status', status,
+                 'notes', notes
                )
-             ) AS payments
-      FROM payments
+             ) AS finances
+      FROM finances
       WHERE student_id = s.id
-    ) pay ON true
+    ) f ON true
 
     WHERE s.id = $1;
   `;
-
   const result = await db.query(query, [id]);
-
   return result.rows[0];
 };
 
@@ -462,4 +473,106 @@ export const updatePaymentByStudentId = async (studentId, payment) => {
   );
 
   return result.rows[0];
+};
+
+
+// ===============================
+// ADD PAYMENT (GENERAL)
+// ===============================
+export const addPaymentByStudentId = async (studentId, formData) => {
+  try {
+    const { type, amount, payment_date, recorded_by, receipt_number, receipt_url, payment_method, status, notes } = formData;
+
+    const query = `
+      INSERT INTO finances
+        (student_id, type, amount, payment_date, recorded_by, receipt_number, receipt_url, payment_method, status, notes)
+      VALUES
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING *;
+    `;
+    const values = [
+      studentId,
+      type || "general",
+      amount,
+      payment_date,
+      recorded_by,
+      receipt_number || null,
+      receipt_url || null,
+      payment_method || null,
+      status || null,
+      notes || null,
+    ];
+
+    const { rows } = await db.query(query, values);
+    return rows[0];
+  } catch (err) {
+    console.error("addPaymentByStudentId error:", err);
+    throw err;
+  }
+};
+
+// ===============================
+// UPDATE TUITION PAYMENT
+// ===============================
+export const updateTuitionPaymentByStudentId = async (studentId, formData) => {
+  try {
+    const { id, type, amount, payment_date, recorded_by, receipt_number, receipt_url, payment_method, status, notes } = formData;
+
+    const query = `
+      UPDATE finances
+      SET
+        type = $1,
+        amount = $2,
+        payment_date = $3,
+        recorded_by = $4,
+        receipt_number = $5,
+        receipt_url = $6,
+        payment_method = $7,
+        status = $8,
+        notes = $9
+      WHERE id = $10 AND student_id = $11
+      RETURNING *;
+    `;
+    const values = [
+      type || "tuition",
+      amount,
+      payment_date,
+      recorded_by,
+      receipt_number || null,
+      receipt_url || null,
+      payment_method || null,
+      status || null,
+      notes || null,
+      id,
+      studentId,
+    ];
+
+    const { rows } = await db.query(query, values);
+    return rows[0];
+  } catch (err) {
+    console.error("updateTuitionPaymentByStudentId error:", err);
+    throw err;
+  }
+};
+
+// ===============================
+// DELETE TUITION PAYMENT
+// ===============================
+export const deleteTuitionPaymentByStudentId = async (studentId, formData) => {
+  try {
+    const { id } = formData;
+
+    const query = `
+      DELETE FROM finances
+      WHERE id = $1 AND student_id = $2
+      RETURNING *;
+    `;
+    const values = [id, studentId];
+
+    const { rows } = await db.query(query, values);
+    return rows[0]; // deleted record
+  } catch (err) {
+    console.error("deleteTuitionPaymentByStudentId error:", err);
+    throw err;
+  }
 };

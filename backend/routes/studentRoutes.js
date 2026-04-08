@@ -15,7 +15,9 @@ import {
   updateAdmission,
   updateStudentPhoto,
   removeStudentPhoto,
-  updatePayment,
+  addPayment,
+  updateTuitionPayment,
+  deleteTuitionPayment,
 } from "../controllers/studentsController.js";
 
 // ---------- REGISTER ----------
@@ -38,6 +40,14 @@ router.put("/:id/medical", updateMedical);
 router.put("/:id/admission", updateAdmission);
 router.put("/:id/photo", upload.single("photo"), updateStudentPhoto);
 router.delete("/:id/photo", removeStudentPhoto);
-router.put("/:id/payment", updatePayment);
+
+// ---------- PAYMENTS ----------
+router.post("/:id/payment", upload.single("receipt"), addPayment); // general add payment
+router.put(
+  "/:id/payment/tuition",
+  upload.single("receipt"), // handle PDF upload
+  updateTuitionPayment
+);
+router.delete("/:id/payment/tuition", deleteTuitionPayment); // delete tuition payment
 
 export default router;
