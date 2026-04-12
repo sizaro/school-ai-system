@@ -343,6 +343,11 @@ const deleteTuitionPayment = async (studentId, formData) => {
   setStudentProfile(updated);
 };
 
+const fetchTerms = async () => {
+  const res = await axios.get(`${API_URL}/terms`);
+  return res.data;
+};
+
 
 //   useEffect(() => {
 //   // Listen for new appointments
@@ -389,6 +394,8 @@ const deleteTuitionPayment = async (studentId, formData) => {
         addPayment,
         updateTuitionPayment,
         deleteTuitionPayment,
+        fetchTerms,
+        
       }}
     >
       {children}
