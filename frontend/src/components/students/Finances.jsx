@@ -18,6 +18,7 @@ export default function Finances({ studentId }) {
 
     setLoading(true);
     if (studentProfile && studentProfile.finances) {
+      console.log("finances", studentProfile.finances)
       setPayments(studentProfile.finances);
     }
     setLoading(false);
@@ -83,7 +84,7 @@ export default function Finances({ studentId }) {
             </thead>
 
             <tbody>
-              {payments.map((p) => (
+              {(payments || []).map((p) => (
                 <tr key={p.id}>
                   <td className="p-2 border">
                     {new Date(p.payment_date).toLocaleDateString()}

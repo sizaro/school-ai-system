@@ -88,7 +88,7 @@ export default function StudentProfile() {
                 className="ml-4 border p-2 rounded"
               >
                 <option value="">All Terms</option>
-                {terms.map(t => (
+                {(terms || []).map(t => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
@@ -198,7 +198,7 @@ export default function StudentProfile() {
 
             <select name="term_id" required className="w-full border p-2">
               <option value="">Select Term</option>
-              {terms.map(t => (
+              {(terms || []).map(t => (
                 <option key={t.id} value={t.id}>{t.name}</option>
               ))}
             </select>

@@ -1,17 +1,37 @@
-import db from "../db.js";
+import db from "./database.js";
 
 // Create term
 export const createTerm = async (data) => {
-  const { name, academic_year, start_date, end_date, recorded_by } = data;
+  try {
+    const {
+      name,
+      academic_year,
+      start_date,
+      end_date,
+      recorded_by,
+    } = data;
 
-  const result = await db.query(
-    `INSERT INTO terms (name, academic_year, start_date, end_date, recorded_by)
-     VALUES ($1,$2,$3,$4,$5)
-     RETURNING *`,
-    [name, academic_year, start_date, end_date, recorded_by]
-  );
+    console.log("data in the models", name, academic_year, start_date, end_date, recorded_by )
 
-  return result.rows[0];
+    const result = await db.query(
+      `INSERT INTO terms (name, academic_year, start_date, end_date, recorded_by)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
+      [name, academic_year, start_date, end_date, recorded_by]
+    );
+
+    return result.rows[0];
+  } catch (err) {
+    console.error("❌ createTerm DB error:", {
+      message: err.message,
+      code: err.code,
+      detail: err.detail,
+      hint: err.hint,
+    });
+
+    // rethrow so controller handles response
+    throw err;
+  }
 };
 
 // Get all terms
@@ -58,6 +78,16 @@ export const endTerm = async (id) => {
          end_date = NOW()
      WHERE id = $1
      RETURNING *`,
+    [id]
+  );
+
+  return result.rows[0];
+};
+
+// Delete term
+export const deleteTermModel = async (id) => {
+  const result = await db.query(
+    `DELETE FROM terms WHERE id = $1 RETURNING *`,
     [id]
   );
 

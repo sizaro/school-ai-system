@@ -7,7 +7,7 @@ export default function Academics({ studentId }) {
   const [loading, setLoading] = useState(true);
   const [activeRecord, setActiveRecord] = useState(null);
 
-  // ✅ MOCK DATA (temporary)
+  // ================= MOCK DATA =================
   useEffect(() => {
     if (!studentId) return;
 
@@ -16,48 +16,65 @@ export default function Academics({ studentId }) {
         id: 1,
         subject: "Mathematics",
         score: 85,
-        max_score: 100,
+        total: 100,
         term: "Term 1",
       },
       {
         id: 2,
         subject: "English",
         score: 72,
-        max_score: 100,
+        total: 100,
         term: "Term 1",
       },
       {
         id: 3,
         subject: "Science",
         score: 65,
-        max_score: 100,
+        total: 100,
         term: "Term 1",
       },
       {
         id: 4,
         subject: "History",
         score: 48,
-        max_score: 100,
+        total: 100,
         term: "Term 1",
       },
     ];
 
-    // simulate loading delay (optional but realistic)
     setTimeout(() => {
       setRecords(mockData);
       setLoading(false);
-    }, 500);
+    }, 400);
   }, [studentId]);
+
+  // ================= GRADE LOGIC =================
+  const getGrade = (score, total) => {
+    const percent = (score / total) * 100;
+
+    if (percent >= 80) return "A";
+    if (percent >= 70) return "B";
+    if (percent >= 60) return "C";
+    if (percent >= 50) return "D";
+    return "F";
+  };
 
   if (loading) return <p>Loading academic records...</p>;
 
   return (
     <div className="space-y-6">
 
-      {/* ================= ACADEMICS SECTION ================= */}
+      {/* ================= TABLE ================= */}
       <SectionCard
-        title="Academic Records"
-        onEdit={() => setActiveRecord({})}
+        title="Academic Performance"
+        onEdit={() =>
+          setActiveRecord({
+            subject: "",
+            score: "",
+            total: "",
+            term: "",
+          })
+        }
       >
         {records.length === 0 ? (
           <p>No academic records found.</p>
@@ -67,7 +84,7 @@ export default function Academics({ studentId }) {
               <tr className="bg-gray-100 text-left">
                 <th className="p-2 border">Subject</th>
                 <th className="p-2 border">Score</th>
-                <th className="p-2 border">Max Score</th>
+                <th className="p-2 border">Total</th>
                 <th className="p-2 border">Grade</th>
                 <th className="p-2 border">Term</th>
                 <th className="p-2 border">Action</th>
@@ -75,49 +92,46 @@ export default function Academics({ studentId }) {
             </thead>
 
             <tbody>
-              {records.map((r) => {
-                const grade =
-                  r.score >= 80
-                    ? "A"
-                    : r.score >= 70
-                    ? "B"
-                    : r.score >= 60
-                    ? "C"
-                    : r.score >= 50
-                    ? "D"
-                    : "F";
+              {records.map((r) => (
+                <tr key={r.id}>
+                  <td className="p-2 border">{r.subject}</td>
+                  <td className="p-2 border">{r.score}</td>
+                  <td className="p-2 border">{r.total}</td>
 
-                return (
-                  <tr key={r.id}>
-                    <td className="p-2 border">{r.subject}</td>
-                    <td className="p-2 border">{r.score}</td>
-                    <td className="p-2 border">{r.max_score}</td>
-                    <td className="p-2 border font-semibold">{grade}</td>
-                    <td className="p-2 border">{r.term}</td>
-                    <td className="p-2 border">
-                      <button
-                        onClick={() => setActiveRecord(r)}
-                        className="text-blue-600 hover:underline"
-                      >
-                        Edit
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+                  <td className="p-2 border font-semibold">
+                    {getGrade(r.score, r.total)}
+                  </td>
+
+                  <td className="p-2 border">{r.term}</td>
+
+                  <td className="p-2 border">
+                    <button
+                      onClick={() => setActiveRecord(r)}
+                      className="text-blue-600 hover:underline"
+                    >
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         )}
       </SectionCard>
 
       {/* ================= MODAL ================= */}
-      {activeRecord !== null && (
+      {activeRecord && (
         <EditAcademicModal
           record={activeRecord}
           studentId={studentId}
           onClose={() => setActiveRecord(null)}
-          onUpdated={(updatedRecords) => {
-            setRecords(updatedRecords);
+          onUpdated={(updatedRecord) => {
+            // later we will replace with backend refresh
+            setRecords((prev) =>
+              prev.map((r) =>
+                r.id === updatedRecord.id ? updatedRecord : r
+              )
+            );
             setActiveRecord(null);
           }}
         />

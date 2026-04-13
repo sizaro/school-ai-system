@@ -63,6 +63,15 @@ export default function DirectorSidebar() {
               </Link>
             </li>
 
+            <li>
+                <Link
+                to="/director/academic-setup"
+                className={linkClass("/director/academic-setup")}
+              >
+                Academic Setup
+              </Link>
+            </li>
+
             <li className="mt-10">
               <SidebarFooter />
             </li>
@@ -108,7 +117,17 @@ export default function DirectorSidebar() {
               >
                 Students
               </Link>
+              </li>
+
+              <li>
+                <Link
+                to="/director/academic-setup"
+                className={linkClass("/director/academic-setup")}
+              >
+                Academic Setup
+              </Link>
             </li>
+            
 
             <li className="mt-10">
               <SidebarFooter />

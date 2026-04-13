@@ -21,6 +21,12 @@ import authRoutes from "./routes/authRoutes.js";
 
 import studentRoutes from "./routes/studentRoutes.js";
 
+import termRoutes from "./routes/termsRoutes.js";
+
+import classesRoutes from "./routes/classesRoutes.js";
+
+import subjectsRoutes from "./routes/subjectsRoutes.js";
+
 const app = express();
 
 // --- Define __dirname for ES modules ---
@@ -121,6 +127,9 @@ app.use("/uploads", express.static(path.join("uploads")));
 app.use("/api/users", usersRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/students", studentRoutes)
+app.use("/api/terms", termRoutes)
+app.use("/api/classes", classesRoutes)
+app.use("/api/subjects", subjectsRoutes)
 // app.use("/api", uploadRoutes);
 
 

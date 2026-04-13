@@ -4,16 +4,15 @@ import {
   setActiveTerm,
   updateTerm,
   endTerm,
+  deleteTermModel
 } from "../models/termsModel.js";
 
 // Create term
 export const addTerm = async (req, res) => {
   try {
     const data = req.body;
-    const result = await createTerm({
-      ...data,
-      recorded_by: req.user?.id,
-    });
+    const result = await createTerm(
+      data);
 
     res.status(201).json(result);
   } catch (err) {
@@ -56,6 +55,16 @@ export const closeTerm = async (req, res) => {
   try {
     const result = await endTerm(req.params.id);
     res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Delete term
+export const deleteTerm = async (req, res) => {
+  try {
+    const result = await deleteTermModel(req.params.id);
+    res.json({ message: "Term deleted", data: result });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

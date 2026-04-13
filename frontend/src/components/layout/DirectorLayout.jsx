@@ -6,6 +6,7 @@ import DirectorSidebar from "../sidebars/DirectorSidebar.jsx";
 import DirectorDashboard from "../../pages/director/DirectorDashboard.jsx";
 import StudentsPage from "../../pages/director/StudentsPage.jsx";
 import StudentProfile from "../../pages/director/StudentProfile.jsx";
+import AcademicSetup from "../../pages/director/AcademicSetup.jsx";
 
 const DirectorLayout = () => {
   return (
@@ -61,6 +62,8 @@ const DirectorLayout = () => {
         <Route path="dashboard" element={<DirectorDashboard />} />
         <Route path="students" element={<StudentsPage />} />
         <Route path="students/:id" element={<StudentProfile />} />
+        <Route path="academic-setup" element={<AcademicSetup />}
+        />
       </Routes>
     </main>
     </div>

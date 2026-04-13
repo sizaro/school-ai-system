@@ -14,6 +14,10 @@ export const DataProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [students, setStudents] = useState([]);
   const [studentProfile, setStudentProfile] = useState(null);
+  const [terms, setTerms] = useState([]);
+const [classes, setClasses] = useState([]);
+const [subjects, setSubjects] = useState([]);
+const [tuition, setTuition] = useState([]);
 
 
   const navigate = useNavigate();
@@ -345,10 +349,117 @@ const deleteTuitionPayment = async (studentId, formData) => {
 
 const fetchTerms = async () => {
   const res = await axios.get(`${API_URL}/terms`);
+  setTerms(res.data)
+  return res.data;
+};
+
+const fetchTermById = async (id) => {
+  const res = await axios.get(`${API_URL}/terms/${id}`);
+  return res.data;
+};
+
+const createTerm = async (data) => {
+  const res = await axios.post(`${API_URL}/terms`, data);
+  setTerms(res.data)
+  fetchTerms()
+  return res.data;
+};
+
+const updateTerm = async (id, data) => {
+  const res = await axios.put(`${API_URL}/terms/${id}`, data);
+  fetchTerms()
+  return res.data;
+};
+
+const deleteTerm = async (id) => {
+  const res = await axios.delete(`${API_URL}/terms/${id}`);
+  fetchTerms();
+  return res.data;
+};
+
+const fetchClasses = async () => {
+  const res = await axios.get(`${API_URL}/classes`);
+  setClasses(res.data)
+  console.log("classes in context", classes)
+  return res.data;
+};
+
+const fetchClassById = async (id) => {
+  const res = await axios.get(`${API_URL}/classes/${id}`);
+  return res.data;
+};
+
+const createClass = async (data) => {
+  const res = await axios.post(`${API_URL}/classes`, data);
+  return res.data;
+};
+
+const updateClass = async (id, data) => {
+  const res = await axios.put(`${API_URL}/classes/${id}`, data);
+  fetchClasses();
+  return res.data;
+};
+
+const deleteClass = async (id) => {
+  const res = await axios.delete(`${API_URL}/classes/${id}`);
+  fetchClasses();
   return res.data;
 };
 
 
+
+const fetchSubjects = async () => {
+  const res = await axios.get(`${API_URL}/subjects`);
+  console.log("subjects in context", res.data)
+  setSubjects(res.data)
+  return res.data;
+};
+
+const fetchSubjectById = async (id) => {
+  const res = await axios.get(`${API_URL}/subjects/${id}`);
+  return res.data;
+};
+
+const createSubject = async (data) => {
+  const res = await axios.post(`${API_URL}/subjects`, data);
+  fetchSubjects()
+  return res.data;
+};
+
+const updateSubject = async (id, data) => {
+  const res = await axios.put(`${API_URL}/subjects/${id}`, data);
+  return res.data;
+};
+
+const deleteSubject = async (id) => {
+  const res = await axios.delete(`${API_URL}/subjects/${id}`);
+  return res.data;
+};
+
+const fetchTuition = async () => {
+  const res = await axios.get(`${API_URL}/tuition`);
+  return res.data;
+};
+
+const fetchTuitionById = async (id) => {
+  const res = await axios.get(`${API_URL}/tuition/${id}`);
+  return res.data;
+};
+
+const createTuition = async (data) => {
+  const res = await axios.post(`${API_URL}/tuition`, data);
+  return res.data;
+};
+
+const updateTuition = async (id, data) => {
+  const res = await axios.put(`${API_URL}/tuition/${id}`, data);
+  return res.data;
+};
+
+const deleteTuition = async (id) => {
+  const res = await axios.delete(`${API_URL}/tuition/${id}`);
+  return res.data;
+};
 //   useEffect(() => {
 //   // Listen for new appointments
 //   socket.on("appointment_created", (payload) => {
@@ -369,6 +480,10 @@ const fetchTerms = async () => {
         users,
         students,
         studentProfile,
+        terms,
+        classes,
+        subjects,
+        tuition,
         uploadMultipleFiles,
         fetchUsers,
         fetchUserById,
@@ -395,6 +510,18 @@ const fetchTerms = async () => {
         updateTuitionPayment,
         deleteTuitionPayment,
         fetchTerms,
+        updateTerm,
+        deleteTerm,
+        fetchSubjects,
+        fetchClasses,
+        updateClass,
+        deleteClass,
+        fetchTuition,
+        createTerm,
+        createSubject,
+        createClass,
+        createTuition,
+
         
       }}
     >
