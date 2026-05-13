@@ -3,7 +3,7 @@ import db from "./database.js";
 /**
  * Create subject AND assign to class (transaction)
  */
-export const createSubject = async ({ name, class_id }) => {
+export const createSubject = async ({ subject_name, class_id }) => {
 
   try {
     await db.query("BEGIN");
@@ -13,7 +13,7 @@ export const createSubject = async ({ name, class_id }) => {
       `INSERT INTO subjects (name)
        VALUES ($1)
        RETURNING *`,
-      [name]
+      [subject_name]
     );
 
     const subject = subjectRes.rows[0];
@@ -43,7 +43,7 @@ export const getSubjects = async () => {
   const result = await db.query(`
     SELECT 
       cs.id AS row_id,
-      s.id AS subject_id,
+      s.id AS id,
       s.name AS subject_name,
       c.id AS class_id,
       c.name AS class_name
@@ -71,20 +71,24 @@ export const getSubjectById = async (id) => {
 /**
  * UPDATE SUBJECT
  */
-export const updateSubject = async (id, data) => {
-  const { name, class_id } = data;
+export const updateSubject = async ({ id, subject_name }) => {
+  try {
+    const result = await db.query(
+      `UPDATE subjects
+       SET name = $1
+       WHERE id = $2
+       RETURNING *`,
+      [subject_name, id]
+    );
 
-  const result = await db.query(
-    `UPDATE subjects
-     SET name = $1,
-         class_id = $2
-     WHERE id = $3
-     RETURNING *`,
-    [name, class_id, id]
-  );
-
-  return result.rows[0];
+    return result.rows[0];
+  } catch (err) {
+    console.error("Update subject error:", err);
+    throw err;
+  }
 };
+
+
 
 /**
  * DELETE SUBJECT

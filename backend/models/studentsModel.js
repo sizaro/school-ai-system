@@ -303,7 +303,8 @@ export const fetchStudentById = async (id) => {
                  'receipt_url', receipt_url,
                  'payment_method', payment_method,
                  'status', status,
-                 'notes', notes
+                 'notes', notes,
+                 'term_id', term_id
                )
              ) AS finances
       FROM finances
@@ -484,13 +485,13 @@ export const getPaymentById = async (paymentId) => {
 };
 export const addPaymentByStudentId = async (studentId, formData) => {
   try {
-    const { type, amount, payment_date, recorded_by, receipt_number, receipt_url, payment_method, status, notes } = formData;
+    const { type, term_id, amount, payment_date, recorded_by, receipt_number, receipt_url, payment_method, status, notes } = formData;
 
     const query = `
       INSERT INTO finances
-        (student_id, type, amount, payment_date, recorded_by, receipt_number, receipt_url, payment_method, status, notes)
+        (student_id, type, amount, payment_date, recorded_by, receipt_number, receipt_url, payment_method, status, notes, term_id)
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING *;
     `;
     const values = [
@@ -504,6 +505,7 @@ export const addPaymentByStudentId = async (studentId, formData) => {
       payment_method || null,
       status || null,
       notes || null,
+      term_id || null
     ];
 
     const { rows } = await db.query(query, values);
@@ -519,8 +521,8 @@ export const addPaymentByStudentId = async (studentId, formData) => {
 // ===============================
 export const updateTuitionPaymentByStudentId = async (formData) => {
   try {
-    const { id, student_id, type, amount, payment_date, recorded_by, receipt_number, receipt_url, payment_method, status, notes } = formData;
-    console.log("inside data in the tution update model", id, amount,payment_date, payment_method)
+    const { id, student_id, type, amount, payment_date, recorded_by, receipt_number, receipt_url, payment_method, status, notes, term_id } = formData;
+    console.log("inside data in the tution update model", id, amount,payment_date, payment_method, term_id, student_id)
 
     const query = `
       UPDATE finances

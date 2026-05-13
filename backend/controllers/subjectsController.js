@@ -49,7 +49,10 @@ export const fetchSubjectById = async (req, res) => {
  */
 export const editSubject = async (req, res) => {
   try {
-    const result = await updateSubject(req.params.id, req.body);
+    const {id} = req.params
+    const { subject_name} = req.body
+    console.log("updating subject data in cntrl:", req.body, req.params)
+    const result = await updateSubject({id, subject_name});
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

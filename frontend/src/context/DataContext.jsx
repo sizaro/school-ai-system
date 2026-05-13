@@ -18,6 +18,7 @@ export const DataProvider = ({ children }) => {
 const [classes, setClasses] = useState([]);
 const [subjects, setSubjects] = useState([]);
 const [tuition, setTuition] = useState([]);
+const [financeTypes, setFinanceTypes] = useState([]);
 
 
   const navigate = useNavigate();
@@ -326,23 +327,9 @@ const addPayment = async (studentId, formData) => {
   setStudentProfile(updated);
 };
 
-
-const updateTuitionPayment = async (studentId, formData) => {
-  console.log("Now using update tuition function")
-  const res = await axios.put(`${API_URL}/students/${studentId}/payment/tuition`,
-    formData,
-  );
-
-  console.log("Data returned after updating Tuition", res.data)
- const updated = await fetchStudentById(studentId);
-  setStudentProfile(updated);
-
-  return res.data;
-};
-
 // Delete a tuition payment
-const deleteTuitionPayment = async (studentId, formData) => {
-  await axios.delete(`${API_URL}/students/${studentId}/payment/tuition`, { data: formData });
+const deletePayment = async (studentId, formData) => {
+  await axios.delete(`${API_URL}/students/${studentId}/payment/`, { data: formData });
   const updated = await fetchStudentById(studentId);
   setStudentProfile(updated);
 };
@@ -460,6 +447,58 @@ const deleteTuition = async (id) => {
   const res = await axios.delete(`${API_URL}/tuition/${id}`);
   return res.data;
 };
+
+const fetchFinanceTypes = async () => {
+  try {
+    const res = await axios.get(`${API_URL}/finance-types`);
+    setFinanceTypes(res.data);
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching finance types:", err);
+    throw err;
+  }
+};
+
+const createFinanceType = async (data) => {
+  try {
+    const res = await axios.post(`${API_URL}/finance-types`, data);
+    await fetchFinanceTypes();
+    return res.data;
+  } catch (err) {
+    console.error("Error creating finance type:", err);
+    throw err;
+  }
+};
+
+const updateFinanceType = async (id, data) => {
+  try {
+    const res = await axios.put(`${API_URL}/finance-types/${id}`, data);
+    await fetchFinanceTypes();
+    return res.data;
+  } catch (err) {
+    console.error("Error updating finance type:", err);
+    throw err;
+  }
+};
+
+
+const deleteFinanceType = async (id) => {
+  try {
+    await axios.delete(`${API_URL}/finance-types/${id}`);
+    await fetchFinanceTypes();
+  } catch (err) {
+    console.error("Error deleting finance type:", err);
+    throw err;
+  }
+};
+
+
+useEffect(() => {
+  fetchFinanceTypes();
+}, []);
+
+
+
 //   useEffect(() => {
 //   // Listen for new appointments
 //   socket.on("appointment_created", (payload) => {
@@ -484,6 +523,7 @@ const deleteTuition = async (id) => {
         classes,
         subjects,
         tuition,
+        financeTypes,
         uploadMultipleFiles,
         fetchUsers,
         fetchUserById,
@@ -507,21 +547,26 @@ const deleteTuition = async (id) => {
         updateMedical,
         updatePayment,
         addPayment,
-        updateTuitionPayment,
-        deleteTuitionPayment,
+        updatePayment,
+        deletePayment,
         fetchTerms,
         updateTerm,
         deleteTerm,
         fetchSubjects,
+        updateSubject,
         fetchClasses,
         updateClass,
         deleteClass,
         fetchTuition,
         createTerm,
         createSubject,
+        deleteSubject,
         createClass,
         createTuition,
-
+        fetchFinanceTypes,
+        createFinanceType,
+        updateFinanceType,
+        deleteFinanceType,
         
       }}
     >

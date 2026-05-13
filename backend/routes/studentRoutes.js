@@ -44,10 +44,10 @@ router.delete("/:id/photo", removeStudentPhoto);
 // ---------- PAYMENTS ----------
 router.post("/:id/payment", upload.single("receipt"), addPayment); // general add payment
 router.put(
-  "/:id/payment/tuition",
-  upload.single("receipt"), // handle PDF upload
+  "/:id/payment",
+  upload.single("receipt"),
   updateTuitionPayment
 );
-router.delete("/:id/payment/tuition", deleteTuitionPayment); // delete tuition payment
+router.delete("/:id/payment", deleteTuitionPayment); // delete tuition payment
 
 export default router;

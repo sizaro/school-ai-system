@@ -7,36 +7,42 @@ import TermForm from "../../components/academics/TermForm";
 import ClassForm from "../../components/academics/ClassForm";
 import SubjectForm from "../../components/academics/SubjectForm";
 import TuitionForm from "../../components/academics/TuitionForm";
+import FinanceTypeForm from "../../components/academics/FinanceTypeForm";
 
 export default function AcademicSetup() {
   const {
     terms,
     classes,
     subjects,
-    tuition,
+    finances,
+    financeTypes,
 
     fetchTerms,
     fetchClasses,
     fetchSubjects,
     fetchTuition,
+    fetchFinanceTypes,
 
     createTerm,
     createClass,
     createSubject,
     createTuition,
+    createFinanceType,
 
     updateTerm,
     updateClass,
     updateSubject,
     updateTuition,
+    updateFinanceType,
 
     deleteTerm,
     deleteClass,
     deleteSubject,
     deleteTuition,
+    deleteFinanceType,
   } = useData();
 
-  // ---------------- TAB (URL CONTROL) ----------------
+  // ---------------- TAB ----------------
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get("tab") || "terms";
 
@@ -44,107 +50,102 @@ export default function AcademicSetup() {
     setSearchParams({ tab: value });
   };
 
-  // ---------------- MODAL STATE ----------------
+  // ---------------- MODAL ----------------
   const [modalOpen, setModalOpen] = useState(false);
   const [editItem, setEditItem] = useState(null);
 
-  // ---------------- LOAD DATA ----------------
+  // ---------------- LOAD ----------------
   useEffect(() => {
     fetchTerms();
     fetchClasses();
     fetchSubjects();
     fetchTuition();
+    fetchFinanceTypes(); // NEW
   }, []);
 
-  // ---------------- OPEN MODAL ----------------
-  const openCreate = () => {
-    console.log("OPEN CREATE CLICKED - TAB:", tab);
+console.log(subjects)
 
+
+
+  // ---------------- OPEN ----------------
+  const openCreate = () => {
     setEditItem(null);
     setModalOpen(true);
   };
 
   const openEdit = (item) => {
-    console.log("OPEN EDIT CLICKED:", item);
-
     setEditItem(item);
     setModalOpen(true);
   };
 
   // ---------------- SAVE ----------------
   const handleSave = async (data) => {
-    console.log("🔥 SAVE CLICKED");
-    console.log("TAB:", tab);
-    console.log("DATA:", data);
-    console.log("EDIT ITEM:", editItem);
-
     try {
       if (tab === "terms") {
-        editItem
-          ? await updateTerm(editItem.id, data)
-          : await createTerm(data);
+        editItem ? await updateTerm(editItem.id, data) : await createTerm(data);
       }
 
       if (tab === "classes") {
-        editItem
-          ? await updateClass(editItem.id, data)
-          : await createClass(data);
+        editItem ? await updateClass(editItem.id, data) : await createClass(data);
       }
 
       if (tab === "subjects") {
-        editItem
-          ? await updateSubject(editItem.id, data)
-          : await createSubject(data);
+        editItem ? await updateSubject(editItem.id, data) : await createSubject(data);
       }
 
       if (tab === "tuition") {
+        editItem ? await updateTuition(editItem.id, data) : await createTuition(data);
+      }
+
+      if (tab === "finance-types") {
         editItem
-          ? await updateTuition(editItem.id, data)
-          : await createTuition(data);
+          ? await updateFinanceType(editItem.id, data)
+          : await createFinanceType(data);
       }
 
       setModalOpen(false);
       setEditItem(null);
 
-      console.log("✅ SAVE SUCCESS");
-
       fetchTerms();
       fetchClasses();
       fetchSubjects();
       fetchTuition();
+      fetchFinanceTypes();
     } catch (err) {
-      console.error("❌ SAVE ERROR:", err);
+      console.error("SAVE ERROR:", err);
     }
   };
 
   // ---------------- DELETE ----------------
   const handleDelete = async (id) => {
-    console.log("DELETE CLICKED:", id);
-
     try {
       if (tab === "terms") await deleteTerm(id);
       if (tab === "classes") await deleteClass(id);
       if (tab === "subjects") await deleteSubject(id);
       if (tab === "tuition") await deleteTuition(id);
+      if (tab === "finance-types") await deleteFinanceType(id);
 
       fetchTerms();
       fetchClasses();
       fetchSubjects();
       fetchTuition();
+      fetchFinanceTypes();
     } catch (err) {
-      console.error("❌ DELETE ERROR:", err);
+      console.error("DELETE ERROR:", err);
     }
   };
 
-  // ---------------- DATA ----------------
+  // ---------------- DATA SWITCH ----------------
   const currentData =
-    tab === "terms"
-      ? terms
-      : tab === "classes"
-      ? classes
-      : tab === "subjects"
-      ? subjects
-      : tuition;
+  tab === "terms"
+    ? terms
+    : tab === "classes"
+    ? classes
+    : tab === "subjects"
+    ? subjects
+    : tab === "finance-types"
+    ? financeTypes
+    : finances;
 
   return (
     <div className="p-6 space-y-6">
@@ -152,7 +153,13 @@ export default function AcademicSetup() {
 
       {/* ---------------- TABS ---------------- */}
       <div className="flex gap-4 border-b pb-2">
-        {["terms", "classes", "subjects", "tuition"].map((t) => (
+        {[
+          "terms",
+          "classes",
+          "subjects",
+          "finances",
+          "finance-types",
+        ].map((t) => (
           <button
             key={t}
             type="button"
@@ -186,50 +193,39 @@ export default function AcademicSetup() {
         )}
 
         {currentData?.map((item) => (
+
           <div
             key={item.id}
             className="border p-3 rounded flex justify-between items-center"
           >
             <div>
-              {tab === "terms" && (
-                <>
-                  <div className="font-bold">{item.name}</div>
-                  <div className="text-sm text-gray-500">
-                    {item.academic_year} |{" "}
-                    {item.start_date?.split("T")[0]} →{" "}
-                    {item.end_date?.split("T")[0]}
-                  </div>
-                </>
-              )}
+              {tab === "terms" && <div className="font-bold">{item.name}</div>}
 
-              {tab === "classes" && (
-                <div className="font-bold">{item.name}</div>
-              )}
+              {tab === "classes" && <div className="font-bold">{item.name}</div>}
 
               {tab === "subjects" && (
-                <div className="font-bold">
-                  {item.name} (Class {item.class_id})
-                </div>
-              )}
+  <div className="font-bold">
+    {item.subject_name} (Class {item.class_name})
+  </div>
+)}
 
-              {tab === "tuition" && (
+              {tab === "finances" && (
                 <div className="font-bold">
                   {item.class_name} | {item.term_name} | UGX {item.amount}
                 </div>
               )}
+
+              {tab === "finance-types" && (
+                <div className="font-bold">{item.name}</div>
+              )}
             </div>
 
             <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => openEdit(item)}
-                className="text-blue-600"
-              >
+              <button onClick={() => openEdit(item)} className="text-blue-600">
                 Edit
               </button>
 
               <button
-                type="button"
                 onClick={() => handleDelete(item.id)}
                 className="text-red-600"
               >
@@ -240,9 +236,9 @@ export default function AcademicSetup() {
         ))}
       </div>
 
-      {/* ---------------- MODAL (FIXED) ---------------- */}
+      {/* ---------------- MODAL ---------------- */}
       <Modal
-        open={modalOpen}   // ✅ FIXED HERE
+        open={modalOpen}
         title={`${editItem ? "Edit" : "Add"} ${tab}`}
         onClose={() => {
           setModalOpen(false);
@@ -265,11 +261,18 @@ export default function AcademicSetup() {
           />
         )}
 
-        {tab === "tuition" && (
+        {tab === "finances" && (
           <TuitionForm
             initialData={editItem}
             classes={classes}
             terms={terms}
+            onSubmit={handleSave}
+          />
+        )}
+
+        {tab === "finance-types" && (
+          <FinanceTypeForm
+            initialData={editItem}
             onSubmit={handleSave}
           />
         )}

@@ -27,6 +27,8 @@ import classesRoutes from "./routes/classesRoutes.js";
 
 import subjectsRoutes from "./routes/subjectsRoutes.js";
 
+import financeTypeRoutes from "./routes/financeTypeRoutes.js";
+
 const app = express();
 
 // --- Define __dirname for ES modules ---
@@ -130,6 +132,7 @@ app.use("/api/students", studentRoutes)
 app.use("/api/terms", termRoutes)
 app.use("/api/classes", classesRoutes)
 app.use("/api/subjects", subjectsRoutes)
+app.use("/api/finance-types", financeTypeRoutes);
 // app.use("/api", uploadRoutes);
 
 

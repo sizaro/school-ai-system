@@ -104,6 +104,7 @@ export const getStudentById = async (req, res) => {
   try {
     const row = await fetchStudentById(req.params.id);
     if (!row) return res.status(404).json({ error: "Not found" });
+    console.log("student by id:", row)
     res.json(row);
   } catch (err) {
     res.status(500).json({ error: "Failed" });
@@ -281,11 +282,14 @@ export const addPayment = async (req, res) => {
     const studentId = req.params.id;
     const {
       amount,
+      term_id,
       type,
       payment_method,
       payment_date,
       recorded_by,
     } = req.body;
+
+    console.log("term is :", term_id)
 
     if (!recorded_by) {
       return res.status(400).json({ error: "recorded_by is required" });
@@ -298,6 +302,7 @@ export const addPayment = async (req, res) => {
 
     const newPayment = await addPaymentByStudentId(studentId, {
       amount,
+      term_id,
       type,
       payment_method,
       payment_date,
@@ -325,7 +330,7 @@ export const updateTuitionPayment = async (req, res) => {
     console.log("Body:", req.body);
     console.log("File:", req.file);
 
-    const { id, student_id, recorded_by, amount, payment_method, payment_date } = req.body;
+    const { id, student_id, recorded_by, amount, payment_method, payment_date, term_id } = req.body;
 
     if (!id) {
       console.warn("❌ Missing payment ID");
@@ -363,23 +368,25 @@ export const updateTuitionPayment = async (req, res) => {
 
     console.log("📝 Updating with:", {
       id,
-      student_id,
+      studentId,
       recorded_by,
       amount,
       payment_method,
       payment_date,
       receipt_url,
+      term_id,
     });
 
     // ✅ 3. Update DB (IMPORTANT: use payment ID, not studentId)
     const updatedPayment = await updateTuitionPaymentByStudentId({
       id: paymentId,
-      student_id,
+      student_id:studentId,
       recorded_by,
       amount: AmountValue, 
       payment_method,
       payment_date,
       receipt_url,
+      term_id,
     });
 
     console.log("✅ Updated payment result:", updatedPayment);
