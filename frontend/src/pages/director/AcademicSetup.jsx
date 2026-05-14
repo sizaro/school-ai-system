@@ -6,7 +6,7 @@ import Modal from "../../components/common/Modal";
 import TermForm from "../../components/academics/TermForm";
 import ClassForm from "../../components/academics/ClassForm";
 import SubjectForm from "../../components/academics/SubjectForm";
-import TuitionForm from "../../components/academics/TuitionForm";
+import FinanceForm from "../../components/academics/FinanceForm";
 import FinanceTypeForm from "../../components/academics/FinanceTypeForm";
 
 export default function AcademicSetup() {
@@ -262,12 +262,13 @@ console.log(subjects)
         )}
 
         {tab === "finances" && (
-          <TuitionForm
-            initialData={editItem}
-            classes={classes}
-            terms={terms}
-            onSubmit={handleSave}
-          />
+            <FinanceForm
+  initialData={editItem}
+  classes={classes}
+  terms={terms}
+  financeTypes={financeTypes}
+  onSubmit={handleSave}
+/>
         )}
 
         {tab === "finance-types" && (
