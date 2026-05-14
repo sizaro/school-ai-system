@@ -6,7 +6,7 @@ import Modal from "../../components/common/Modal";
 import TermForm from "../../components/academics/TermForm";
 import ClassForm from "../../components/academics/ClassForm";
 import SubjectForm from "../../components/academics/SubjectForm";
-import FinanceForm from "../../components/academics/FinanceForm";
+import FinanceStructureForm from "../../components/academics/FinanceStructureForm";
 import FinanceTypeForm from "../../components/academics/FinanceTypeForm";
 
 export default function AcademicSetup() {
@@ -14,31 +14,31 @@ export default function AcademicSetup() {
     terms,
     classes,
     subjects,
-    finances,
+    financeStructures,
     financeTypes,
 
     fetchTerms,
     fetchClasses,
     fetchSubjects,
-    fetchTuition,
+    fetchFinanceStructures,
     fetchFinanceTypes,
 
     createTerm,
     createClass,
     createSubject,
-    createTuition,
+    createFinanceStructure,
     createFinanceType,
 
     updateTerm,
     updateClass,
     updateSubject,
-    updateTuition,
+    updateFinanceStructure,
     updateFinanceType,
 
     deleteTerm,
     deleteClass,
     deleteSubject,
-    deleteTuition,
+    deleteFinanceStructure,
     deleteFinanceType,
   } = useData();
 
@@ -59,13 +59,9 @@ export default function AcademicSetup() {
     fetchTerms();
     fetchClasses();
     fetchSubjects();
-    fetchTuition();
-    fetchFinanceTypes(); // NEW
+    fetchFinanceStructures();
+    fetchFinanceTypes();
   }, []);
-
-console.log(subjects)
-
-
 
   // ---------------- OPEN ----------------
   const openCreate = () => {
@@ -82,19 +78,28 @@ console.log(subjects)
   const handleSave = async (data) => {
     try {
       if (tab === "terms") {
-        editItem ? await updateTerm(editItem.id, data) : await createTerm(data);
+        editItem
+          ? await updateTerm(editItem.id, data)
+          : await createTerm(data);
       }
 
       if (tab === "classes") {
-        editItem ? await updateClass(editItem.id, data) : await createClass(data);
+        editItem
+          ? await updateClass(editItem.id, data)
+          : await createClass(data);
       }
 
       if (tab === "subjects") {
-        editItem ? await updateSubject(editItem.id, data) : await createSubject(data);
+        editItem
+          ? await updateSubject(editItem.id, data)
+          : await createSubject(data);
       }
 
-      if (tab === "tuition") {
-        editItem ? await updateTuition(editItem.id, data) : await createTuition(data);
+      // ✅ FINANCE STRUCTURE
+      if (tab === "finances") {
+        editItem
+          ? await updateFinanceStructure(editItem.id, data)
+          : await createFinanceStructure(data);
       }
 
       if (tab === "finance-types") {
@@ -109,7 +114,7 @@ console.log(subjects)
       fetchTerms();
       fetchClasses();
       fetchSubjects();
-      fetchTuition();
+      fetchFinanceStructures();
       fetchFinanceTypes();
     } catch (err) {
       console.error("SAVE ERROR:", err);
@@ -122,13 +127,15 @@ console.log(subjects)
       if (tab === "terms") await deleteTerm(id);
       if (tab === "classes") await deleteClass(id);
       if (tab === "subjects") await deleteSubject(id);
-      if (tab === "tuition") await deleteTuition(id);
+
+      if (tab === "finances") await deleteFinanceStructure(id);
+
       if (tab === "finance-types") await deleteFinanceType(id);
 
       fetchTerms();
       fetchClasses();
       fetchSubjects();
-      fetchTuition();
+      fetchFinanceStructures();
       fetchFinanceTypes();
     } catch (err) {
       console.error("DELETE ERROR:", err);
@@ -137,15 +144,15 @@ console.log(subjects)
 
   // ---------------- DATA SWITCH ----------------
   const currentData =
-  tab === "terms"
-    ? terms
-    : tab === "classes"
-    ? classes
-    : tab === "subjects"
-    ? subjects
-    : tab === "finance-types"
-    ? financeTypes
-    : finances;
+    tab === "terms"
+      ? terms
+      : tab === "classes"
+      ? classes
+      : tab === "subjects"
+      ? subjects
+      : tab === "finance-types"
+      ? financeTypes
+      : financeStructures;
 
   return (
     <div className="p-6 space-y-6">
@@ -170,7 +177,7 @@ console.log(subjects)
                 : "text-gray-500"
             }
           >
-            {t}
+            {t === "finances" ? "finance-structures" : t}
           </button>
         ))}
       </div>
@@ -181,7 +188,7 @@ console.log(subjects)
         onClick={openCreate}
         className="bg-blue-600 text-white px-4 py-2 rounded"
       >
-        + Add {tab}
+        + Add Finance Structure
       </button>
 
       {/* ---------------- LIST ---------------- */}
@@ -193,25 +200,29 @@ console.log(subjects)
         )}
 
         {currentData?.map((item) => (
-
           <div
             key={item.id}
             className="border p-3 rounded flex justify-between items-center"
           >
             <div>
-              {tab === "terms" && <div className="font-bold">{item.name}</div>}
+              {tab === "terms" && (
+                <div className="font-bold">{item.name}</div>
+              )}
 
-              {tab === "classes" && <div className="font-bold">{item.name}</div>}
+              {tab === "classes" && (
+                <div className="font-bold">{item.name}</div>
+              )}
 
               {tab === "subjects" && (
-  <div className="font-bold">
-    {item.subject_name} (Class {item.class_name})
-  </div>
-)}
+                <div className="font-bold">
+                  {item.subject_name} (Class {item.class_name})
+                </div>
+              )}
 
               {tab === "finances" && (
                 <div className="font-bold">
-                  {item.class_name} | {item.term_name} | UGX {item.amount}
+                  {item.class_name} | {item.term_name} |{" "}
+                  {item.finance_type_name} | UGX {item.amount}
                 </div>
               )}
 
@@ -221,7 +232,10 @@ console.log(subjects)
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => openEdit(item)} className="text-blue-600">
+              <button
+                onClick={() => openEdit(item)}
+                className="text-blue-600"
+              >
                 Edit
               </button>
 
@@ -239,7 +253,7 @@ console.log(subjects)
       {/* ---------------- MODAL ---------------- */}
       <Modal
         open={modalOpen}
-        title={`${editItem ? "Edit" : "Add"} ${tab}`}
+        title={`${editItem ? "Edit" : "Add"} Finance Structure`}
         onClose={() => {
           setModalOpen(false);
           setEditItem(null);
@@ -262,13 +276,13 @@ console.log(subjects)
         )}
 
         {tab === "finances" && (
-            <FinanceForm
-  initialData={editItem}
-  classes={classes}
-  terms={terms}
-  financeTypes={financeTypes}
-  onSubmit={handleSave}
-/>
+          <FinanceStructureForm
+            initialData={editItem}
+            classes={classes}
+            terms={terms}
+            financeTypes={financeTypes}
+            onSubmit={handleSave}
+          />
         )}
 
         {tab === "finance-types" && (

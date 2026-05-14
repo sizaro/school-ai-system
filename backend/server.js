@@ -10,6 +10,7 @@ import session from "express-session";
 import passport from "passport";
 import pgSession from "connect-pg-simple";
 import "./config/passport.js";
+import financeStructureRoutes from "./routes/financeStructureRoutes.js";
 // import path from "path";
 // import uploadRoutes from "./routes/uploadRoutes.js";
 
@@ -133,6 +134,7 @@ app.use("/api/terms", termRoutes)
 app.use("/api/classes", classesRoutes)
 app.use("/api/subjects", subjectsRoutes)
 app.use("/api/finance-types", financeTypeRoutes);
+app.use("/api/finance-structures", financeStructureRoutes);
 // app.use("/api", uploadRoutes);
 
 

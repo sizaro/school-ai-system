@@ -19,7 +19,7 @@ const [classes, setClasses] = useState([]);
 const [subjects, setSubjects] = useState([]);
 const [tuition, setTuition] = useState([]);
 const [financeTypes, setFinanceTypes] = useState([]);
-
+const [financeStructures, setFinanceStructures] = useState([]);
 
   const navigate = useNavigate();
 
@@ -493,6 +493,85 @@ const deleteFinanceType = async (id) => {
 };
 
 
+// ============================
+// FINANCE STRUCTURE CRUD
+// ============================
+
+// GET ALL
+const fetchFinanceStructures = async () => {
+  try {
+    const res = await axios.get(`${API_URL}/finance-structures`);
+    setFinanceStructures(res.data);
+  } catch (err) {
+    console.error("Error fetching finance structures:", err);
+    throw err;
+  }
+};
+
+// CREATE
+const createFinanceStructure = async (data) => {
+  try {
+    const res = await axios.post(`${API_URL}/finance-structures`, data);
+
+    setFinanceStructures((prev) => [...prev, res.data]);
+
+    return res.data;
+  } catch (err) {
+    console.error("Error creating finance structure:", err);
+    throw err;
+  }
+};
+
+// UPDATE
+const updateFinanceStructure = async (id, data) => {
+  try {
+    const res = await axios.put(
+      `${API_URL}/finance-structures/${id}`,
+      data
+    );
+
+    setFinanceStructures((prev) =>
+      prev.map((item) =>
+        item.id === id ? res.data : item
+      )
+    );
+
+    return res.data;
+  } catch (err) {
+    console.error("Error updating finance structure:", err);
+    throw err;
+  }
+};
+
+// DELETE
+const deleteFinanceStructure = async (id) => {
+  try {
+    await axios.delete(`${API_URL}/finance-structures/${id}`);
+
+    setFinanceStructures((prev) =>
+      prev.filter((item) => item.id !== id)
+    );
+  } catch (err) {
+    console.error("Error deleting finance structure:", err);
+    throw err;
+  }
+};
+
+// GET BY CLASS + TERM (for dropdown logic later)
+const getFinanceStructureByClassTerm = async (class_id, term_id) => {
+  try {
+    const res = await axios.get(
+      `${API_URL}/finance-structures/by-class/${class_id}/term/${term_id}`
+    );
+
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching structure by class/term:", err);
+    return [];
+  }
+};
+
+
 useEffect(() => {
   fetchFinanceTypes();
 }, []);
@@ -524,6 +603,7 @@ useEffect(() => {
         subjects,
         tuition,
         financeTypes,
+        financeStructures,
         uploadMultipleFiles,
         fetchUsers,
         fetchUserById,
@@ -567,6 +647,10 @@ useEffect(() => {
         createFinanceType,
         updateFinanceType,
         deleteFinanceType,
+        fetchFinanceStructures,
+        createFinanceStructure,
+        updateFinanceStructure,
+        deleteFinanceStructure
         
       }}
     >

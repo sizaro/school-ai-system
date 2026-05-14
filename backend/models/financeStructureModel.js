@@ -1,4 +1,4 @@
-import db from "./database";
+import db from "./database.js";
 
 // CREATE finance structure rule
 export const createFinanceStructure = async (data) => {
