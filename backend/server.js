@@ -14,6 +14,11 @@ import financeStructureRoutes from "./routes/financeStructureRoutes.js";
 // import path from "path";
 // import uploadRoutes from "./routes/uploadRoutes.js";
 
+import paymentRoutes from "./routes/paymentRoutes.js";
+import financeSummaryRoutes from "./routes/financeSummaryRoutes.js";
+
+
+
 dotenv.config();
 
 import usersRoutes from "./routes/usersRoutes.js";
@@ -135,6 +140,11 @@ app.use("/api/classes", classesRoutes)
 app.use("/api/subjects", subjectsRoutes)
 app.use("/api/finance-types", financeTypeRoutes);
 app.use("/api/finance-structures", financeStructureRoutes);
+// Payments
+app.use("/api/students", paymentRoutes);
+
+// Finance summary (analytics)
+app.use("/api/students", financeSummaryRoutes);
 // app.use("/api", uploadRoutes);
 
 

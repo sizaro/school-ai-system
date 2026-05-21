@@ -104,7 +104,6 @@ export const getStudentById = async (req, res) => {
   try {
     const row = await fetchStudentById(req.params.id);
     if (!row) return res.status(404).json({ error: "Not found" });
-    console.log("student by id:", row)
     res.json(row);
   } catch (err) {
     res.status(500).json({ error: "Failed" });

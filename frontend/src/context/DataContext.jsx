@@ -322,7 +322,14 @@ const updatePayment = async (studentId, data) => {
 
 // Add a payment (general)
 const addPayment = async (studentId, formData) => {
-  await axios.post(`${API_URL}/students/${studentId}/payment`, formData);
+  await axios.post(
+    `${API_URL}/students/${studentId}/payment`,
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+    }
+  );
+
   const updated = await fetchStudentById(studentId);
   setStudentProfile(updated);
 };
@@ -572,6 +579,48 @@ const getFinanceStructureByClassTerm = async (class_id, term_id) => {
 };
 
 
+
+const fetchStudentPayments = async (studentId) => {
+  console.log("🔥 fetchStudentPayments CALLED");
+  console.log("👉 studentId:", studentId);
+
+  try {
+    const url = `${API_URL}/students/${studentId}/payments`;
+
+    console.log("👉 URL:", url);
+
+    const res = await axios.get(url);
+
+    console.log("✅ PAYMENTS RESPONSE:", res.data);
+
+    return res.data;
+  } catch (err) {
+    console.error("❌ Error fetching student payments:", err);
+    return [];
+  }
+};
+
+
+const fetchStudentFinanceSummary = async (studentId) => {
+  console.log("🔥 fetchStudentFinanceSummary CALLED");
+  console.log("👉 studentId:", studentId);
+
+  try {
+    const url = `${API_URL}/students/${studentId}/finance-summary`;
+
+    console.log("👉 URL:", url);
+
+    const res = await axios.get(url);
+
+    console.log("✅ FINANCE SUMMARY RESPONSE:", res.data);
+
+    return res.data;
+  } catch (err) {
+    console.error("❌ Error fetching finance summary:", err);
+    return null;
+  }
+};
+
 useEffect(() => {
   fetchFinanceTypes();
 }, []);
@@ -650,7 +699,9 @@ useEffect(() => {
         fetchFinanceStructures,
         createFinanceStructure,
         updateFinanceStructure,
-        deleteFinanceStructure
+        deleteFinanceStructure,
+        fetchStudentPayments,
+        fetchStudentFinanceSummary,
         
       }}
     >
