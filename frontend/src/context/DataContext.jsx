@@ -335,8 +335,8 @@ const addPayment = async (studentId, formData) => {
 };
 
 // Delete a tuition payment
-const deletePayment = async (studentId, formData) => {
-  await axios.delete(`${API_URL}/students/${studentId}/payment/`, { data: formData });
+const deletePayment = async (studentId, paymentId) => {
+  await axios.delete(`${API_URL}/students/${studentId}/payment/${paymentId}`);
   const updated = await fetchStudentById(studentId);
   setStudentProfile(updated);
 };
@@ -518,6 +518,7 @@ const fetchFinanceStructures = async () => {
 // CREATE
 const createFinanceStructure = async (data) => {
   try {
+    console.log("ADD PAYMENT PAYLOAD:", data);
     const res = await axios.post(`${API_URL}/finance-structures`, data);
 
     setFinanceStructures((prev) => [...prev, res.data]);

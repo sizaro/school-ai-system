@@ -13,6 +13,13 @@ export const createPaymentController = async (
   req,
   res
 ) => {
+
+   console.log("==== DEBUG PAYMENT REQUEST ====");
+  console.log("params:", req.params);
+  console.log("body:", req.body);
+  console.log("file:", req.file);
+  console.log("===============================");
+
   try {
     const student_id = req.params.id;
 
@@ -107,36 +114,74 @@ export const getStudentPaymentsController =
 // ======================================
 // UPDATE PAYMENT
 // ======================================
+
+
 export const updatePaymentController =
   async (req, res) => {
+
+    console.log(req.body);
+    console.log('studentid: ',req.params.studentId)
+
     try {
 
-      const paymentId = req.params.paymentId;
+      // CONTEXT
+      const studentId =
+        req.params.studentId;
+
+      // ACTUAL PAYMENT ROW
+      const paymentId =
+        req.body.paymentId;
+
+      if (!studentId) {
+        return res.status(400).json({
+          error: "Missing student ID",
+        });
+      }
+
+      if (!paymentId) {
+        return res.status(400).json({
+          error: "Missing payment ID",
+        });
+      }
 
       const receipt_url = req.file
         ? `/uploads/receipts/${req.file.filename}`
         : null;
 
-      const payment = await updatePayment(
-        paymentId,
-        {
-          amount: req.body.amount,
-          finance_type_id:
-            req.body.finance_type_id,
-          payment_method:
-            req.body.payment_method,
-          payment_date:
-            req.body.payment_date,
-          term_id: req.body.term_id,
-          notes: req.body.notes,
-          status: req.body.status,
-          receipt_url,
-        }
-      );
+      const payment =
+        await updatePayment(
+          paymentId,
+          {
+            student_id: studentId,
+
+            amount: req.body.amount,
+
+            finance_type_id:
+              req.body.finance_type_id,
+
+            payment_method:
+              req.body.payment_method,
+
+            payment_date:
+              req.body.payment_date,
+
+            term_id:
+              req.body.term_id,
+
+            notes:
+              req.body.notes,
+
+            status:
+              req.body.status,
+
+            receipt_url,
+          }
+        );
 
       res.json(payment);
 
     } catch (err) {
+
       console.error(err);
 
       res.status(500).json({
@@ -150,21 +195,40 @@ export const updatePaymentController =
 // ======================================
 export const deletePaymentController =
   async (req, res) => {
+    console.log(req.params)
+
     try {
 
+      const studentId =
+        req.params.studentId;
+
+      const paymentId =
+        req.params.paymentId;
+
+      if (!studentId || !paymentId) {
+        return res.status(400).json({
+          error:
+            "Missing studentId or paymentId",
+        });
+      }
+
       await deletePayment(
-        req.params.paymentId
+        paymentId,
+        studentId
       );
 
       res.json({
-        message: "Payment deleted successfully",
+        message:
+          "Payment deleted successfully",
       });
 
     } catch (err) {
+
       console.error(err);
 
       res.status(500).json({
-        error: "Failed to delete payment",
+        error:
+          "Failed to delete payment",
       });
     }
   };

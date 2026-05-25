@@ -41,13 +41,13 @@ router.put("/:id/admission", updateAdmission);
 router.put("/:id/photo", upload.single("photo"), updateStudentPhoto);
 router.delete("/:id/photo", removeStudentPhoto);
 
-// ---------- PAYMENTS ----------
-router.post("/:id/payment", upload.single("receipt"), addPayment); // general add payment
-router.put(
-  "/:id/payment",
-  upload.single("receipt"),
-  updateTuitionPayment
-);
-router.delete("/:id/payment", deleteTuitionPayment); // delete tuition payment
+// // ---------- PAYMENTS ----------
+// router.post("/:id/payment", upload.single("receipt"), addPayment); // general add payment
+// router.put(
+//   "/:id/payment",
+//   upload.single("receipt"),
+//   updateTuitionPayment
+// );
+// router.delete("/:id/payment", deleteTuitionPayment); // delete tuition payment
 
 export default router;

@@ -141,11 +141,14 @@ export const getStudentPayments = async (
 // ==============================
 // UPDATE PAYMENT
 // ==============================
+
 export const updatePayment = async (
   id,
   data
 ) => {
+
   const {
+    student_id,
     amount,
     finance_type_id,
     payment_method,
@@ -160,18 +163,22 @@ export const updatePayment = async (
     `
     UPDATE finances
     SET
-      amount = $1,
-      finance_type_id = $2,
-      payment_method = $3,
-      payment_date = $4,
-      term_id = $5,
-      receipt_url = COALESCE($6, receipt_url),
-      notes = $7,
-      status = $8
-    WHERE id = $9
+      student_id = $1,
+      amount = $2,
+      finance_type_id = $3,
+      payment_method = $4,
+      payment_date = $5,
+      term_id = $6,
+      receipt_url = COALESCE($7, receipt_url),
+      notes = $8,
+      status = $9
+
+    WHERE id = $10
+
     RETURNING *
     `,
     [
+      student_id,
       amount,
       finance_type_id,
       payment_method,
@@ -190,14 +197,20 @@ export const updatePayment = async (
 // ==============================
 // DELETE PAYMENT
 // ==============================
-export const deletePayment = async (id) => {
+
+export const deletePayment = async (
+  paymentId,
+  studentId
+) => {
+
   const result = await db.query(
     `
     DELETE FROM finances
     WHERE id = $1
+    AND student_id = $2
     RETURNING *
     `,
-    [id]
+    [paymentId, studentId]
   );
 
   return result.rows[0];

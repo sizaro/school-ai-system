@@ -57,7 +57,7 @@ router.get(
 // UPDATE PAYMENT (with optional receipt)
 // ======================================
 router.put(
-  "/payments/:paymentId",
+  "/:studentId/payment",
   upload.single("receipt"),
   updatePaymentController
 );
@@ -66,8 +66,10 @@ router.put(
 // DELETE PAYMENT
 // ======================================
 router.delete(
-  "/payments/:paymentId",
+  "/:studentId/payment/:paymentId",
   deletePaymentController
 );
+
+
 
 export default router;

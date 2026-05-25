@@ -122,6 +122,7 @@ export default function Finances({ studentId }) {
     selectedFinanceType,
   ]);
 
+
   // =====================================
   // PAYMENT MAP
   // =====================================
@@ -187,6 +188,7 @@ export default function Finances({ studentId }) {
   // DELETE PAYMENT
   // =====================================
   const handleDeletePayment = async (
+    studentId,
     paymentId
   ) => {
     const confirmDelete = window.confirm(
@@ -196,7 +198,7 @@ export default function Finances({ studentId }) {
     if (!confirmDelete) return;
 
     try {
-      await deletePayment(paymentId);
+      await deletePayment(studentId,paymentId);
 
       await loadFinance();
     } catch (error) {
@@ -215,6 +217,8 @@ export default function Finances({ studentId }) {
       const form = e.target;
 
       const data = new FormData();
+
+      data.append("paymentId", editingPayment.id)
 
       data.append("amount", form.amount.value);
 
@@ -251,7 +255,7 @@ export default function Finances({ studentId }) {
       }
 
       await updatePayment(
-        editingPayment.id,
+        studentId,
         data
       );
 
@@ -514,6 +518,7 @@ export default function Finances({ studentId }) {
 
               {filteredPayments.map(
                 (payment) => (
+                  
                   <tr
                     key={payment.id}
                     className="border-t hover:bg-gray-50"
@@ -570,8 +575,9 @@ export default function Finances({ studentId }) {
 
                         <button
                           onClick={() =>
+                            
                             handleDeletePayment(
-                              payment.id
+                            studentId, payment.id
                             )
                           }
                           className="bg-red-100 text-red-700 px-3 py-1 rounded-lg text-sm hover:bg-red-200"

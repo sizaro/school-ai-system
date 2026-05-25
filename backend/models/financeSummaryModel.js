@@ -59,21 +59,21 @@ export const getStudentFinanceSummary = async (
     ORDER BY name ASC
   `;
 
-  console.log("\n📘 FINANCE TYPES QUERY:");
-  console.log(financeTypesQuery);
+  // console.log("\n📘 FINANCE TYPES QUERY:");
+  // console.log(financeTypesQuery);
 
   const financeTypes = await db.query(financeTypesQuery);
 
-  console.log("\n✅ FINANCE TYPES FOUND:");
-  console.log(financeTypes.rows.length);
+  // console.log("\n✅ FINANCE TYPES FOUND:");
+  // console.log(financeTypes.rows.length);
 
-  console.log("\n✅ FINANCE TYPES DATA:");
-  console.log(JSON.stringify(financeTypes.rows, null, 2));
+  // console.log("\n✅ FINANCE TYPES DATA:");
+  // console.log(JSON.stringify(financeTypes.rows, null, 2));
 
   // =====================================
   // 3. STRUCTURES
   // =====================================
-  console.log("\n📦 FETCHING FINANCE STRUCTURES...");
+  // console.log("\n📦 FETCHING FINANCE STRUCTURES...");
 
   let structureQuery = `
     SELECT
@@ -113,27 +113,27 @@ export const getStudentFinanceSummary = async (
     ORDER BY ft.name ASC
   `;
 
-  console.log("\n📘 STRUCTURE QUERY:");
-  console.log(structureQuery);
+  // console.log("\n📘 STRUCTURE QUERY:");
+  // console.log(structureQuery);
 
-  console.log("📘 STRUCTURE VALUES:");
-  console.log(structureValues);
+  // console.log("📘 STRUCTURE VALUES:");
+  // console.log(structureValues);
 
   const structures = await db.query(
     structureQuery,
     structureValues
   );
 
-  console.log("\n✅ STRUCTURES FOUND:");
-  console.log(structures.rows.length);
+  // console.log("\n✅ STRUCTURES FOUND:");
+  // console.log(structures.rows.length);
 
-  console.log("\n✅ STRUCTURE DATA:");
-  console.log(JSON.stringify(structures.rows, null, 2));
+  // console.log("\n✅ STRUCTURE DATA:");
+  // console.log(JSON.stringify(structures.rows, null, 2));
 
-  // =====================================
-  // 4. PAYMENTS
-  // =====================================
-  console.log("\n💰 FETCHING PAYMENTS...");
+  // // =====================================
+  // // 4. PAYMENTS
+  // // =====================================
+  // console.log("\n💰 FETCHING PAYMENTS...");
 
   let paymentQuery = `
     SELECT
@@ -177,22 +177,22 @@ export const getStudentFinanceSummary = async (
     ORDER BY f.created_at DESC
   `;
 
-  console.log("\n📘 PAYMENT QUERY:");
-  console.log(paymentQuery);
+  // console.log("\n📘 PAYMENT QUERY:");
+  // console.log(paymentQuery);
 
-  console.log("📘 PAYMENT VALUES:");
-  console.log(paymentValues);
+  // console.log("📘 PAYMENT VALUES:");
+  // console.log(paymentValues);
 
   const payments = await db.query(
     paymentQuery,
     paymentValues
   );
 
-  console.log("\n✅ PAYMENTS FOUND:");
-  console.log(payments.rows.length);
+  // console.log("\n✅ PAYMENTS FOUND:");
+  // console.log(payments.rows.length);
 
-  console.log("\n✅ PAYMENT DATA:");
-  console.log(JSON.stringify(payments.rows, null, 2));
+  // console.log("\n✅ PAYMENT DATA:");
+  // console.log(JSON.stringify(payments.rows, null, 2));
 
   // =====================================
   // 5. FINAL RESPONSE
@@ -207,15 +207,15 @@ export const getStudentFinanceSummary = async (
     payments: payments.rows,
   };
 
-  console.log("\n====================================");
-  console.log("✅ FINAL RESPONSE");
-  console.log("====================================");
+  // console.log("\n====================================");
+  // console.log("✅ FINAL RESPONSE");
+  // console.log("====================================");
 
-  console.log(JSON.stringify(response, null, 2));
+  // console.log(JSON.stringify(response, null, 2));
 
-  console.log("\n====================================");
-  console.log("🔥 END FINANCE SUMMARY");
-  console.log("====================================\n");
+  // console.log("\n====================================");
+  // console.log("🔥 END FINANCE SUMMARY");
+  // console.log("====================================\n");
 
   return response;
 };
