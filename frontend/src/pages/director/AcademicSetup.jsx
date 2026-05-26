@@ -8,6 +8,7 @@ import ClassForm from "../../components/academics/ClassForm";
 import SubjectForm from "../../components/academics/SubjectForm";
 import FinanceStructureForm from "../../components/academics/FinanceStructureForm";
 import FinanceTypeForm from "../../components/academics/FinanceTypeForm";
+import GradeForm from "../../components/academics/GradeForm"; // ✅ NEW
 
 export default function AcademicSetup() {
   const {
@@ -16,30 +17,35 @@ export default function AcademicSetup() {
     subjects,
     financeStructures,
     financeTypes,
+    grades, // ✅ NEW
 
     fetchTerms,
     fetchClasses,
     fetchSubjects,
     fetchFinanceStructures,
     fetchFinanceTypes,
+    fetchGrades, // ✅ NEW
 
     createTerm,
     createClass,
     createSubject,
     createFinanceStructure,
     createFinanceType,
+    createGrade, // ✅ NEW
 
     updateTerm,
     updateClass,
     updateSubject,
     updateFinanceStructure,
     updateFinanceType,
+    updateGrade, // ✅ NEW
 
     deleteTerm,
     deleteClass,
     deleteSubject,
     deleteFinanceStructure,
     deleteFinanceType,
+    deleteGrade, // ✅ NEW
   } = useData();
 
   // ---------------- TAB ----------------
@@ -61,6 +67,7 @@ export default function AcademicSetup() {
     fetchSubjects();
     fetchFinanceStructures();
     fetchFinanceTypes();
+    fetchGrades(); // ✅ NEW
   }, []);
 
   // ---------------- OPEN ----------------
@@ -95,7 +102,6 @@ export default function AcademicSetup() {
           : await createSubject(data);
       }
 
-      // ✅ FINANCE STRUCTURE
       if (tab === "finances") {
         editItem
           ? await updateFinanceStructure(editItem.id, data)
@@ -108,6 +114,13 @@ export default function AcademicSetup() {
           : await createFinanceType(data);
       }
 
+      // ✅ GRADES
+      if (tab === "grades") {
+        editItem
+          ? await updateGrade(editItem.id, data)
+          : await createGrade(data);
+      }
+
       setModalOpen(false);
       setEditItem(null);
 
@@ -116,6 +129,7 @@ export default function AcademicSetup() {
       fetchSubjects();
       fetchFinanceStructures();
       fetchFinanceTypes();
+      fetchGrades(); // ✅ NEW
     } catch (err) {
       console.error("SAVE ERROR:", err);
     }
@@ -127,16 +141,16 @@ export default function AcademicSetup() {
       if (tab === "terms") await deleteTerm(id);
       if (tab === "classes") await deleteClass(id);
       if (tab === "subjects") await deleteSubject(id);
-
       if (tab === "finances") await deleteFinanceStructure(id);
-
       if (tab === "finance-types") await deleteFinanceType(id);
+      if (tab === "grades") await deleteGrade(id); // ✅ NEW
 
       fetchTerms();
       fetchClasses();
       fetchSubjects();
       fetchFinanceStructures();
       fetchFinanceTypes();
+      fetchGrades(); // ✅ NEW
     } catch (err) {
       console.error("DELETE ERROR:", err);
     }
@@ -152,6 +166,8 @@ export default function AcademicSetup() {
       ? subjects
       : tab === "finance-types"
       ? financeTypes
+      : tab === "grades"
+      ? grades
       : financeStructures;
 
   return (
@@ -166,6 +182,7 @@ export default function AcademicSetup() {
           "subjects",
           "finances",
           "finance-types",
+          "grades", // ✅ NEW
         ].map((t) => (
           <button
             key={t}
@@ -177,7 +194,11 @@ export default function AcademicSetup() {
                 : "text-gray-500"
             }
           >
-            {t === "finances" ? "finance-structures" : t}
+            {t === "finances"
+              ? "finance-structures"
+              : t === "grades"
+              ? "grades"
+              : t}
           </button>
         ))}
       </div>
@@ -188,7 +209,7 @@ export default function AcademicSetup() {
         onClick={openCreate}
         className="bg-blue-600 text-white px-4 py-2 rounded"
       >
-        + Add Finance Structure
+        + Add {tab}
       </button>
 
       {/* ---------------- LIST ---------------- */}
@@ -229,6 +250,24 @@ export default function AcademicSetup() {
               {tab === "finance-types" && (
                 <div className="font-bold">{item.name}</div>
               )}
+
+              {tab === "grades" && (
+  <div className="space-y-1">
+    <div className="font-bold text-lg">
+      {item.grade} ({item.min_score} - {item.max_score})
+    </div>
+
+    <div className="text-sm text-gray-600">
+      Class: {item.class_name} | Term: {item.term_name} | Year: {item.academic_year}
+    </div>
+
+    {item.remarks && (
+      <div className="text-sm text-gray-500">
+        {item.remarks}
+      </div>
+    )}
+  </div>
+)}
             </div>
 
             <div className="flex gap-3">
@@ -253,7 +292,7 @@ export default function AcademicSetup() {
       {/* ---------------- MODAL ---------------- */}
       <Modal
         open={modalOpen}
-        title={`${editItem ? "Edit" : "Add"} Finance Structure`}
+        title={`${editItem ? "Edit" : "Add"} ${tab}`}
         onClose={() => {
           setModalOpen(false);
           setEditItem(null);
@@ -288,6 +327,16 @@ export default function AcademicSetup() {
         {tab === "finance-types" && (
           <FinanceTypeForm
             initialData={editItem}
+            onSubmit={handleSave}
+          />
+        )}
+
+        {/* ✅ GRADES */}
+        {tab === "grades" && (
+          <GradeForm
+            initialData={editItem}
+            classes={classes}
+            terms={terms}
             onSubmit={handleSave}
           />
         )}

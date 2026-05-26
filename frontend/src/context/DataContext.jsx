@@ -20,6 +20,7 @@ const [subjects, setSubjects] = useState([]);
 const [tuition, setTuition] = useState([]);
 const [financeTypes, setFinanceTypes] = useState([]);
 const [financeStructures, setFinanceStructures] = useState([]);
+const [grades, setGrades] = useState([]);
 
   const navigate = useNavigate();
 
@@ -183,35 +184,65 @@ const registerStudent = async (data) => {
   try {
     const formData = new FormData();
 
-    // Student fields
-    Object.entries(data.student).forEach(([key, value]) => {
-      if (value !== null && value !== undefined) {
+    // --------------------------
+    // STUDENT (non-file fields)
+    // --------------------------
+    Object.entries(data.student || {}).forEach(([key, value]) => {
+      if (key !== "photo" && value !== null && value !== undefined) {
         formData.append(`student[${key}]`, value);
       }
     });
 
-    // Guardian
-    Object.entries(data.guardian).forEach(([key, value]) => {
-      formData.append(`guardian[${key}]`, value);
+    // ✅ FILE: student photo (IMPORTANT FIX)
+    if (data.student?.photo) {
+      formData.append("student_photo", data.student.photo);
+    }
+
+    // --------------------------
+    // GUARDIAN
+    // --------------------------
+    Object.entries(data.guardian || {}).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        formData.append(`guardian[${key}]`, value);
+      }
     });
 
-    // Medical
-    Object.entries(data.medical).forEach(([key, value]) => {
-      formData.append(`medical[${key}]`, value);
+    // --------------------------
+    // MEDICAL
+    // --------------------------
+    Object.entries(data.medical || {}).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        formData.append(`medical[${key}]`, value);
+      }
     });
 
-    // Payment
-    Object.entries(data.payment).forEach(([key, value]) => {
-      formData.append(`payment[${key}]`, value);
+    // --------------------------
+    // PAYMENT
+    // --------------------------
+    Object.entries(data.payment || {}).forEach(([key, value]) => {
+      if (key !== "receipt" && value !== null && value !== undefined) {
+        formData.append(`payment[${key}]`, value);
+      }
     });
 
-    const res = await axios.post(`${API_URL}/students/register`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    // ✅ FILE: receipt upload
+    if (data.payment?.receipt) {
+      formData.append("receipt", data.payment.receipt);
+    }
+
+    const res = await axios.post(
+      `${API_URL}/students/register`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
     await fetchStudents();
     return { success: true, data: res.data };
+
   } catch (err) {
     console.error("Error registering student:", err);
     return {
@@ -622,6 +653,69 @@ const fetchStudentFinanceSummary = async (studentId) => {
   }
 };
 
+
+// ================= FETCH GRADES =================
+const fetchGrades = async () => {
+  try {
+    const res = await axios.get(`${API_URL}/grades`);
+    setGrades(res.data);
+
+    console.log("Fetched grades:", res.data);
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching grades:", err);
+    throw err;
+  }
+};
+
+// ================= CREATE GRADE =================
+const createGrade = async (data) => {
+  try {
+    const res = await axios.post(`${API_URL}/grades`, data);
+
+    setGrades((prev) => [...prev, res.data]);
+
+    console.log("Created grade:", res.data);
+    return res.data;
+  } catch (err) {
+    console.error("Error creating grade:", err);
+    throw err;
+  }
+};
+
+// ================= UPDATE GRADE =================
+const updateGrade = async (id, data) => {
+  try {
+    const res = await axios.put(`${API_URL}/grades/${id}`, data);
+
+    setGrades((prev) =>
+      prev.map((g) => (g.id === id ? res.data : g))
+    );
+
+    console.log("Updated grade:", res.data);
+    return res.data;
+  } catch (err) {
+    console.error("Error updating grade:", err);
+    throw err;
+  }
+};
+
+// ================= DELETE GRADE =================
+const deleteGrade = async (id) => {
+  try {
+    await axios.delete(`${API_URL}/grades/${id}`);
+
+    setGrades((prev) => prev.filter((g) => g.id !== id));
+
+    console.log("Deleted grade:", id);
+    return true;
+  } catch (err) {
+    console.error("Error deleting grade:", err);
+    throw err;
+  }
+};
+
+
 useEffect(() => {
   fetchFinanceTypes();
 }, []);
@@ -654,6 +748,7 @@ useEffect(() => {
         tuition,
         financeTypes,
         financeStructures,
+        grades,
         uploadMultipleFiles,
         fetchUsers,
         fetchUserById,
@@ -703,6 +798,10 @@ useEffect(() => {
         deleteFinanceStructure,
         fetchStudentPayments,
         fetchStudentFinanceSummary,
+        fetchGrades,
+        createGrade,
+        updateGrade,
+        deleteGrade,
         
       }}
     >

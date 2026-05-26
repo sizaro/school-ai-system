@@ -10,7 +10,7 @@ export default function StepGuardianInfo({ formData, setFormData }) {
       ...prev,
       guardian: {
         ...prev.guardian,
-        [name]: value,
+        [name]: typeof value === "string" ? value.trimStart() : value,
       },
     }));
   };
@@ -26,7 +26,7 @@ export default function StepGuardianInfo({ formData, setFormData }) {
 
         <select
           name="relationshipToStudent"
-          value={guardian.relationshipToStudent}
+          value={guardian.relationshipToStudent || ""}
           onChange={handleChange}
           className="border rounded-lg p-2 w-full"
           required
@@ -49,10 +49,11 @@ export default function StepGuardianInfo({ formData, setFormData }) {
           Guardian Identity
         </h3>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
           <input
             name="firstName"
-            value={guardian.firstName}
+            value={guardian.firstName || ""}
             onChange={handleChange}
             placeholder="First Name"
             className="border rounded-lg p-2"
@@ -61,18 +62,16 @@ export default function StepGuardianInfo({ formData, setFormData }) {
 
           <input
             name="lastName"
-            value={guardian.lastName}
+            value={guardian.lastName || ""}
             onChange={handleChange}
             placeholder="Last Name"
             className="border rounded-lg p-2"
             required
           />
-        </div>
 
-        <div className="grid grid-cols-2 gap-4 mt-4">
           <select
             name="gender"
-            value={guardian.gender}
+            value={guardian.gender || ""}
             onChange={handleChange}
             className="border rounded-lg p-2"
             required
@@ -84,11 +83,12 @@ export default function StepGuardianInfo({ formData, setFormData }) {
 
           <input
             name="nationalIdNumber"
-            value={guardian.nationalIdNumber}
+            value={guardian.nationalIdNumber || ""}
             onChange={handleChange}
             placeholder="National ID Number (Optional)"
             className="border rounded-lg p-2"
           />
+
         </div>
       </div>
 
@@ -98,10 +98,11 @@ export default function StepGuardianInfo({ formData, setFormData }) {
           Contact Details
         </h3>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
           <input
             name="phone"
-            value={guardian.phone}
+            value={guardian.phone || ""}
             onChange={handleChange}
             placeholder="Phone"
             className="border rounded-lg p-2"
@@ -110,20 +111,21 @@ export default function StepGuardianInfo({ formData, setFormData }) {
 
           <input
             name="alternativePhone"
-            value={guardian.alternativePhone}
+            value={guardian.alternativePhone || ""}
             onChange={handleChange}
             placeholder="Alternative Phone"
             className="border rounded-lg p-2"
           />
-        </div>
 
-        <input
-          name="email"
-          value={guardian.email}
-          onChange={handleChange}
-          placeholder="Email"
-          className="border rounded-lg p-2 w-full mt-4"
-        />
+          <input
+            name="email"
+            value={guardian.email || ""}
+            onChange={handleChange}
+            placeholder="Email"
+            className="border rounded-lg p-2 sm:col-span-2"
+          />
+
+        </div>
       </div>
 
       {/* ================= ADDRESS ================= */}
@@ -132,30 +134,34 @@ export default function StepGuardianInfo({ formData, setFormData }) {
           Address Details
         </h3>
 
-        <input
-          name="occupation"
-          value={guardian.occupation}
-          onChange={handleChange}
-          placeholder="Occupation"
-          className="border rounded-lg p-2 w-full"
-        />
+        <div className="space-y-4">
 
-        <textarea
-          name="address"
-          value={guardian.address}
-          onChange={handleChange}
-          placeholder="Address"
-          className="border rounded-lg p-2 w-full mt-4"
-          rows={3}
-        />
+          <input
+            name="occupation"
+            value={guardian.occupation || ""}
+            onChange={handleChange}
+            placeholder="Occupation"
+            className="border rounded-lg p-2 w-full"
+          />
 
-        <input
-          name="district"
-          value={guardian.district}
-          onChange={handleChange}
-          placeholder="District"
-          className="border rounded-lg p-2 w-full mt-4"
-        />
+          <textarea
+            name="address"
+            value={guardian.address || ""}
+            onChange={handleChange}
+            placeholder="Address"
+            className="border rounded-lg p-2 w-full"
+            rows={3}
+          />
+
+          <input
+            name="district"
+            value={guardian.district || ""}
+            onChange={handleChange}
+            placeholder="District"
+            className="border rounded-lg p-2 w-full"
+          />
+
+        </div>
       </div>
 
     </div>

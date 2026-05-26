@@ -19,25 +19,26 @@ export const saveStudent = async (payload) => {
 
     const { student, guardian, medical, payment, hashedPassword, image_url } = payload;
 
-    // 1️⃣ Default email
+    // 1️⃣ Generate email
     let email = `${student.firstName}.${student.lastName}${Date.now()}@medanfocs.com`
       .toLowerCase()
       .replace(/\s+/g, "");
 
-    // 2️⃣ Insert user
+    // 2️⃣ Create user
     const userResult = await db.query(
       `INSERT INTO users (email, password, role, created_at)
        VALUES ($1,$2,$3,NOW())
        RETURNING id`,
       [email, hashedPassword, "student"]
     );
+
     const userId = userResult.rows[0].id;
 
-    // 3️⃣ Insert student
+    // 3️⃣ Insert student (UPDATED → class_id aligned)
     const studentResult = await db.query(
       `INSERT INTO students
-       (user_id, first_name, last_name, gender, date_of_birth, photo_url, created_by)
-       VALUES ($1,$2,$3,$4,$5,$6,$7)
+       (user_id, first_name, last_name, gender, date_of_birth, photo_url, class_id, nationality, national_id_number, created_by)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
        RETURNING id`,
       [
         userId,
@@ -46,19 +47,36 @@ export const saveStudent = async (payload) => {
         student.gender,
         student.dateOfBirth,
         image_url,
+        student.class_id || null,
+        student.nationality || null,
+        student.nationalIdNumber || null,
         payment.recorded_by,
       ]
     );
+
     const studentId = studentResult.rows[0].id;
 
-    // 4️⃣ Insert guardian
+    // 4️⃣ Insert guardian (FULL ALIGNMENT)
     const guardianResult = await db.query(
       `INSERT INTO guardians
-       (first_name, last_name, phone, created_by)
-       VALUES ($1,$2,$3,$4)
+       (first_name, last_name, phone, alternative_phone, email, occupation, gender, national_id_number, address, district, created_by)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
        RETURNING id`,
-      [guardian.firstName, guardian.lastName, guardian.phone, payment.recorded_by]
+      [
+        guardian.firstName,
+        guardian.lastName,
+        guardian.phone,
+        guardian.alternativePhone || null,
+        guardian.email || null,
+        guardian.occupation || null,
+        guardian.gender || null,
+        guardian.nationalIdNumber || null,
+        guardian.address || null,
+        guardian.district || null,
+        payment.recorded_by,
+      ]
     );
+
     const guardianId = guardianResult.rows[0].id;
 
     // 5️⃣ Link student & guardian
@@ -66,16 +84,22 @@ export const saveStudent = async (payload) => {
       `INSERT INTO student_guardians
        (student_id, guardian_id, relationship, is_primary, created_by)
        VALUES ($1,$2,$3,$4,$5)`,
-      [studentId, guardianId, guardian.relationshipToStudent, true, payment.recorded_by]
+      [
+        studentId,
+        guardianId,
+        guardian.relationshipToStudent,
+        true,
+        payment.recorded_by,
+      ]
     );
 
-    // 6️⃣ Insert medical
+    // 6️⃣ Medical (FIXED → student_id instead of user_id)
     await db.query(
       `INSERT INTO medical
-       (user_id, blood_group, medical_conditions, allergies, created_by)
+       (student_id, blood_group, medical_conditions, allergies, created_by)
        VALUES ($1,$2,$3,$4,$5)`,
       [
-        userId,
+        studentId,
         medical.bloodGroup,
         medical.medicalConditions,
         medical.allergies,
@@ -83,36 +107,36 @@ export const saveStudent = async (payload) => {
       ]
     );
 
-    // 7️⃣ Insert admission
+    // 7️⃣ Admission (FIXED → class_id)
     await db.query(
       `INSERT INTO admissions
-       (student_id, class_level, stream, admission_date, registration_fee, receipt_number, created_by)
+       (student_id, class_id, stream, admission_date, registration_fee, receipt_number, created_by)
        VALUES ($1,$2,$3,$4,$5,$6,$7)`,
       [
         studentId,
-        student.classLevel,
-        student.stream,
+        student.class_id || null,
+        student.stream || null,
         student.admissionDate,
-        payment.registrationFee,
+        payment.amount,
         payment.receiptNumber,
         payment.recorded_by,
       ]
     );
 
-    // 8️⃣ Insert into finances
+    // 8️⃣ Finance (clean + consistent)
     await db.query(
       `INSERT INTO finances
        (student_id, type, amount, payment_date, recorded_by, receipt_number, receipt_url, payment_method, status, notes)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
       [
         studentId,
-        payment.type || "registration",
-        payment.registrationFee,
-        payment.paymentDate,
-        payment.recorded_by, 
+        payment.finance_type_id,
+        payment.amount,
+        payment.payment_date,
+        payment.recorded_by,
         payment.receiptNumber || null,
-        payment.receiptUrl || null,
-        payment.paymentMethod || null,
+        payment.receipt_url || null,
+        payment.payment_method || null,
         payment.status || null,
         payment.notes || null,
       ]
@@ -127,8 +151,6 @@ export const saveStudent = async (payload) => {
     throw error;
   }
 };
-
-
 
 
 

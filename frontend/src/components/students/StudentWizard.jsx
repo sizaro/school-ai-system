@@ -8,7 +8,17 @@ import { useData } from "../../context/DataContext";
 
 export default function StudentWizard({ isOpen, onClose, student = null }) {
   const [step, setStep] = useState(1);
-  const { registerStudent, user } = useData(); // ✅ FIXED
+
+  const {
+    registerStudent,
+    user,
+    classes,
+    terms,
+    financeTypes,
+    fetchClasses,
+    fetchTerms,
+    fetchFinanceTypes,
+  } = useData();
 
   const [formData, setFormData] = useState({
     student: {
@@ -56,7 +66,9 @@ export default function StudentWizard({ isOpen, onClose, student = null }) {
     },
   });
 
-  // ✅ Set recorded_by when user loads
+  // =========================
+  // SET USER ID
+  // =========================
   useEffect(() => {
     if (user?.id) {
       setFormData((prev) => ({
@@ -69,12 +81,23 @@ export default function StudentWizard({ isOpen, onClose, student = null }) {
     }
   }, [user]);
 
-  // Edit mode prefill
+  // =========================
+  // EDIT MODE PREFILL
+  // =========================
   useEffect(() => {
     if (student) {
       setFormData(student);
     }
   }, [student]);
+
+  // =========================
+  // LOAD DROPDOWNS ONCE
+  // =========================
+  useEffect(() => {
+    fetchClasses();
+    fetchTerms();
+    fetchFinanceTypes();
+  }, []);
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
@@ -84,7 +107,7 @@ export default function StudentWizard({ isOpen, onClose, student = null }) {
       ...formData,
       payment: {
         ...formData.payment,
-        recorded_by: user?.id, // ✅ GUARANTEED
+        recorded_by: user?.id,
       },
     };
 
@@ -122,10 +145,34 @@ export default function StudentWizard({ isOpen, onClose, student = null }) {
 
         {/* STEP CONTENT */}
         <div className="flex-1 overflow-y-auto">
-          {step === 1 && <StepStudentInfo formData={formData} setFormData={setFormData} />}
-          {step === 2 && <StepGuardianInfo formData={formData} setFormData={setFormData} />}
-          {step === 3 && <StepMedicalReview formData={formData} setFormData={setFormData} />}
-          {step === 4 && <StepPayment formData={formData} setFormData={setFormData} />}
+          {step === 1 && (
+            <StepStudentInfo
+              formData={formData}
+              setFormData={setFormData}
+              classes={classes}
+            />
+          )}
+
+          {step === 2 && (
+            <StepGuardianInfo
+              formData={formData}
+              setFormData={setFormData}
+            />
+          )}
+
+          {step === 3 && (
+            <StepMedicalReview
+              formData={formData}
+              setFormData={setFormData}
+            />
+          )}
+
+          {step === 4 && (
+            <StepPayment
+              formData={formData}
+              setFormData={setFormData}
+            />
+          )}
         </div>
 
         {/* FOOTER */}
@@ -154,6 +201,7 @@ export default function StudentWizard({ isOpen, onClose, student = null }) {
             </button>
           )}
         </div>
+
       </div>
     </Drawer>
   );

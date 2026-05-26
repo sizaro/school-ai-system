@@ -23,7 +23,10 @@ import {
 // ---------- REGISTER ----------
 router.post(
   "/register",
-  upload.single("student[photo]"),
+  upload.fields([
+  { name: "student_photo", maxCount: 1 },
+  { name: "receipt", maxCount: 1 },
+]),
   registerStudent
 );
 

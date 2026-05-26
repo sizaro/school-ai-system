@@ -10,12 +10,7 @@ import session from "express-session";
 import passport from "passport";
 import pgSession from "connect-pg-simple";
 import "./config/passport.js";
-import financeStructureRoutes from "./routes/financeStructureRoutes.js";
-// import path from "path";
-// import uploadRoutes from "./routes/uploadRoutes.js";
 
-import paymentRoutes from "./routes/paymentRoutes.js";
-import financeSummaryRoutes from "./routes/financeSummaryRoutes.js";
 
 
 
@@ -34,6 +29,16 @@ import classesRoutes from "./routes/classesRoutes.js";
 import subjectsRoutes from "./routes/subjectsRoutes.js";
 
 import financeTypeRoutes from "./routes/financeTypeRoutes.js";
+
+import financeStructureRoutes from "./routes/financeStructureRoutes.js";
+// import path from "path";
+// import uploadRoutes from "./routes/uploadRoutes.js";
+
+import paymentRoutes from "./routes/paymentRoutes.js";
+import financeSummaryRoutes from "./routes/financeSummaryRoutes.js";
+
+import gradesRoutes from "./routes/gradesRoutes.js";
+
 
 const app = express();
 
@@ -146,6 +151,8 @@ app.use("/api/students", paymentRoutes);
 // Finance summary (analytics)
 app.use("/api/students", financeSummaryRoutes);
 // app.use("/api", uploadRoutes);
+
+app.use("/api/grades", gradesRoutes);
 
 
 

@@ -23,28 +23,30 @@ import {
  * REGISTER STUDENT
  */
 
+
+
 export const registerStudent = async (req, res) => {
   try {
     const { student, guardian, medical, payment } = req.body;
 
-    // 1️⃣ CreatorId for fallback if needed
+    console.log("reg data in controller:", student, guardian, medical, payment);
+
     const creatorId = req.user?.id || 1;
 
-    // 2️⃣ Hash temporary password
     const hashedPassword = await bcrypt.hash("Temp1234!", 10);
 
-    // 3️⃣ Handle uploaded photo
-    const image_url = req.file
-      ? `/uploads/images/${req.file.filename}`
+    // ✅ FIXED FILE HANDLING (matches multer.fields)
+    const studentPhoto = req.files?.student_photo?.[0] || null;
+
+    const image_url = studentPhoto
+      ? `/uploads/images/${studentPhoto.filename}`
       : null;
 
-    // 4️⃣ Make sure recorded_by comes from frontend payment object
     const paymentData = {
       ...payment,
-      recorded_by: payment.recorded_by || creatorId, // important!
+      recorded_by: payment.recorded_by || creatorId,
     };
 
-    // 5️⃣ Save all student data
     const result = await saveStudent({
       student,
       guardian,
@@ -54,10 +56,11 @@ export const registerStudent = async (req, res) => {
       image_url,
     });
 
-    res.status(201).json(result);
+    return res.status(201).json(result);
+
   } catch (err) {
     console.error("Registration failed:", err);
-    res.status(500).json({ error: "Registration failed" });
+    return res.status(500).json({ error: "Registration failed" });
   }
 };
 
