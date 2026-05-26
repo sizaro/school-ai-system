@@ -1,62 +1,116 @@
 import { useEffect, useState } from "react";
 import SectionCard from "../../components/SectionCard";
 import EditAcademicModal from "../../components/students/EditAcademicModal";
+import { useData } from "../../context/DataContext";
 
 export default function Academics({ studentId }) {
+  const {
+    fetchStudentPerformance,
+    createPerformance,
+    updatePerformance,
+    deletePerformance,
+    fetchSubjects,
+    fetchClasses,
+    fetchTerms,
+    fetchGrades,
+    classes,
+    subjects,
+    terms,
+    grades,
+  } = useData();
+
+  console.log("classes:", classes);
+console.log("subjects:", subjects);
+console.log("terms:", terms);
+
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [activeRecord, setActiveRecord] = useState(null);
+  const [openForm, setOpenForm] = useState(false);
 
-  // ================= MOCK DATA =================
+  // ================= FILTERS =================
+  const [filters, setFilters] = useState({
+    class_id: "",
+    subject_id: "",
+    term_id: "",
+    academic_year: "",
+  });
+
+  // ================= LOAD =================
   useEffect(() => {
-    if (!studentId) return;
+    const load = async () => {
+      if (!studentId) return;
 
-    const mockData = [
-      {
-        id: 1,
-        subject: "Mathematics",
-        score: 85,
-        total: 100,
-        term: "Term 1",
-      },
-      {
-        id: 2,
-        subject: "English",
-        score: 72,
-        total: 100,
-        term: "Term 1",
-      },
-      {
-        id: 3,
-        subject: "Science",
-        score: 65,
-        total: 100,
-        term: "Term 1",
-      },
-      {
-        id: 4,
-        subject: "History",
-        score: 48,
-        total: 100,
-        term: "Term 1",
-      },
-    ];
+      try {
+        setLoading(true);
+        const data = await fetchStudentPerformance(studentId);
+        setRecords(data || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    setTimeout(() => {
-      setRecords(mockData);
-      setLoading(false);
-    }, 400);
+    load();
   }, [studentId]);
 
-  // ================= GRADE LOGIC =================
-  const getGrade = (score, total) => {
-    const percent = (score / total) * 100;
+  useEffect(()=>{
+    fetchSubjects()
+    fetchClasses()
+    fetchTerms()
+    fetchGrades()
+  }, [])
 
-    if (percent >= 80) return "A";
-    if (percent >= 70) return "B";
-    if (percent >= 60) return "C";
-    if (percent >= 50) return "D";
-    return "F";
+  // ================= FILTER LOGIC =================
+  const filteredRecords = records.filter((r) => {
+    return (
+      (!filters.class_id || String(r.class_id) === String(filters.class_id)) &&
+      (!filters.subject_id || String(r.subject_id) === String(filters.subject_id)) &&
+      (!filters.term_id || String(r.term_id) === String(filters.term_id)) &&
+      (!filters.academic_year || String(r.academic_year) === String(filters.academic_year))
+    );
+  });
+
+  // ================= DELETE =================
+  const handleDelete = async (id) => {
+    try {
+      await deletePerformance(id);
+      setRecords((prev) => prev.filter((r) => r.id !== id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // ================= CREATE =================
+  const handleCreate = async (data) => {
+    try {
+      const newRecord = await createPerformance({
+        ...data,
+        student_id: studentId,
+      });
+
+      setRecords((prev) => [newRecord, ...prev]);
+      setOpenForm(false);
+    } catch (err) {
+      console.error("CREATE ERROR:", err);
+    }
+  };
+
+  // ================= UPDATE =================
+  const handleUpdate = async (data) => {
+    try {
+      const updated = await updatePerformance(activeRecord.id, data);
+
+      setRecords((prev) =>
+        prev.map((r) => (r.id === updated.id ? updated : r))
+      );
+
+      setActiveRecord(null);
+    } catch (err) {
+      console.error("UPDATE ERROR:", err);
+    }
   };
 
   if (loading) return <p>Loading academic records...</p>;
@@ -64,76 +118,163 @@ export default function Academics({ studentId }) {
   return (
     <div className="space-y-6">
 
-      {/* ================= TABLE ================= */}
-      <SectionCard
-        title="Academic Performance"
-        onEdit={() =>
-          setActiveRecord({
-            subject: "",
-            score: "",
-            total: "",
-            term: "",
-          })
-        }
+      {/* ================= FILTERS ================= */}
+      <div className="grid grid-cols-4 gap-3">
+
+        <select
+          onChange={(e) =>
+            setFilters({ ...filters, class_id: e.target.value })
+          }
+          className="border p-2"
+        >
+          <option value="">All Classes</option>
+          {classes.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+
+        <select
+          onChange={(e) =>
+            setFilters({ ...filters, subject_id: e.target.value })
+          }
+          className="border p-2"
+        >
+          <option value="">All Subjects</option>
+          {subjects.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.subject_name}
+            </option>
+          ))}
+        </select>
+
+        <select
+          onChange={(e) =>
+            setFilters({ ...filters, term_id: e.target.value })
+          }
+          className="border p-2"
+        >
+          <option value="">All Terms</option>
+          {terms.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name}
+            </option>
+          ))}
+        </select>
+
+        <input
+          type="text"
+          placeholder="Academic Year"
+          className="border p-2"
+          onChange={(e) =>
+            setFilters({
+              ...filters,
+              academic_year: e.target.value,
+            })
+          }
+        />
+      </div>
+
+      {/* ================= ADD BUTTON ================= */}
+      <button
+        onClick={() => setOpenForm(true)}
+        className="bg-blue-600 text-white px-4 py-2 rounded"
       >
-        {records.length === 0 ? (
-          <p>No academic records found.</p>
+        + Add Performance
+      </button>
+
+      {/* ================= TABLE ================= */}
+      <SectionCard title="Academic Performance">
+
+        {filteredRecords.length === 0 ? (
+          <p>No records found.</p>
         ) : (
           <table className="w-full border mt-2">
             <thead>
-              <tr className="bg-gray-100 text-left">
+              <tr className="bg-gray-100">
                 <th className="p-2 border">Subject</th>
-                <th className="p-2 border">Score</th>
-                <th className="p-2 border">Total</th>
-                <th className="p-2 border">Grade</th>
+                <th className="p-2 border">Class</th>
                 <th className="p-2 border">Term</th>
-                <th className="p-2 border">Action</th>
+                <th className="p-2 border">Marks</th>
+                <th className="p-2 border">%</th>
+                <th className="p-2 border">Grade</th>
+                <th className="p-2 border">Remarks</th>
+                <th className="p-2 border">Actions</th>
               </tr>
             </thead>
 
             <tbody>
-              {records.map((r) => (
-                <tr key={r.id}>
-                  <td className="p-2 border">{r.subject}</td>
-                  <td className="p-2 border">{r.score}</td>
-                  <td className="p-2 border">{r.total}</td>
+              {filteredRecords.map((r) => {
+                const percent =
+                  (r.marks_obtained / r.marks_total) * 100;
 
-                  <td className="p-2 border font-semibold">
-                    {getGrade(r.score, r.total)}
-                  </td>
+                return (
+                  <tr key={r.id}>
+                    <td className="border p-2">{r.subject_name}</td>
+                    <td className="border p-2">{r.class_name}</td>
+                    <td className="border p-2">{r.term_name}</td>
+                    <td className="border p-2">
+                      {r.marks_obtained}/{r.marks_total}
+                    </td>
+                    <td className="border p-2">
+                      {percent.toFixed(1)}%
+                    </td>
+                    <td className="border p-2 font-bold">
+                      {r.grade_letter}
+                    </td>
+                    <td className="border p-2">{r.remarks}</td>
 
-                  <td className="p-2 border">{r.term}</td>
+                    {/* ✅ ACTIONS INSIDE ROW */}
+                    <td className="border p-2 flex gap-2">
+                      <button
+                        onClick={() => setActiveRecord(r)}
+                        className="text-blue-600"
+                      >
+                        Edit
+                      </button>
 
-                  <td className="p-2 border">
-                    <button
-                      onClick={() => setActiveRecord(r)}
-                      className="text-blue-600 hover:underline"
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                      <button
+                        onClick={() => handleDelete(r.id)}
+                        className="text-red-600"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
       </SectionCard>
 
-      {/* ================= MODAL ================= */}
+      {/* ================= CREATE MODAL ================= */}
+      {openForm && (
+        <EditAcademicModal
+          mode="create"
+          studentId={studentId}
+          classes={classes}
+          subjects={subjects}
+          terms={terms}
+          grades={grades}
+          onClose={() => setOpenForm(false)}
+          onSubmit={handleCreate}
+        />
+      )}
+
+      {/* ================= EDIT MODAL ================= */}
       {activeRecord && (
         <EditAcademicModal
+          mode="edit"
           record={activeRecord}
           studentId={studentId}
+          classes={classes}
+          subjects={subjects}
+          terms={terms}
+          grades={grades}
           onClose={() => setActiveRecord(null)}
-          onUpdated={(updatedRecord) => {
-            // later we will replace with backend refresh
-            setRecords((prev) =>
-              prev.map((r) =>
-                r.id === updatedRecord.id ? updatedRecord : r
-              )
-            );
-            setActiveRecord(null);
-          }}
+          onSubmit={handleUpdate}
         />
       )}
     </div>

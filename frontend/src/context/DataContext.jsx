@@ -21,6 +21,7 @@ const [tuition, setTuition] = useState([]);
 const [financeTypes, setFinanceTypes] = useState([]);
 const [financeStructures, setFinanceStructures] = useState([]);
 const [grades, setGrades] = useState([]);
+const [performance, setPerformance] = useState([]);
 
   const navigate = useNavigate();
 
@@ -716,6 +717,90 @@ const deleteGrade = async (id) => {
 };
 
 
+// ===============================
+// FETCH ALL PERFORMANCE
+// ===============================
+const fetchPerformance = async () => {
+  try {
+    const res = await axios.get(`${API_URL}/performance`);
+    setPerformance(res.data);
+    console.log("Fetched performance:", res.data);
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching performance:", err);
+    throw err;
+  }
+};
+
+// ===============================
+// FETCH BY STUDENT
+// ===============================
+const fetchStudentPerformance = async (studentId) => {
+  try {
+    const res = await axios.get(
+      `${API_URL}/performance/student/${studentId}`
+    );
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching student performance:", err);
+    throw err;
+  }
+};
+
+// ===============================
+// CREATE PERFORMANCE
+// ===============================
+const createPerformance = async (data) => {
+  try {
+    const res = await axios.post(`${API_URL}/performance`, data);
+
+    await fetchPerformance(); // refresh list
+
+    return res.data;
+  } catch (err) {
+    console.error("Error creating performance:", err);
+    throw err;
+  }
+};
+
+// ===============================
+// UPDATE PERFORMANCE
+// ===============================
+const updatePerformance = async (id, data) => {
+  try {
+    const res = await axios.put(
+      `${API_URL}/performance/${id}`,
+      data
+    );
+
+    await fetchPerformance(); // refresh list
+
+    return res.data;
+  } catch (err) {
+    console.error("Error updating performance:", err);
+    throw err;
+  }
+};
+
+// ===============================
+// DELETE PERFORMANCE
+// ===============================
+const deletePerformance = async (id) => {
+  try {
+    const res = await axios.delete(
+      `${API_URL}/performance/${id}`
+    );
+
+    await fetchPerformance(); // refresh list
+
+    return res.data;
+  } catch (err) {
+    console.error("Error deleting performance:", err);
+    throw err;
+  }
+};
+
+
 useEffect(() => {
   fetchFinanceTypes();
 }, []);
@@ -749,6 +834,7 @@ useEffect(() => {
         financeTypes,
         financeStructures,
         grades,
+        performance,
         uploadMultipleFiles,
         fetchUsers,
         fetchUserById,
@@ -802,6 +888,11 @@ useEffect(() => {
         createGrade,
         updateGrade,
         deleteGrade,
+        fetchPerformance,
+        fetchStudentPerformance,
+        createPerformance,
+        updatePerformance,
+        deletePerformance,
         
       }}
     >

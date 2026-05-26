@@ -39,6 +39,8 @@ import financeSummaryRoutes from "./routes/financeSummaryRoutes.js";
 
 import gradesRoutes from "./routes/gradesRoutes.js";
 
+import studentPerformanceRoutes from "./routes/studentPerformanceRoutes.js";
+
 
 const app = express();
 
@@ -153,6 +155,10 @@ app.use("/api/students", financeSummaryRoutes);
 // app.use("/api", uploadRoutes);
 
 app.use("/api/grades", gradesRoutes);
+
+
+app.use("/api/performance", studentPerformanceRoutes);
+
 
 
 
