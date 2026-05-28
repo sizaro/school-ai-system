@@ -10,48 +10,70 @@ import {
 /**
  * CREATE performance
  */
+
 export const addPerformance = async (req, res) => {
+    console.log("contrl perfmc data: ", req.body)
   try {
-    const data = req.body;
+    const {
+      student_id,
+      subject_id,
+      class_id,
+      term_id,
+      academic_year,
+      assessment_type,
+      marks_obtained,
+      marks_total,
+      remarks,
+    } = req.body;
 
-    // 1. Calculate percentage
+    // 1. percentage
     const percentage =
-      (Number(data.marks_obtained) / Number(data.marks_total)) * 100;
+      (Number(marks_obtained) / Number(marks_total)) * 100;
 
-    // 2. Get grade from MODEL
+    // 2. grade lookup
     const grade = await getGradeByScore(
       percentage,
-      data.class_id,
-      data.term_id,
-      data.academic_year
+      class_id,
+      term_id,
+      academic_year
     );
 
-    if (!grade) {
-      return res.status(400).json({
-        message: "No grade range found for this score",
-      });
+    // 3. file handling (THIS FIXES YOUR BUG)
+    let file_url = null;
+
+    if (req.file) {
+      file_url = req.file.path; // or req.file.filename
     }
 
-    // 3. Optional file upload
-    const file_url = req.file
-      ? `/uploads/performance/${req.file.filename}`
-      : null;
+    // 4. recorded_by (TEMP FIX)
+    const recorded_by = req.user?.id || 1;
 
-    // 4. Create record
-    const result = await createPerformance({
-      ...data,
+    const data = {
+      student_id,
+      subject_id,
+      class_id,
+      term_id,
+      academic_year,
+      assessment_type,
+      marks_obtained,
+      marks_total,
       percentage,
-      grade_id: grade.id,
+      grade_id: grade?.id || null,
+      remarks,
       file_url,
-      recorded_by: req.user?.id || data.recorded_by,
-    });
+      recorded_by,
+    };
+
+    const result = await createPerformance(data);
 
     res.status(201).json(result);
   } catch (err) {
-    console.error("CREATE PERFORMANCE ERROR:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error(err);
+    res.status(500).json({ message: "Failed to create performance" });
   }
 };
+
+
 
 /**
  * GET ALL performance
@@ -72,6 +94,7 @@ export const fetchAllPerformance = async (req, res) => {
 export const fetchStudentPerformance = async (req, res) => {
   try {
     const { student_id } = req.params;
+    console.log("request", req.params)
 
     const result = await getPerformanceByStudent(student_id);
     res.json(result);
@@ -87,7 +110,9 @@ export const fetchStudentPerformance = async (req, res) => {
 export const editPerformance = async (req, res) => {
   try {
     const { id } = req.params;
+        console.log("controller params: ", req.params)
     const data = req.body;
+        console.log("controller data: ", data)
 
     // Recalculate percentage if marks changed
     const percentage =

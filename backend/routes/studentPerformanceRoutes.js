@@ -1,4 +1,5 @@
 import express from "express";
+import upload from "../middleware/upload.js";
 
 import {
   addPerformance,
@@ -15,8 +16,8 @@ const router = express.Router();
  * CREATE PERFORMANCE
  * =========================
  */
-router.post("/", addPerformance);
 
+router.post("/", upload.single("file"), addPerformance);
 /**
  * =========================
  * GET ALL PERFORMANCE

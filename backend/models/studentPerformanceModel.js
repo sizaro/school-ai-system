@@ -4,6 +4,7 @@ import db from "./database.js";
  * CREATE student performance record
  */
 export const createPerformance = async (data) => {
+  console.log("model data: ", data)
   const {
     student_id,
     subject_id,
@@ -95,6 +96,7 @@ export const getAllPerformance = async () => {
 
 
 export const getPerformanceByStudent = async (student_id) => {
+  console.log("id in model:", student_id)
   const query = {
     text: `
       SELECT 
@@ -119,6 +121,7 @@ export const getPerformanceByStudent = async (student_id) => {
   };
 
   const result = await db.query(query);
+  console.log("perfmnc retnd: ", result.rows)
   return result.rows;
 };
 

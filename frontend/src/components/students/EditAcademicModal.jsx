@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 
 export default function EditAcademicModal({
+  user,
   record,
   studentId,
   classes = [],
@@ -8,7 +9,7 @@ export default function EditAcademicModal({
   terms = [],
   grades = [],
   onClose,
-  onSubmit, // IMPORTANT: now used instead of fake update logic
+  onSubmit,
 }) {
   const isNew = !record?.id;
 
@@ -21,7 +22,6 @@ export default function EditAcademicModal({
     marks_obtained: "",
     marks_total: "",
     remarks: "",
-    grade_id: "",
     file: null,
   });
 
@@ -37,7 +37,6 @@ export default function EditAcademicModal({
         marks_obtained: record.marks_obtained || "",
         marks_total: record.marks_total || "",
         remarks: record.remarks || "",
-        grade_id: record.grade_id || "",
         file: null,
       });
     }
@@ -53,7 +52,10 @@ export default function EditAcademicModal({
     }));
   };
 
-  // ================= AUTO % =================
+  // ================= YEARS (TEMP) =================
+  const academicYears = ["2024", "2025", "2026", "2027"];
+
+  // ================= CALCULATE PERCENT =================
   const calculatePercentage = () => {
     const m = Number(form.marks_obtained);
     const t = Number(form.marks_total);
@@ -62,15 +64,40 @@ export default function EditAcademicModal({
     return ((m / t) * 100).toFixed(2);
   };
 
-  // ================= SUBMIT =================
+  // ================= SUBMIT (BACKEND SAFE) =================
   const handleSave = () => {
-    const payload = {
-      ...form,
-      student_id: studentId,
-      percentage: calculatePercentage(),
-    };
+    // ❗ prevent empty submissions that break backend
+    if (
+      !form.subject_id ||
+      !form.class_id ||
+      !form.term_id ||
+      !form.marks_obtained ||
+      !form.marks_total
+    ) {
+      alert("Please fill all required fields");
+      return;
+    }
 
-    onSubmit(payload);
+    const formData = new FormData();
+
+    formData.append("student_id", studentId);
+    formData.append("subject_id", form.subject_id);
+    formData.append("class_id", form.class_id);
+    formData.append("term_id", form.term_id);
+    formData.append("academic_year", form.academic_year);
+    formData.append("assessment_type", form.assessment_type || "");
+    formData.append("marks_obtained", Number(form.marks_obtained));
+    formData.append("marks_total", Number(form.marks_total));
+    formData.append("percentage", calculatePercentage());
+    formData.append("remarks", form.remarks || "");
+    formData.append("recorded_by", user?.id || 1);
+
+    // ✅ FILE HANDLING (THIS FIXES YOUR file_url NULL ISSUE)
+    if (form.file) {
+      formData.append("file", form.file);
+    }
+
+    onSubmit(formData);
   };
 
   return (
@@ -126,19 +153,25 @@ export default function EditAcademicModal({
           ))}
         </select>
 
-        {/* ACADEMIC YEAR */}
-        <input
+        {/* YEAR */}
+        <select
           name="academic_year"
-          placeholder="Academic Year (e.g 2026)"
           value={form.academic_year}
           onChange={handleChange}
           className="w-full border p-2 mb-3"
-        />
+        >
+          <option value="">Select Academic Year</option>
+          {academicYears.map((y) => (
+            <option key={y} value={y}>
+              {y}
+            </option>
+          ))}
+        </select>
 
-        {/* ASSESSMENT TYPE */}
+        {/* TYPE */}
         <input
           name="assessment_type"
-          placeholder="Assessment Type (Test, Exam, Assignment)"
+          placeholder="Assessment Type"
           value={form.assessment_type}
           onChange={handleChange}
           className="w-full border p-2 mb-3"
@@ -165,21 +198,6 @@ export default function EditAcademicModal({
           />
         </div>
 
-        {/* GRADE */}
-        <select
-          name="grade_id"
-          value={form.grade_id}
-          onChange={handleChange}
-          className="w-full border p-2 mt-3"
-        >
-          <option value="">Select Grade</option>
-          {grades.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.grade} ({g.min_score}-{g.max_score})
-            </option>
-          ))}
-        </select>
-
         {/* REMARKS */}
         <textarea
           name="remarks"
@@ -189,7 +207,7 @@ export default function EditAcademicModal({
           className="w-full border p-2 mt-3"
         />
 
-        {/* FILE UPLOAD */}
+        {/* FILE (EVIDENCE) */}
         <input
           type="file"
           name="file"
@@ -210,6 +228,7 @@ export default function EditAcademicModal({
             Save
           </button>
         </div>
+
       </div>
     </div>
   );

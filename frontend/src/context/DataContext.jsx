@@ -735,10 +735,10 @@ const fetchPerformance = async () => {
 // ===============================
 // FETCH BY STUDENT
 // ===============================
-const fetchStudentPerformance = async (studentId) => {
+const fetchStudentPerformance = async (student_id) => {
   try {
     const res = await axios.get(
-      `${API_URL}/performance/student/${studentId}`
+      `${API_URL}/performance/student/${student_id}`
     );
     return res.data;
   } catch (err) {
@@ -753,8 +753,6 @@ const fetchStudentPerformance = async (studentId) => {
 const createPerformance = async (data) => {
   try {
     const res = await axios.post(`${API_URL}/performance`, data);
-
-    await fetchPerformance(); // refresh list
 
     return res.data;
   } catch (err) {
