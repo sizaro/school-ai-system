@@ -272,71 +272,103 @@ export const fetchAllStudents = async () => {
 // ===============================
 // FETCH STUDENT BY ID (with finances)
 // ===============================
+
+
 export const fetchStudentById = async (id) => {
-  const query = `
-    SELECT 
-      -- STUDENT
-      s.id AS student_id,
-      s.first_name,
-      s.last_name,
-      s.gender,
-      s.date_of_birth,
-      s.photo_url,
-      s.created_at,
+  try {
+    console.log("\n📌 FETCH STUDENT BY ID CALLED");
+    console.log("Student ID:", id);
+    console.log("====================================");
 
-      -- USER
-      u.email,
+    const query = `
+      SELECT 
+        -- ================= STUDENT =================
+        s.id AS student_id,
+        s.first_name,
+        s.last_name,
+        s.gender,
+        s.date_of_birth,
+        s.photo_url,
+        s.created_at,
+        s.nationality,
 
-      -- MEDICAL
-      m.blood_group,
-      m.medical_conditions,
-      m.allergies,
+        -- ================= USER =================
+        u.email,
 
-      -- GUARDIAN (only primary)
-      g.first_name AS guardian_first_name,
-      g.last_name AS guardian_last_name,
-      g.phone AS guardian_phone,
-      sg.relationship,
+        -- ================= MEDICAL =================
+        m.blood_group,
+        m.medical_conditions,
+        m.allergies,
+        m.notes AS medical_notes,
 
-      -- ADMISSION
-      a.class_level,
-      a.stream,
-      a.admission_date,
+        -- ================= GUARDIAN =================
+        g.first_name AS guardian_first_name,
+        g.last_name AS guardian_last_name,
+        g.phone AS guardian_phone,
+        g.email AS guardian_email,
+        g.address AS guardian_address,
+        sg.relationship,
 
-      -- FINANCES aggregated as JSON array
-      COALESCE(f.finances, '[]') AS finances
+        -- ================= ADMISSION =================
+        a.admission_number,
+        a.stream,
+        a.admission_date,
+        c.name AS class_name
 
-    FROM students s
-    LEFT JOIN users u ON s.user_id = u.id
-    LEFT JOIN medical m ON m.user_id = s.user_id
-    LEFT JOIN student_guardians sg ON sg.student_id = s.id AND sg.is_primary = true
-    LEFT JOIN guardians g ON g.id = sg.guardian_id
-    LEFT JOIN admissions a ON a.student_id = s.id
+      FROM students s
 
-    LEFT JOIN LATERAL (
-      SELECT json_agg(
-               json_build_object(
-                 'id', id,
-                 'type', type,
-                 'amount', amount,
-                 'payment_date', payment_date,
-                 'recorded_by', recorded_by,
-                 'receipt_number', receipt_number,
-                 'receipt_url', receipt_url,
-                 'payment_method', payment_method,
-                 'status', status,
-                 'notes', notes,
-                 'term_id', term_id
-               )
-             ) AS finances
-      FROM finances
-      WHERE student_id = s.id
-    ) f ON true
+      LEFT JOIN users u 
+        ON s.user_id = u.id
 
-    WHERE s.id = $1;
-  `;
-  const result = await db.query(query, [id]);
-  return result.rows[0];
+      -- MEDICAL FIX (student-based join, safer than user_id)
+      LEFT JOIN medical m 
+        ON m.student_id = s.id
+
+      LEFT JOIN student_guardians sg 
+        ON sg.student_id = s.id 
+        AND sg.is_primary = true
+
+      LEFT JOIN guardians g 
+        ON g.id = sg.guardian_id
+
+      LEFT JOIN admissions a 
+        ON a.student_id = s.id
+
+      -- CLASS FIX (this was missing)
+      LEFT JOIN classes c 
+        ON c.id = a.class_id
+
+      WHERE s.id = $1
+    `;
+
+    const result = await db.query(query, [id]);
+
+    console.log("====================================");
+    console.log("📊 QUERY SUCCESS");
+    console.log("Rows returned:", result.rows.length);
+    console.log("====================================");
+
+    const student = result.rows[0] || null;
+
+    console.log("Student fetched:", student);
+    console.log("====================================\n");
+
+    return student;
+
+  } catch (error) {
+    console.log("====================================");
+    console.log("❌ FETCH STUDENT ERROR");
+    console.log("Message:", error.message);
+    console.log("Code:", error.code);
+    console.log("Column:", error.column);
+    console.log("Routine:", error.routine);
+    console.log("====================================");
+
+    console.log("FULL ERROR OBJECT:");
+    console.log(error);
+
+    throw error;
+  }
 };
 
 
@@ -377,25 +409,40 @@ export const deleteStudentById = async (id) => {
 // ===============================
 // UPDATE GUARDIAN BY STUDENT ID
 // ===============================
+
 export const updateGuardianByStudentId = async (studentId, data) => {
   const query = `
     UPDATE guardians SET
-      first_name = $1,
-      last_name = $2,
-      phone = $3
+      first_name = COALESCE($1, first_name),
+      last_name = COALESCE($2, last_name),
+      phone = COALESCE($3, phone),
+      alternative_phone = COALESCE($4, alternative_phone),
+      email = COALESCE($5, email),
+      occupation = COALESCE($6, occupation),
+      address = COALESCE($7, address),
+      district = COALESCE($8, district),
+      gender = COALESCE($9, gender),
+      national_id_number = COALESCE($10, national_id_number)
     WHERE id = (
       SELECT guardian_id
       FROM student_guardians
-      WHERE student_id = $4 AND is_primary = true
+      WHERE student_id = $11 AND is_primary = true
       LIMIT 1
     )
     RETURNING *;
   `;
 
   const values = [
-    data.firstName,
-    data.lastName,
+    data.first_name,
+    data.last_name,
     data.phone,
+    data.alternative_phone,
+    data.email,
+    data.occupation,
+    data.address,
+    data.district,
+    data.gender,
+    data.national_id_number,
     studentId,
   ];
 
@@ -406,22 +453,24 @@ export const updateGuardianByStudentId = async (studentId, data) => {
 // ===============================
 // UPDATE MEDICAL BY STUDENT ID
 // ===============================
+
 export const updateMedicalByStudentId = async (studentId, data) => {
   const query = `
-    UPDATE medical SET
+    UPDATE medical
+    SET
       blood_group = $1,
       medical_conditions = $2,
-      allergies = $3
-    WHERE user_id = (
-      SELECT user_id FROM students WHERE id = $4
-    )
+      allergies = $3,
+      notes = $4
+    WHERE student_id = $5
     RETURNING *;
   `;
 
   const values = [
-    data.bloodGroup,
-    data.medicalConditions,
+    data.blood_group,
+    data.medical_conditions,
     data.allergies,
+    data.notes,
     studentId,
   ];
 

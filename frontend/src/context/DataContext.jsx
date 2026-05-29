@@ -296,10 +296,18 @@ const updateStudentInfo = async (studentId, data) => {
   setStudentProfile(updated);
 };
 
+
 const updateGuardian = async (studentId, data) => {
-  await axios.put(`${API_URL}/students/${studentId}/guardian`, data);
-  const updated = await fetchStudentById(studentId);
-  setStudentProfile(updated);
+  try {
+    await axios.put(`${API_URL}/students/${studentId}/guardian`, {
+      guardian: data, // ✅ FIX: wrap correctly
+    });
+
+    const updated = await fetchStudentById(studentId);
+    setStudentProfile(updated);
+  } catch (err) {
+    console.error("updateGuardian error:", err);
+  }
 };
 
 const updateMedical = async (studentId, data) => {

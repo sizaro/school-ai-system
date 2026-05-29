@@ -150,17 +150,39 @@ export const updateGuardian = async (req, res) => {
 // ===============================
 // UPDATE MEDICAL
 // ===============================
+
 export const updateMedical = async (req, res) => {
   try {
     const { id } = req.params;
-    const { medical } = req.body;
 
-    const updated = await updateMedicalByStudentId(id, medical);
+    console.log("📌 MEDICAL UPDATE START");
+    console.log("Student ID:", id);
+    console.log("BODY:", req.body);
 
-    res.json({ success: true, data: updated });
+    const data = req.body; // ✅ direct object
+
+    if (!data) {
+      return res.status(400).json({
+        success: false,
+        error: "No medical data received",
+      });
+    }
+
+    const updated = await updateMedicalByStudentId(id, data);
+
+    console.log("✅ MEDICAL UPDATED:", updated);
+
+    res.json({
+      success: true,
+      data: updated,
+    });
   } catch (err) {
-    console.error("Medical update error:", err);
-    res.status(500).json({ error: "Medical update failed" });
+    console.error("❌ Medical update error:", err);
+
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 };
 

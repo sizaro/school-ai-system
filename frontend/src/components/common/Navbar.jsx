@@ -212,7 +212,7 @@ export default function Navbar() {
   </div>
 
   {/* ACCOUNT */}
-  <div className="relative ml-4" ref={accountRef}>
+  <div className="relative ml-1" ref={accountRef}>
     <button
       onClick={toggleAccount}
       className="bg-blue-600 text-white px-4 py-2 rounded"
@@ -221,16 +221,16 @@ export default function Navbar() {
     </button>
 
     {accountOpen && (
-      <div className="absolute bg-white shadow rounded mt-1 w-36">
+      <div className="absolute bg-white -left-2 shadow rounded mt-1 w-36">
         <button
-          className="block w-full text-left px-4 py-2"
+          className="block w-full text-left px-1 py-2"
           onClick={() => setLoginOpen(true)}
         >
           Sign In
         </button>
 
         <button
-          className="block w-full text-left px-4 py-2"
+          className="block w-full text-left px-1 py-2"
           onClick={() => setRegisterOpen(true)}
         >
           Create Account

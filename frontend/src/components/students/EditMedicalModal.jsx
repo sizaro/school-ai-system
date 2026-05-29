@@ -1,54 +1,74 @@
 import { useState } from "react";
 import { useData } from "../../context/DataContext";
 
-export default function EditMedicalModal({ student, onClose, onUpdated }) {
+export default function EditMedicalModal({ student, onClose }) {
   const { updateMedical } = useData();
+
   const [formData, setFormData] = useState({
-    bloodGroup: student.blood_group,
-    medicalConditions: student.medical_conditions,
-    allergies: student.allergies,
+    blood_group: student.blood_group || "",
+    medical_conditions: student.medical_conditions || "",
+    allergies: student.allergies || "",
+    notes: student.medical_notes || "",
   });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await updateMedical(student.student_id, {medical:formData})
+
+    await updateMedical(student.student_id, formData);
+
     onClose();
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
       <div className="bg-white p-6 rounded shadow w-96">
-        <h2 className="text-lg font-bold mb-4">Edit Medical Info</h2>
+
+        <h2 className="text-lg font-bold mb-4">
+          Edit Medical Info
+        </h2>
+
         <form onSubmit={handleSubmit} className="space-y-3">
+
           <input
-            type="text"
-            name="bloodGroup"
-            value={formData.bloodGroup}
+            name="blood_group"
+            value={formData.blood_group}
             onChange={handleChange}
             placeholder="Blood Group"
             className="border p-2 w-full rounded"
           />
+
           <input
-            type="text"
-            name="medicalConditions"
-            value={formData.medicalConditions}
+            name="medical_conditions"
+            value={formData.medical_conditions}
             onChange={handleChange}
             placeholder="Medical Conditions"
             className="border p-2 w-full rounded"
           />
+
           <input
-            type="text"
             name="allergies"
             value={formData.allergies}
             onChange={handleChange}
             placeholder="Allergies"
             className="border p-2 w-full rounded"
           />
-          <div className="flex justify-end space-x-2">
+
+          <textarea
+            name="notes"
+            value={formData.notes}
+            onChange={handleChange}
+            placeholder="Notes"
+            className="border p-2 w-full rounded"
+          />
+
+          <div className="flex justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
@@ -56,6 +76,7 @@ export default function EditMedicalModal({ student, onClose, onUpdated }) {
             >
               Cancel
             </button>
+
             <button
               type="submit"
               className="px-4 py-2 bg-blue-600 text-white rounded"
@@ -63,6 +84,7 @@ export default function EditMedicalModal({ student, onClose, onUpdated }) {
               Save
             </button>
           </div>
+
         </form>
       </div>
     </div>
