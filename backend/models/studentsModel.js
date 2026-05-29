@@ -481,20 +481,29 @@ export const updateMedicalByStudentId = async (studentId, data) => {
 // ===============================
 // UPDATE ADMISSION BY STUDENT ID
 // ===============================
+
+
+
 export const updateAdmissionByStudentId = async (studentId, data) => {
   const query = `
     UPDATE admissions SET
-      class_level = $1,
+      class_id = $1,
       stream = $2,
       admission_date = $3,
-    WHERE student_id = $4
+      admission_number = $4,
+      registration_fee = $5,
+      receipt_number = $6
+    WHERE student_id = $7
     RETURNING *;
   `;
 
   const values = [
-    data.classLevel,
+    data.class_id,
     data.stream,
-    data.admissionDate,
+    data.admission_date,
+    data.admission_number,
+    data.registration_fee,
+    data.receipt_number,
     studentId,
   ];
 

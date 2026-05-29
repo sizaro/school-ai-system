@@ -192,14 +192,34 @@ export const updateMedical = async (req, res) => {
 export const updateAdmission = async (req, res) => {
   try {
     const { id } = req.params;
-    const { admission } = req.body;
-console.log("admission into the controller", admission)
-    const updated = await updateAdmissionByStudentId(id, admission);
 
-    res.json({ success: true, data: updated });
+    console.log("📌 ADMISSION UPDATE START");
+    console.log("Student ID:", id);
+    console.log("BODY:", req.body);
+
+    const data = req.body;
+
+    if (!data) {
+      return res.status(400).json({
+        success: false,
+        error: "Admission data missing",
+      });
+    }
+
+    const updated = await updateAdmissionByStudentId(id, data);
+
+    res.json({
+      success: true,
+      data: updated,
+    });
+
   } catch (err) {
-    console.error("Admission update error:", err);
-    res.status(500).json({ error: "Admission update failed" });
+    console.error("❌ Admission update error:", err);
+
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 };
 
