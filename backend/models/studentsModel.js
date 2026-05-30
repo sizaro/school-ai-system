@@ -271,6 +271,7 @@ export const fetchAllStudents = async () => {
   `;
 
   const result = await db.query(query);
+  console.log("students:", result.rows)
   return result.rows;
 };
 
