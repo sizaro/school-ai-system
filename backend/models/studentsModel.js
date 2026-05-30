@@ -186,10 +186,11 @@ export const updateStudentById = async (id, data) => {
 // ===============================
 // FETCH ALL STUDENTS (with finances)
 // ===============================
+
 export const fetchAllStudents = async () => {
   const query = `
     SELECT 
-      -- STUDENT
+      -- ================= STUDENT =================
       s.id AS student_id,
       s.first_name,
       s.last_name,
@@ -198,15 +199,16 @@ export const fetchAllStudents = async () => {
       s.photo_url,
       s.created_at,
 
-      -- USER
+      -- ================= USER =================
       u.email,
 
-      -- MEDICAL
+      -- ================= MEDICAL =================
       m.blood_group,
       m.medical_conditions,
       m.allergies,
+      m.notes AS medical_notes,
 
-      -- GUARDIAN
+      -- ================= GUARDIAN =================
       g.id AS guardian_id,
       g.first_name AS guardian_first_name,
       g.last_name AS guardian_last_name,
@@ -215,14 +217,15 @@ export const fetchAllStudents = async () => {
       sg.relationship,
       sg.is_primary,
 
-      -- ADMISSION
-      a.class_level,
+      -- ================= ADMISSION =================
+      a.class_id,
+      c.name AS class_name,
       a.stream,
       a.admission_date,
       a.registration_fee,
       a.receipt_number,
 
-      -- FINANCES aggregated as JSON array
+      -- ================= FINANCES =================
       COALESCE(f.finances, '[]') AS finances
 
     FROM students s
@@ -231,7 +234,7 @@ export const fetchAllStudents = async () => {
       ON s.user_id = u.id
 
     LEFT JOIN medical m
-      ON m.user_id = u.id
+      ON m.student_id = s.id
 
     LEFT JOIN student_guardians sg
       ON sg.student_id = s.id
@@ -242,22 +245,24 @@ export const fetchAllStudents = async () => {
     LEFT JOIN admissions a
       ON a.student_id = s.id
 
-    -- FINANCES aggregated
+    LEFT JOIN classes c
+      ON c.id = a.class_id
+
     LEFT JOIN LATERAL (
       SELECT json_agg(
-               json_build_object(
-                 'id', id,
-                 'type', type,
-                 'amount', amount,
-                 'payment_date', payment_date,
-                 'recorded_by', recorded_by,
-                 'receipt_number', receipt_number,
-                 'receipt_url', receipt_url,
-                 'payment_method', payment_method,
-                 'status', status,
-                 'notes', notes
-               )
-             ) AS finances
+        json_build_object(
+          'id', id,
+          'type', type,
+          'amount', amount,
+          'payment_date', payment_date,
+          'recorded_by', recorded_by,
+          'receipt_number', receipt_number,
+          'receipt_url', receipt_url,
+          'payment_method', payment_method,
+          'status', status,
+          'notes', notes
+        )
+      ) AS finances
       FROM finances
       WHERE student_id = s.id
     ) f ON true

@@ -87,16 +87,6 @@ export default function DirectorDashboard() {
         </ul>
       </div>
 
-      {/* ================= FILE UPLOAD ================= */}
-      <div className="bg-white rounded-xl shadow p-5">
-        <h2 className="text-lg font-semibold mb-4">
-          Upload Media (Video / PDF / Word)
-        </h2>
-
-        <FlexibleUpload />
-
-      </div>
-
       {/* ================= STUDENT WIZARD ================= */}
       <StudentWizard
         isOpen={isWizardOpen}

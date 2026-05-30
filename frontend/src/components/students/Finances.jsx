@@ -682,7 +682,7 @@ export default function Finances({ studentId }) {
                 );
               }
             }}
-            className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4"
+            className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 overflow-y-auto max-h-[80vh]"
           >
 
             <h2 className="text-2xl font-bold">
@@ -806,7 +806,7 @@ export default function Finances({ studentId }) {
 
           <form
             onSubmit={handleEditPayment}
-            className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4"
+            className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 overflow-y-auto max-h-[80vh]"
           >
 
             <h2 className="text-2xl font-bold">
