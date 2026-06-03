@@ -7,6 +7,11 @@ import Academics from "../../components/students/Academics";
 import Finances from "../../components/students/Finances";
 
 export default function StudentProfile() {
+
+  const staticBaseUrl =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5500"
+    : "https://salonmanagementsystemv2-ru0i.onrender.com";
   const { id } = useParams();
 
   const {
@@ -56,9 +61,9 @@ export default function StudentProfile() {
 
             <img
               src={
-                studentProfile.photo_url
+                  import.meta.env.MODE === "development"
                   ? `http://localhost:5500${studentProfile.photo_url}`
-                  : "/images/default-student.png"
+                  : `${studentProfile.photo_url}`
               }
               alt="student"
               className="w-24 h-24 rounded-full object-cover border-4 border-blue-500"

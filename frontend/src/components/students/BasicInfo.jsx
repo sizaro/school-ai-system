@@ -52,7 +52,9 @@ const getImageUrl = (path) => {
       <div className="relative w-54 h-34">
         <img
           ref={imageRef}
-          src={getImageUrl(studentProfile.photo_url)}
+          src={import.meta.env.MODE === "development"
+                  ? `http://localhost:5500${studentProfile.photo_url}`
+                  : `https://medanfoafricacommunityschool.onrender.com${studentProfile.photo_url}`}
           alt="Student"
           className="w-54 h-28 rounded-full object-cover border-2 border-blue-500"
         />
