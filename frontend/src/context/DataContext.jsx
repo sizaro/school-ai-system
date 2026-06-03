@@ -34,6 +34,7 @@ const [performance, setPerformance] = useState([]);
 //   secure: true
 // });
 
+console.log("API_URL =", API_URL);
 
 const uploadMultipleFiles = async (formData) => {
   try {
