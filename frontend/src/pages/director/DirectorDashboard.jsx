@@ -95,8 +95,8 @@ export default function DirectorDashboard() {
               {/* PHOTO */}
               <img
                 src={import.meta.env.MODE === "development"
-                  ? `http://localhost:5500${studentProfile.photo_url}`
-                  : `https://medanfoafricacommunityschool.onrender.com${studentProfile.photo_url}`}
+                  ? `http://localhost:5500${student.photo_url}`
+                  : `https://medanfoafricacommunityschool.onrender.com${student.photo_url}`}
                 alt="student"
                 className="w-14 h-14 rounded-full object-cover border"
               />
