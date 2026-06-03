@@ -161,7 +161,9 @@ export default function StudentsPage() {
                 {/* PHOTO */}
                 <td className="p-3">
                   <img
-                    src={s.photo_url || "/images/default-student.png"}
+                    src={import.meta.env.MODE === "development"
+                  ? `http://localhost:5500${s.photo_url}`
+                  : `https://medanfoafricacommunityschool.onrender.com${s.photo_url}`}
                     className="w-10 h-10 rounded-full object-cover"
                   />
                 </td>

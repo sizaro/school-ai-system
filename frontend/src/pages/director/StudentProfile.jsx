@@ -60,10 +60,9 @@ export default function StudentProfile() {
           <div className="flex items-center gap-4">
 
             <img
-              src={
-                  import.meta.env.MODE === "development"
+              src={import.meta.env.MODE === "development"
                   ? `http://localhost:5500${studentProfile.photo_url}`
-                  : `${studentProfile.photo_url}`
+                  : `https://medanfoafricacommunityschool.onrender.com${studentProfile.photo_url}`
               }
               alt="student"
               className="w-24 h-24 rounded-full object-cover border-4 border-blue-500"
