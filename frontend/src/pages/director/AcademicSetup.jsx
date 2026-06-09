@@ -48,6 +48,8 @@ export default function AcademicSetup() {
     deleteGrade, // ✅ NEW
   } = useData();
 
+  console.log("terms:",terms)
+
   // ---------------- TAB ----------------
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get("tab") || "terms";

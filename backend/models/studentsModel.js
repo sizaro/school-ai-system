@@ -386,7 +386,7 @@ export const deleteStudentById = async (id) => {
     await db.query("BEGIN");
 
     // delete dependent records first (VERY IMPORTANT)
-    await db.query("DELETE FROM payments WHERE student_id = $1", [id]);
+    await db.query("DELETE FROM finances WHERE student_id = $1", [id]);
     await db.query("DELETE FROM admissions WHERE student_id = $1", [id]);
 
     await db.query(

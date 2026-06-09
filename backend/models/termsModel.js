@@ -1,6 +1,5 @@
 import db from "./database.js";
 
-// Create term
 export const createTerm = async (data) => {
   try {
     const {
@@ -11,16 +10,19 @@ export const createTerm = async (data) => {
       recorded_by,
     } = data;
 
-    console.log("data in the models", name, academic_year, start_date, end_date, recorded_by )
-
     const result = await db.query(
-      `INSERT INTO terms (name, academic_year, start_date, end_date, recorded_by)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING *`,
+      `
+      INSERT INTO terms 
+        (name, academic_year, start_date, end_date, recorded_by, is_active)
+      VALUES 
+        ($1, $2, $3, $4, $5, TRUE)
+      RETURNING *
+      `,
       [name, academic_year, start_date, end_date, recorded_by]
     );
 
     return result.rows[0];
+
   } catch (err) {
     console.error("❌ createTerm DB error:", {
       message: err.message,
@@ -29,14 +31,23 @@ export const createTerm = async (data) => {
       hint: err.hint,
     });
 
-    // rethrow so controller handles response
     throw err;
   }
 };
 
-// Get all terms
+
 export const getTerms = async () => {
-  const result = await db.query(`SELECT * FROM terms ORDER BY id DESC`);
+  const result = await db.query(
+    `
+    SELECT * 
+    FROM terms 
+    WHERE is_active = TRUE
+    ORDER BY id DESC
+    `
+  );
+
+  console.log("📦 TERMS ROWS RETURNED:", result.rows);
+
   return result.rows;
 };
 
@@ -84,12 +95,23 @@ export const endTerm = async (id) => {
   return result.rows[0];
 };
 
-// Delete term
-export const deleteTermModel = async (id) => {
-  const result = await db.query(
-    `DELETE FROM terms WHERE id = $1 RETURNING *`,
-    [id]
-  );
 
-  return result.rows[0];
+export const deleteTermModel = async (id) => {
+  try {
+    const result = await db.query(
+      `
+      UPDATE terms
+      SET is_active = FALSE
+      WHERE id = $1
+      RETURNING *
+      `,
+      [id]
+    );
+
+    return result.rows[0];
+
+  } catch (err) {
+    console.log("SOFT DELETE TERM ERROR:", err.message);
+    throw err;
+  }
 };
