@@ -22,6 +22,8 @@ const [financeTypes, setFinanceTypes] = useState([]);
 const [financeStructures, setFinanceStructures] = useState([]);
 const [grades, setGrades] = useState([]);
 const [performance, setPerformance] = useState([]);
+const [chatOpen, setChatOpen] = useState(false);
+const [messages, setMessages] = useState([]);
 
   const navigate = useNavigate();
 
@@ -807,6 +809,42 @@ const deletePerformance = async (id) => {
   }
 };
 
+const sendMessage = async (question) => {
+  try {
+    const res = await axios.post(`${API_URL}/ask`, {
+      question,
+    });
+
+    const answer = res.data.answer;
+
+    const newMessages = [
+      ...messages,
+      { role: "user", text: question },
+      { role: "ai", text: answer },
+    ];
+
+    setMessages(newMessages);
+    localStorage.setItem("chat_messages", JSON.stringify(newMessages));
+
+    return answer;
+  } catch (err) {
+    console.error("Chat error:", err);
+    return "Error getting response";
+  }
+};
+
+const closeChat = () => {
+  setChatOpen(false);
+  setMessages([]);
+  localStorage.removeItem("chat_messages");
+};
+
+useEffect(() => {
+  const saved = localStorage.getItem("chat_messages");
+  if (saved) {
+    setMessages(JSON.parse(saved));
+  }
+}, []);
 
 useEffect(() => {
   fetchFinanceTypes();
@@ -842,6 +880,12 @@ useEffect(() => {
         financeStructures,
         grades,
         performance,
+        chatOpen,
+        messages,
+        setChatOpen,
+        setMessages,
+        sendMessage,
+        closeChat,
         uploadMultipleFiles,
         fetchUsers,
         fetchUserById,
