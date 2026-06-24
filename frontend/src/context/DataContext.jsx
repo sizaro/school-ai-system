@@ -5,6 +5,7 @@ import { io } from "socket.io-client";
 
 
 
+
 const DataContext = createContext();
 
 
@@ -29,6 +30,7 @@ const [messages, setMessages] = useState([]);
 
   const SOCKET_API_URL = import.meta.env.VITE_API_URL || "https://medanfoafricacommunityschool.onrender.com";
   const API_URL = import.meta.env.VITE_API_URL || "/api";
+  const VITE_AI_API_URL = import.meta.env.VITE_AI_API_URL;
 
 //   const socket = io(SOCKET_API_URL.replace("/api", ""), {
 //     withCredentials: true,
@@ -37,6 +39,7 @@ const [messages, setMessages] = useState([]);
 // });
 
 console.log("API_URL =", API_URL);
+console.log("VITE_AI_API_URL =", VITE_AI_API_URL);
 
 const uploadMultipleFiles = async (formData) => {
   try {
@@ -811,25 +814,25 @@ const deletePerformance = async (id) => {
 
 const sendMessage = async (question) => {
   try {
-    const res = await axios.post(`${API_URL}/ask`, {
+    const res = await axios.post(`${VITE_AI_API_URL}/ask`, {
       question,
     });
 
     const answer = res.data.answer;
 
-    const newMessages = [
+    const updatedMessages = [
       ...messages,
       { role: "user", text: question },
       { role: "ai", text: answer },
     ];
 
-    setMessages(newMessages);
-    localStorage.setItem("chat_messages", JSON.stringify(newMessages));
+    setMessages(updatedMessages);
+    localStorage.setItem("chat_messages", JSON.stringify(updatedMessages));
 
     return answer;
   } catch (err) {
     console.error("Chat error:", err);
-    return "Error getting response";
+    return "AI service not responding";
   }
 };
 
