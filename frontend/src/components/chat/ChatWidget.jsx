@@ -35,10 +35,11 @@ export default function ChatWidget() {
 const styles = {
   wrapper: {
     position: "fixed",
-    bottom: "90px",
+    top:"20px",
+    bottom: "70px",
     right: "20px",
-    width: "360px",
-    height: "520px",
+    width: "300px",
+    height: "400px",
     background: "#ffffff",
     borderRadius: "16px",
     boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
